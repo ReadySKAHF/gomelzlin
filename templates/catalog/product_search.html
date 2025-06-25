@@ -8,65 +8,60 @@
     <div style="margin-bottom: 2rem; color: var(--secondary-gray);">
         <a href="{% url 'core:home' %}" style="color: var(--primary-red);">Главная</a> / 
         <a href="{% url 'catalog:product_list' %}" style="color: var(--primary-red);">Каталог</a> / 
-        {% if category.parent %}
-            <a href="{{ category.parent.get_absolute_url }}" style="color: var(--primary-red);">{{ category.parent.name }}</a> / 
-        {% endif %}
-        <span>{{ category.name }}</span>
+        <span>Поиск</span>
     </div>
     
-    <h1>{{ category.name }}</h1>
-    {% if category.description %}
-        <p style="color: var(--secondary-gray); margin-bottom: 2rem;">{{ category.description }}</p>
-    {% endif %}
+    <h1>Поиск товаров</h1>
     
-    {% if show_subcategories %}
-        <!-- Показываем подкатегории -->
-        <h2 style="margin-bottom: 2rem;">Подкатегории</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-            {% for subcategory in subcategories %}
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s; cursor: pointer;"
-                 onclick="window.location.href='{{ subcategory.get_absolute_url }}'">
-                <img src="{{ subcategory.image }}" alt="{{ subcategory.name }}" 
-                     style="width: 100%; height: 200px; object-fit: cover;">
-                <div style="padding: 1.5rem;">
-                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">{{ subcategory.name }}</h3>
-                    <p style="color: var(--secondary-gray); margin-bottom: 1rem;">{{ subcategory.product_count }} товаров</p>
-                    {% if subcategory.description %}
-                        <p>{{ subcategory.description|truncatewords:20 }}</p>
+    <!-- Форма поиска -->
+    <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; margin-bottom: 2rem;">
+        <form method="get" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: end;">
+            <div style="flex: 1; min-width: 250px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Поиск по названию, артикулу или описанию</label>
+                <input type="text" name="q" value="{{ query }}" placeholder="Введите запрос..." 
+                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+            </div>
+            <div style="min-width: 200px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Категория</label>
+                <select name="category" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category.id|stringformat:"s" == selected_category %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+                🔍 Поиск
+            </button>
+        </form>
+    </div>
+    
+    <!-- Результаты поиска -->
+    {% if query or selected_category %}
+        <div style="margin-bottom: 2rem;">
+            <h2>Результаты поиска</h2>
+            {% if query %}
+                <p style="color: var(--secondary-gray);">По запросу: <strong>"{{ query }}"</strong></p>
+            {% endif %}
+            {% if selected_category %}
+                {% for category in categories %}
+                    {% if category.id|stringformat:"s" == selected_category %}
+                        <p style="color: var(--secondary-gray);">В категории: <strong>{{ category.name }}</strong></p>
                     {% endif %}
-                </div>
-            </div>
-            {% empty %}
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                <p>Подкатегории не найдены</p>
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <!-- Показываем товары -->
-        
-        <!-- Фильтры и сортировка -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <select style="padding: 0.5rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                    <option>Все товары</option>
-                    <option>В наличии</option>
-                    <option>Под заказ</option>
-                </select>
-                <select style="padding: 0.5rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                    <option>Сортировка по умолчанию</option>
-                    <option>По цене (возрастание)</option>
-                    <option>По цене (убывание)</option>
-                    <option>По названию</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-outline btn-sm" onclick="toggleView('grid')" id="gridBtn">⊞ Плитка</button>
-                <button class="btn btn-outline btn-sm" onclick="toggleView('list')" id="listBtn">☰ Список</button>
-            </div>
+                {% endfor %}
+            {% endif %}
+            <p style="color: var(--secondary-gray);">Найдено товаров: <strong>{{ products|length }}</strong></p>
         </div>
         
         {% if products %}
+            <!-- Переключатель вида -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem;">
+                <button class="btn btn-outline btn-sm" onclick="toggleView('grid')" id="gridBtn">⊞ Плитка</button>
+                <button class="btn btn-outline btn-sm" onclick="toggleView('list')" id="listBtn">☰ Список</button>
+            </div>
+            
             <!-- Сетка товаров -->
             <div id="productGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem;">
                 {% for product in products %}
@@ -86,12 +81,12 @@
                         {% if product.article %}
                             <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
                         {% endif %}
+                        <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">{{ product.category.name }}</p>
                         
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
                                     {{ product.price }} BYN
-                                    {% if product.unit != 'pcs' %} / {{ product.get_unit_display }}{% endif %}
                                 </div>
                                 {% if product.old_price and product.old_price > product.price %}
                                     <div style="font-size: 0.9rem; color: var(--secondary-gray); text-decoration: line-through;">{{ product.old_price }} BYN</div>
@@ -106,9 +101,6 @@
                         <div style="margin-top: 0.5rem;">
                             {% if product.is_in_stock %}
                                 <span style="color: #28a745; font-size: 0.9rem;">✓ В наличии</span>
-                                {% if product.stock_quantity <= product.min_stock_level %}
-                                    <span style="color: #ffc107; font-size: 0.8rem;">(осталось мало)</span>
-                                {% endif %}
                             {% else %}
                                 <span style="color: #dc3545; font-size: 0.9rem;">✗ Нет в наличии</span>
                             {% endif %}
@@ -137,6 +129,7 @@
                         {% if product.article %}
                             <p style="color: var(--secondary-gray); margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
                         {% endif %}
+                        <p style="color: var(--secondary-gray); margin-bottom: 0.5rem;">Категория: {{ product.category.name }}</p>
                         {% if product.short_description %}
                             <p style="color: var(--dark-gray);">{{ product.short_description|truncatewords:20 }}</p>
                         {% endif %}
@@ -162,34 +155,44 @@
             </div>
             
             <!-- Пагинация -->
-            {% if products.has_other_pages %}
+            {% if is_paginated %}
             <div style="display: flex; justify-content: center; margin-top: 3rem;">
                 <div style="display: flex; gap: 0.5rem;">
-                    {% if products.has_previous %}
-                        <a href="?page=1" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Первая</a>
-                        <a href="?page={{ products.previous_page_number }}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Назад</a>
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Первая</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Назад</a>
                     {% endif %}
                     
                     <span style="padding: 0.5rem 1rem; border: 1px solid var(--primary-red); background: var(--primary-red); color: white; border-radius: 5px;">
-                        {{ products.number }} из {{ products.paginator.num_pages }}
+                        {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
                     </span>
                     
-                    {% if products.has_next %}
-                        <a href="?page={{ products.next_page_number }}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Далее</a>
-                        <a href="?page={{ products.paginator.num_pages }}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Последняя</a>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Далее</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Последняя</a>
                     {% endif %}
                 </div>
             </div>
             {% endif %}
             
         {% else %}
-            <!-- Нет товаров -->
+            <!-- Нет результатов -->
             <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
-                <h3>В данной категории пока нет товаров</h3>
-                <p>Товары появятся в ближайшее время</p>
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                <h3>Товары не найдены</h3>
+                <p>Попробуйте изменить критерии поиска или просмотрите весь каталог</p>
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-primary" style="margin-top: 1rem;">
+                    Перейти в каталог
+                </a>
             </div>
         {% endif %}
+    {% else %}
+        <!-- Начальное состояние -->
+        <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3>Поиск товаров</h3>
+            <p>Введите запрос в поле поиска выше для поиска товаров</p>
+        </div>
     {% endif %}
 </div>
 
@@ -248,8 +251,11 @@ function addToCart(productId) {
 
 // Инициализация вида сетки
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('gridBtn').classList.add('btn-primary');
-    document.getElementById('gridBtn').classList.remove('btn-outline');
+    const gridBtn = document.getElementById('gridBtn');
+    if (gridBtn) {
+        gridBtn.classList.add('btn-primary');
+        gridBtn.classList.remove('btn-outline');
+    }
 });
 </script>
 

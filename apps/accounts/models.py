@@ -1,8 +1,36 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
-from apps.core.models import AbstractBaseModel
+
+
+class UserManager(BaseUserManager):
+    """Менеджер для пользовательской модели User"""
+    
+    def create_user(self, email, password=None, **extra_fields):
+        """Создает и сохраняет обычного пользователя"""
+        if not email:
+            raise ValueError('Email обязателен')
+        
+        email = self.normalize_email(email)
+        extra_fields.setdefault('username', email)  # Устанавливаем username = email
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+    def create_superuser(self, email, password=None, **extra_fields):
+        """Создает и сохраняет суперпользователя"""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('user_type', 'admin')
+        
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Суперпользователь должен иметь is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Суперпользователь должен иметь is_superuser=True.')
+        
+        return self.create_user(email, password, **extra_fields)
 
 
 class User(AbstractUser):
@@ -77,8 +105,14 @@ class User(AbstractUser):
         default=0
     )
     
+    # Даты
+    created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
+    
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+    
+    objects = UserManager()  # Используем наш пользовательский менеджер
     
     class Meta:
         verbose_name = _('Пользователь')
@@ -113,7 +147,7 @@ class User(AbstractUser):
         return self.user_type in ['admin', 'manager'] or self.is_staff
 
 
-class UserProfile(AbstractBaseModel):
+class UserProfile(models.Model):
     """
     Расширенный профиль пользователя
     """
@@ -216,6 +250,10 @@ class UserProfile(AbstractBaseModel):
         help_text=_('Внутренние заметки для администрации')
     )
     
+    # Даты
+    created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
+    
     class Meta:
         verbose_name = _('Профиль пользователя')
         verbose_name_plural = _('Профили пользователей')
@@ -233,7 +271,7 @@ class UserProfile(AbstractBaseModel):
         return ', '.join(filter(None, address_parts))
 
 
-class CompanyProfile(AbstractBaseModel):
+class CompanyProfile(models.Model):
     """
     Профиль компании для юридических лиц
     """
@@ -345,6 +383,10 @@ class CompanyProfile(AbstractBaseModel):
         blank=True,
         null=True
     )
+    
+    # Даты
+    created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
     
     class Meta:
         verbose_name = _('Профиль компании')
