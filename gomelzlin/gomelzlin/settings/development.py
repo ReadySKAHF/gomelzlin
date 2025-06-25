@@ -1,4 +1,5 @@
 from .base import *
+import os
 
 # Debug settings
 DEBUG = True
@@ -6,14 +7,14 @@ DEBUG = True
 # Allowed hosts for development
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
-# Debug Toolbar
-INSTALLED_APPS += [
-    'debug_toolbar',
-]
+# Debug Toolbar (добавим позже, когда основное заработает)
+# INSTALLED_APPS += [
+#     'debug_toolbar',
+# ]
 
-MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-] + MIDDLEWARE
+# MIDDLEWARE = [
+#     'debug_toolbar.middleware.DebugToolbarMiddleware',
+# ] + MIDDLEWARE
 
 # Debug Toolbar settings
 INTERNAL_IPS = [
@@ -21,15 +22,10 @@ INTERNAL_IPS = [
     'localhost',
 ]
 
-# Debug Toolbar configuration
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
-}
-
 # Email backend for development
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Database for development
+# Database for development - PostgreSQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -41,7 +37,7 @@ DATABASES = {
     }
 }
 
-# Cache for development (можно использовать dummy cache)
+# Cache for development (используем простой локальный кэш)
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -55,8 +51,9 @@ STATICFILES_DIRS = [
 ]
 
 # Logging for development
-LOGGING['loggers']['django']['level'] = 'DEBUG'
-LOGGING['loggers']['apps']['level'] = 'DEBUG'
+if 'LOGGING' in locals():
+    LOGGING['loggers']['django']['level'] = 'DEBUG'
+    LOGGING['loggers']['apps']['level'] = 'DEBUG'
 
 # CORS settings for development
 CORS_ALLOW_ALL_ORIGINS = True
@@ -78,6 +75,5 @@ SECURE_HSTS_PRELOAD = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
-# Development-specific settings
-SHELL_PLUS_PRINT_SQL = True
-SHELL_PLUS_PRINT_SQL_TRUNCATE = 1000
+# Отключаем некоторые сложные настройки для начальной настройки
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Используем БД вместо Redis
