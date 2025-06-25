@@ -184,9 +184,10 @@ class Customer(AbstractBaseModel):
         verbose_name=_('Персональный менеджер'),
         limit_choices_to={'user_type__in': ['admin', 'manager']}
     )
-    notes = models.TextField(
-        _('Заметки'),
-        blank=True
+    internal_notes = models.TextField(
+        _('Внутренние заметки'),
+        blank=True,
+        help_text=_('Внутренние заметки для администрации')
     )
     
     # Настройки уведомлений
@@ -264,3 +265,122 @@ class Customer(AbstractBaseModel):
             'total_orders', 'total_spent', 'average_order_value', 
             'last_order_date', 'status'
         ])
+
+
+class CustomerTag(AbstractBaseModel):
+    """
+    Теги для клиентов
+    """
+    name = models.CharField(
+        _('Название'),
+        max_length=50,
+        unique=True
+    )
+    color = models.CharField(
+        _('Цвет'),
+        max_length=7,
+        default='#007bff',
+        help_text=_('Цвет в формате HEX (#000000)')
+    )
+    description = models.TextField(
+        _('Описание'),
+        blank=True
+    )
+    
+    class Meta:
+        verbose_name = _('Тег клиента')
+        verbose_name_plural = _('Теги клиентов')
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+
+class CustomerTagAssignment(models.Model):
+    """
+    Связь клиентов с тегами
+    """
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name='tags',
+        verbose_name=_('Клиент')
+    )
+    tag = models.ForeignKey(
+        CustomerTag,
+        on_delete=models.CASCADE,
+        related_name='customers',
+        verbose_name=_('Тег')
+    )
+    assigned_at = models.DateTimeField(
+        _('Дата присвоения'),
+        auto_now_add=True
+    )
+    assigned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Присвоил')
+    )
+    
+    class Meta:
+        unique_together = ['customer', 'tag']
+        verbose_name = _('Тег клиента')
+        verbose_name_plural = _('Теги клиентов')
+    
+    def __str__(self):
+        return f'{self.customer} - {self.tag}'
+
+
+class CustomerNote(AbstractBaseModel):
+    """
+    Заметки о клиентах
+    """
+    NOTE_TYPES = [
+        ('general', _('Общая')),
+        ('call', _('Звонок')),
+        ('meeting', _('Встреча')),
+        ('email', _('Email')),
+        ('complaint', _('Жалоба')),
+        ('compliment', _('Благодарность')),
+    ]
+    
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name='customer_notes',  # Изменили related_name, чтобы избежать конфликта
+        verbose_name=_('Клиент')
+    )
+    note_type = models.CharField(
+        _('Тип заметки'),
+        max_length=20,
+        choices=NOTE_TYPES,
+        default='general'
+    )
+    title = models.CharField(
+        _('Заголовок'),
+        max_length=200
+    )
+    content = models.TextField(
+        _('Содержание')
+    )
+    is_important = models.BooleanField(
+        _('Важная'),
+        default=False
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Автор')
+    )
+    
+    class Meta:
+        verbose_name = _('Заметка о клиенте')
+        verbose_name_plural = _('Заметки о клиентах')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f'{self.customer} - {self.title}'

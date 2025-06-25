@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}Политики компании - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <h1>Политики компании</h1>
+    
+    <!-- Навигация по разделам -->
+    <div style="display: flex; gap: 1rem; margin: 2rem 0; flex-wrap: wrap;">
+        <button class="section-btn active" onclick="showSection('hr')" style="padding: 0.7rem 1.5rem; background: var(--primary-red); color: white; border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+            Кадровая политика
+        </button>
+        <button class="section-btn" onclick="showSection('social')" style="padding: 0.7rem 1.5rem; background: var(--light-gray); color: var(--dark-gray); border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+            Социальная политика
+        </button>
+        <button class="section-btn" onclick="showSection('quality')" style="padding: 0.7rem 1.5rem; background: var(--light-gray); color: var(--dark-gray); border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+            Политика качества
+        </button>
+        <button class="section-btn" onclick="showSection('environment')" style="padding: 0.7rem 1.5rem; background: var(--light-gray); color: var(--dark-gray); border: none; border-radius: 25px; cursor: pointer; transition: all 0.3s;">
+            Экологическая политика
+        </button>
+    </div>
+    
+    <!-- Кадровая политика -->
+    <div id="section-hr" class="policy-section active">
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 3rem;">
+            <h2 style="color: var(--primary-red); margin-bottom: 2rem;">Кадровая политика</h2>
+            
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Кадровая политика ОАО "ГЗЛиН" направлена на создание профессиональной команды высококвалифицированных специалистов, 
+                способных обеспечить устойчивое развитие предприятия и достижение стратегических целей компании.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="border-left: 4px solid var(--primary-red); padding-left: 1.5rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">🎯 Основные принципы</h3>
+                    <ul style="list-style-position: inside; line-height: 1.8;">
+                        <li>Справедливое вознаграждение за труд</li>
+                        <li>Обеспечение безопасных условий труда</li>
+                        <li>Равные возможности для всех сотрудников</li>
+                        <li>Профессиональное развитие персонала</li>
+                        <li>Социальная поддержка работников</li>
+                    </ul>
+                </div>
+                
+                <div style="border-left: 4px solid var(--primary-red); padding-left: 1.5rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">📚 Обучение и развитие</h3>
+                    <ul style="list-style-position: inside; line-height: 1.8;">
+                        <li>Программы повышения квалификации</li>
+                        <li>Профессиональная переподготовка</li>
+                        <li>Участие в семинарах и конференциях</li>
+                        <li>Внутрикорпоративное обучение</li>
+                        <li>Наставничество молодых специалистов</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: var(--light-gray); border-radius: 10px; padding: 2rem; margin: 2rem 0;">
+                <h3 style="color: var(--primary-red); margin-bottom: 1rem;">💼 Карьерный рост</h3>
+                <p style="line-height: 1.8;">
+                    Предприятие предоставляет возможности для карьерного роста сотрудников, основанные на их профессиональных 
+                    достижениях, инициативности и стремлении к развитию. Мы поддерживаем внутренние перемещения и продвижения, 
+                    приоритетно рассматривая кандидатуры внутренних сотрудников при открытии новых позиций.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Социальная политика -->
+    <div id="section-social" class="policy-section" style="display: none;">
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 3rem;">
+            <h2 style="color: var(--primary-red); margin-bottom: 2rem;">Социальная политика</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 3rem; margin: 2rem 0;">
+                <div>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1.5rem; font-size: 1.3rem;">
+                        🌱 ЗАЩИТА ОКРУЖАЮЩЕЙ СРЕДЫ
+                    </h3>
+                    <p style="line-height: 1.8; margin-bottom: 1rem;">
+                        Внедрение экологически чистых технологий и минимизация воздействия на окружающую среду. 
+                        Постоянный мониторинг выбросов и соблюдение экологических стандартов.
+                    </p>
+                    <ul style="list-style-position: inside; line-height: 1.6;">
+                        <li>Модернизация очистных сооружений</li>
+                        <li>Внедрение энергосберегающих технологий</li>
+                        <li>Программы по сокращению отходов</li>
+                        <li>Озеленение территории предприятия</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1.5rem; font-size: 1.3rem;">
+                        🛡️ ОБЕСПЕЧЕНИЕ БЕЗОПАСНОСТИ СОТРУДНИКОВ
+                    </h3>
+                    <p style="line-height: 1.8; margin-bottom: 1rem;">
+                        Создание безопасных условий труда, регулярные инструктажи по технике безопасности, 
+                        обеспечение современными средствами защиты.
+                    </p>
+                    <ul style="list-style-position: inside; line-height: 1.6;">
+                        <li>Регулярные медицинские осмотры</li>
+                        <li>Обеспечение спецодеждой и СИЗ</li>
+                        <li>Обучение безопасным методам работы</li>
+                        <li>Страхование от несчастных случаев</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: var(--light-gray); border-radius: 10px; padding: 2rem; margin: 2rem 0;">
+                <h3 style="color: var(--primary-red); margin-bottom: 1.5rem; font-size: 1.3rem;">
+                    📚 ОБРАЗОВАТЕЛЬНЫЕ ПРОЕКТЫ ОАО "ГЗЛиН"
+                </h3>
+                <p style="line-height: 1.8; margin-bottom: 1.5rem;">
+                    Сотрудничество с учебными заведениями, организация производственной практики для студентов, 
+                    поддержка молодых специалистов и реализация образовательных инициатив.
+                </p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div style="text-align: center;">
+                        <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&h=200&fit=crop" 
+                             alt="Образование" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4>Стипендиальные программы</h4>
+                    </div>
+                    <div style="text-align: center;">
+                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=200&fit=crop" 
+                             alt="Практика" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4>Производственная практика</h4>
+                    </div>
+                    <div style="text-align: center;">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop" 
+                             alt="Молодые специалисты" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4>Поддержка молодых специалистов</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Политика качества -->
+    <div id="section-quality" class="policy-section" style="display: none;">
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 3rem;">
+            <h2 style="color: var(--primary-red); margin-bottom: 2rem;">Политика качества</h2>
+            
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                ОАО "ГЗЛиН" придерживается высочайших стандартов качества во всех аспектах производственной деятельности, 
+                стремясь превзойти ожидания клиентов и обеспечить надежность продукции.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="background: var(--light-gray); border-radius: 10px; padding: 2rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">🔬 Контроль качества</h3>
+                    <ul style="list-style-position: inside; line-height: 1.8;">
+                        <li>Входной контроль сырья и материалов</li>
+                        <li>Пооперационный контроль производства</li>
+                        <li>Финальная проверка готовой продукции</li>
+                        <li>Лабораторные испытания</li>
+                    </ul>
+                </div>
+                
+                <div style="background: var(--light-gray); border-radius: 10px; padding: 2rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">📜 Сертификация</h3>
+                    <ul style="list-style-position: inside; line-height: 1.8;">
+                        <li>Соответствие ГОСТ и международным стандартам</li>
+                        <li>Сертификаты соответствия на всю продукцию</li>
+                        <li>Регулярная аттестация испытательной лаборатории</li>
+                        <li>Аудиты системы менеджмента качества</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Экологическая политика -->
+    <div id="section-environment" class="policy-section" style="display: none;">
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 3rem;">
+            <h2 style="color: var(--primary-red); margin-bottom: 2rem;">Экологическая политика</h2>
+            
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                Экологическая ответственность является неотъемлемой частью корпоративной культуры ОАО "ГЗЛиН". 
+                Мы стремимся минимизировать воздействие на окружающую среду и содействовать устойчивому развитию.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                <div style="text-align: center; padding: 2rem; border-radius: 10px; background: rgba(40, 167, 69, 0.1);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">♻️</div>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Переработка отходов</h3>
+                    <p>Внедрение систем раздельного сбора и переработки производственных отходов</p>
+                </div>
+                
+                <div style="text-align: center; padding: 2rem; border-radius: 10px; background: rgba(23, 162, 184, 0.1);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💧</div>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Очистка воды</h3>
+                    <p>Современные системы очистки сточных вод и замкнутые циклы водопользования</p>
+                </div>
+                
+                <div style="text-align: center; padding: 2rem; border-radius: 10px; background: rgba(255, 193, 7, 0.1);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">⚡</div>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Энергоэффективность</h3>
+                    <p>Внедрение энергосберегающих технологий и возобновляемых источников энергии</p>
+                </div>
+                
+                <div style="text-align: center; padding: 2rem; border-radius: 10px; background: rgba(40, 167, 69, 0.1);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🌳</div>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Озеленение</h3>
+                    <p>Программы по озеленению территории предприятия и прилегающих территорий</p>
+                </div>
+            </div>
+            
+            <div style="background: var(--light-gray); border-radius: 10px; padding: 2rem; margin: 2rem 0;">
+                <h3 style="color: var(--primary-red); margin-bottom: 1rem;">🎯 Экологические цели на 2025 год</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--primary-red);">-15%</div>
+                        <div>Сокращение выбросов</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--primary-red);">-20%</div>
+                        <div>Снижение потребления воды</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--primary-red);">80%</div>
+                        <div>Переработка отходов</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: var(--primary-red);">-10%</div>
+                        <div>Снижение энергопотребления</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.section-btn.active {
+    background: var(--primary-red) !important;
+    color: white !important;
+}
+
+.section-btn:hover {
+    background: var(--primary-red) !important;
+    color: white !important;
+}
+
+.policy-section {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<script>
+function showSection(sectionName) {
+    // Скрыть все секции
+    document.querySelectorAll('.policy-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Убрать активный класс со всех кнопок
+    document.querySelectorAll('.section-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = 'var(--light-gray)';
+        btn.style.color = 'var(--dark-gray)';
+    });
+    
+    // Показать выбранную секцию
+    document.getElementById('section-' + sectionName).style.display = 'block';
+    
+    // Добавить активный класс к нажатой кнопке
+    event.target.classList.add('active');
+    event.target.style.background = 'var(--primary-red)';
+    event.target.style.color = 'white';
+}
+</script>
+{% endblock %}

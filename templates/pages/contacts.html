@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Контакты - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <h1>Контакты</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-top: 2rem;">
+        <!-- Основная информация -->
+        <div>
+            <h2>Основная информация</h2>
+            <div style="background: var(--light-gray); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
+                <p style="margin-bottom: 1rem;">
+                    <strong>📍 Адрес:</strong><br>
+                    {{ company_info.address|default:"246000, г. Гомель, ул. Промышленная, 15" }}
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>📞 Телефон:</strong><br>
+                    <a href="tel:{{ company_info.phone|default:'+375232123456' }}" style="color: var(--primary-red);">
+                        {{ company_info.phone|default:"+375 232 12-34-56" }}
+                    </a>
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>📠 Факс:</strong><br>
+                    +375 232 12-34-57
+                </p>
+                <p style="margin-bottom: 1rem;">
+                    <strong>📧 Email:</strong><br>
+                    <a href="mailto:{{ company_info.email|default:'info@gomelzlin.by' }}" style="color: var(--primary-red);">
+                        {{ company_info.email|default:"info@gomelzlin.by" }}
+                    </a>
+                </p>
+                <p>
+                    <strong>⏰ Режим работы:</strong><br>
+                    {{ company_info.working_hours|default:"Пн-Пт: 8:00-17:00<br>Сб-Вс: выходной"|safe }}
+                </p>
+            </div>
+            
+            <!-- Отделы -->
+            <h3 style="margin-bottom: 1rem;">Отделы</h3>
+            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 1.5rem;">
+                <div style="margin-bottom: 1rem;">
+                    <strong>📈 Отдел продаж:</strong><br>
+                    <a href="mailto:sales@gomelzlin.by" style="color: var(--primary-red);">sales@gomelzlin.by</a><br>
+                    <a href="tel:+375232123458" style="color: var(--primary-red);">+375 232 12-34-58</a>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>🔧 Технический отдел:</strong><br>
+                    <a href="mailto:tech@gomelzlin.by" style="color: var(--primary-red);">tech@gomelzlin.by</a><br>
+                    <a href="tel:+375232123457" style="color: var(--primary-red);">+375 232 12-34-57</a>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong>💰 Бухгалтерия:</strong><br>
+                    <a href="mailto:accounting@gomelzlin.by" style="color: var(--primary-red);">accounting@gomelzlin.by</a><br>
+                    <a href="tel:+375232123459" style="color: var(--primary-red);">+375 232 12-34-59</a>
+                </div>
+                <div>
+                    <strong>👥 Отдел кадров:</strong><br>
+                    <a href="mailto:hr@gomelzlin.by" style="color: var(--primary-red);">hr@gomelzlin.by</a><br>
+                    <a href="tel:+375232123460" style="color: var(--primary-red);">+375 232 12-34-60</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Местоположение и карта -->
+        <div>
+            <h2>Местоположение</h2>
+            <div style="width: 100%; height: 400px; background: var(--light-gray); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray); margin-bottom: 2rem; position: relative;">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+                    <p style="font-size: 1.1rem;">Здесь будет Яндекс карта с отметкой завода в Гомеле</p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Координаты: 52.4345° N, 30.9754° E</p>
+                </div>
+                <!-- Placeholder для будущей интеграции с Яндекс Картами -->
+                <div id="yandex-map" style="position: absolute; width: 100%; height: 100%; border-radius: 10px;"></div>
+            </div>
+            
+            <!-- Фото здания -->
+            <div>
+                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop" 
+                     alt="Здание завода ГЗЛиН" 
+                     style="width: 100%; height: 250px; object-fit: cover; border-radius: 10px; box-shadow: var(--shadow);">
+                <p style="text-align: center; margin-top: 0.5rem; color: var(--secondary-gray); font-size: 0.9rem;">
+                    Главное здание ОАО "Гомельский завод литейных изделий и нормалей"
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Форма обратной связи -->
+    <div style="margin-top: 4rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Напишите нам</h2>
+        <div style="max-width: 800px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 3rem;">
+            <form method="post" id="contactForm">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Имя *</label>
+                        <input type="text" name="name" required 
+                               style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email *</label>
+                        <input type="email" name="email" required 
+                               style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Телефон</label>
+                        <input type="tel" name="phone" placeholder="+375 XX XXX-XX-XX"
+                               style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Тема обращения *</label>
+                        <select name="subject" required 
+                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                            <option value="">Выберите тему</option>
+                            <option value="general">Общие вопросы</option>
+                            <option value="sales">Вопросы по продукции</option>
+                            <option value="support">Техническая поддержка</option>
+                            <option value="partnership">Сотрудничество</option>
+                            <option value="careers">Трудоустройство</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Сообщение *</label>
+                    <textarea name="message" rows="6" required placeholder="Опишите ваш вопрос подробно..."
+                              style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+                        Отправить сообщение
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Схема проезда -->
+    <div style="margin-top: 4rem; background: var(--light-gray); border-radius: 10px; padding: 3rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-red);">Как добраться</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚗</div>
+                <h3 style="margin-bottom: 1rem;">На автомобиле</h3>
+                <p>Из центра Гомеля по ул. Советской до ул. Промышленной, далее 500 метров до завода. Есть парковка для посетителей.</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚌</div>
+                <h3 style="margin-bottom: 1rem;">Общественный транспорт</h3>
+                <p>Автобусы №12, 15, 28 до остановки "Промышленная". Далее 200 метров пешком до главного входа.</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🚕</div>
+                <h3 style="margin-bottom: 1rem;">Такси</h3>
+                <p>Заказ такси до адреса: г. Гомель, ул. Промышленная, 15. Время в пути от центра города - 15-20 минут.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Инициализация Яндекс Карты (заглушка)
+function initYandexMap() {
+    // Здесь будет код инициализации Яндекс Карты
+    console.log('Yandex Map will be initialized here');
+}
+
+// Обработка формы обратной связи
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Здесь будет AJAX отправка формы
+    alert('Спасибо за ваше сообщение! Мы свяжемся с вами в ближайшее время.');
+    this.reset();
+});
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    initYandexMap();
+});
+</script>
+
+<!-- Подключение Яндекс Карт API -->
+<script src="https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU" type="text/javascript"></script>
+{% endblock %}
