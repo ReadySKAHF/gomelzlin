@@ -57,13 +57,29 @@ class Category(AbstractBaseModel, SeoModel):
         return self.name
     
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        if not self.slug and self.name:
+            # Создаем slug из названия
+            base_slug = slugify(self.name)
+        
+            # Проверяем уникальность
+            slug = base_slug
+            counter = 1
+            while Category.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+        
+            self.slug = slug
+        elif not self.slug:
+            # Если нет ни slug'а, ни названия, создаем временный slug
+            self.slug = f"category-{self.pk or 'new'}"
+    
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
+    # Проверяем, что slug не пустой
+        if not self.slug:
+            return '#'  # Возвращаем заглушку
         return reverse('catalog:category_detail', kwargs={'slug': self.slug})
-
 
 class ProductManager(models.Manager):
     """Менеджер для модели Product"""

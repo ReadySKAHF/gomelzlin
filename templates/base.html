@@ -9,7 +9,7 @@
     <meta name="author" content="ОАО 'ГЗЛиН'">
     
     <!-- Open Graph для социальных сетей -->
-    <meta property="og:title" content="{% block og_title %}{% firstof page_title %}ОАО 'ГЗЛиН'{% endfirstof %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% firstof page_title "ОАО 'ГЗЛиН'" %}{% endblock %}">
     <meta property="og:description" content="Ведущий производитель литейных изделий и сельскохозяйственной техники">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="ОАО 'ГЗЛиН'">
@@ -305,7 +305,7 @@
                     </div>
                     <a href="{% url 'catalog:product_list' %}">Продукция</a>
                     <a href="{% url 'dealers:dealer_list' %}">Дилерские центры</a>
-                    <a href="{% url 'company:contacts' %}">Контакты</a>
+                    <a href="{% url 'core:contacts' %}">Контакты</a>
                 </nav>
                 
                 <div class="user-actions">
@@ -396,7 +396,7 @@
                 <div class="footer-section">
                     <h3>Полезные ссылки</h3>
                     <a href="{% url 'company:about' %}">О компании</a>
-                    <a href="{% url 'company:management' %}">Руководство</a>
+                    <a href="{% url 'company:leadership' %}">Руководство</a>
                     <a href="{% url 'company:partners' %}">Партнеры</a>
                     <a href="{% url 'dealers:dealer_list' %}">Дилерские центры</a>
                 </div>

@@ -51,8 +51,19 @@ class ProductListView(TemplateView):
         
         categories_with_counts = []
         for category in categories:
+            # Пропускаем категории с пустыми slug'ами
+            if not category.slug:
+                continue
+                
             # Считаем товары в категории и всех подкатегориях
             total_products = self.count_products_in_category(category)
+            
+            try:
+                # Безопасное получение URL
+                absolute_url = category.get_absolute_url()
+            except:
+                # Если не удается создать URL, пропускаем категорию
+                continue
             
             categories_with_counts.append({
                 'id': category.id,
@@ -62,11 +73,12 @@ class ProductListView(TemplateView):
                 'product_count': total_products,
                 'image': category.image.url if category.image else None,
                 'is_featured': category.is_featured,
-                'get_absolute_url': category.get_absolute_url()
+                'get_absolute_url': absolute_url
             })
         
         context['categories'] = categories_with_counts
         
+        # Остальной код остается без изменений...
         # Рекомендуемые товары
         try:
             featured_products = Product.objects.filter(
