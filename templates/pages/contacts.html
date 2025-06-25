@@ -1,192 +1,502 @@
+<!-- templates/pages/contacts.html -->
 {% extends 'base.html' %}
 
 {% block title %}Контакты - ОАО "ГЗЛиН"{% endblock %}
 
-{% block content %}
-<div class="container" style="padding: 3rem 0;">
-    <h1>Контакты</h1>
+{% block extra_css %}
+<style>
+    .contacts-page {
+        padding: 3rem 0;
+    }
     
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-top: 2rem;">
+    .contacts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        margin: 3rem 0;
+        align-items: start;
+    }
+    
+    .contact-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        height: 100%;
+    }
+    
+    .contact-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .contact-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .contact-icon {
+        color: var(--primary-red);
+        margin-right: 1rem;
+        font-size: 1.2rem;
+        margin-top: 0.2rem;
+        min-width: 20px;
+    }
+    
+    .contact-content {
+        flex-grow: 1;
+    }
+    
+    .contact-label {
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        color: var(--dark-gray);
+    }
+    
+    .contact-value {
+        margin: 0;
+        color: var(--secondary-gray);
+    }
+    
+    .contact-value a {
+        color: var(--primary-red);
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .contact-value a:hover {
+        color: var(--primary-red-dark);
+        text-decoration: underline;
+    }
+    
+    .map-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 1rem;
+        height: 450px;
+    }
+    
+    .map-placeholder {
+        width: 100%;
+        height: 100%;
+        background: var(--light-gray);
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary-gray);
+        text-align: center;
+    }
+    
+    .departments-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+    
+    .department-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .department-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(203, 65, 59, 0.15);
+    }
+    
+    .department-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .department-icon {
+        color: var(--primary-red);
+        margin-right: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .department-title {
+        margin: 0;
+        color: var(--dark-gray);
+        font-size: 1.2rem;
+    }
+    
+    .department-contact {
+        margin-bottom: 0.8rem;
+    }
+    
+    .department-contact:last-child {
+        margin-bottom: 0;
+    }
+    
+    .department-contact a {
+        color: var(--primary-red);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .department-contact a:hover {
+        text-decoration: underline;
+    }
+    
+    .building-section {
+        margin: 4rem 0;
+        text-align: center;
+    }
+    
+    .building-image {
+        max-width: 100%;
+        height: 400px;
+        object-fit: cover;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s;
+    }
+    
+    .building-image:hover {
+        transform: scale(1.02);
+    }
+    
+    .transport-section {
+        background: var(--light-gray);
+        border-radius: 15px;
+        padding: 3rem;
+        margin: 4rem 0;
+    }
+    
+    .transport-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .transport-item {
+        text-align: center;
+        padding: 1.5rem;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .transport-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--primary-red);
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .contacts-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .map-container {
+            height: 300px;
+        }
+        
+        .departments-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .transport-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .contact-card {
+            padding: 1.5rem;
+        }
+        
+        .department-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container contacts-page">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" style="margin-bottom: 2rem;">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Главная</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Контакты</li>
+        </ol>
+    </nav>
+    
+    <!-- Заголовок -->
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1>Контакты</h1>
+        <p style="color: var(--secondary-gray); font-size: 1.1rem; max-width: 600px; margin: 1rem auto 0;">
+            Свяжитесь с нами удобным для вас способом. Мы всегда готовы ответить на ваши вопросы и помочь с выбором продукции.
+        </p>
+    </div>
+    
+    <!-- Основная контактная информация и карта -->
+    <div class="contacts-grid">
         <!-- Основная информация -->
         <div>
-            <h2>Основная информация</h2>
-            <div style="background: var(--light-gray); padding: 2rem; border-radius: 10px; margin-bottom: 2rem;">
-                <p style="margin-bottom: 1rem;">
-                    <strong>📍 Адрес:</strong><br>
-                    {{ company_info.address|default:"246000, г. Гомель, ул. Промышленная, 15" }}
-                </p>
-                <p style="margin-bottom: 1rem;">
-                    <strong>📞 Телефон:</strong><br>
-                    <a href="tel:{{ company_info.phone|default:'+375232123456' }}" style="color: var(--primary-red);">
-                        {{ company_info.phone|default:"+375 232 12-34-56" }}
-                    </a>
-                </p>
-                <p style="margin-bottom: 1rem;">
-                    <strong>📠 Факс:</strong><br>
-                    +375 232 12-34-57
-                </p>
-                <p style="margin-bottom: 1rem;">
-                    <strong>📧 Email:</strong><br>
-                    <a href="mailto:{{ company_info.email|default:'info@gomelzlin.by' }}" style="color: var(--primary-red);">
-                        {{ company_info.email|default:"info@gomelzlin.by" }}
-                    </a>
-                </p>
-                <p>
-                    <strong>⏰ Режим работы:</strong><br>
-                    {{ company_info.working_hours|default:"Пн-Пт: 8:00-17:00<br>Сб-Вс: выходной"|safe }}
-                </p>
-            </div>
+            <h2 style="margin-bottom: 2rem; color: var(--primary-red);">
+                <i class="fas fa-info-circle me-2"></i>
+                Основная информация
+            </h2>
             
-            <!-- Отделы -->
-            <h3 style="margin-bottom: 1rem;">Отделы</h3>
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 1.5rem;">
-                <div style="margin-bottom: 1rem;">
-                    <strong>📈 Отдел продаж:</strong><br>
-                    <a href="mailto:sales@gomelzlin.by" style="color: var(--primary-red);">sales@gomelzlin.by</a><br>
-                    <a href="tel:+375232123458" style="color: var(--primary-red);">+375 232 12-34-58</a>
+            <div class="contact-card">
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt contact-icon"></i>
+                    <div class="contact-content">
+                        <div class="contact-label">Адрес</div>
+                        <p class="contact-value">246000, г. Гомель, ул. Промышленная, 15</p>
+                    </div>
                 </div>
-                <div style="margin-bottom: 1rem;">
-                    <strong>🔧 Технический отдел:</strong><br>
-                    <a href="mailto:tech@gomelzlin.by" style="color: var(--primary-red);">tech@gomelzlin.by</a><br>
-                    <a href="tel:+375232123457" style="color: var(--primary-red);">+375 232 12-34-57</a>
+                
+                <div class="contact-item">
+                    <i class="fas fa-phone contact-icon"></i>
+                    <div class="contact-content">
+                        <div class="contact-label">Телефон</div>
+                        <p class="contact-value">
+                            <a href="tel:+375232123456">+375 232 12-34-56</a>
+                        </p>
+                    </div>
                 </div>
-                <div style="margin-bottom: 1rem;">
-                    <strong>💰 Бухгалтерия:</strong><br>
-                    <a href="mailto:accounting@gomelzlin.by" style="color: var(--primary-red);">accounting@gomelzlin.by</a><br>
-                    <a href="tel:+375232123459" style="color: var(--primary-red);">+375 232 12-34-59</a>
+                
+                <div class="contact-item">
+                    <i class="fas fa-fax contact-icon"></i>
+                    <div class="contact-content">
+                        <div class="contact-label">Факс</div>
+                        <p class="contact-value">+375 232 12-34-57</p>
+                    </div>
                 </div>
-                <div>
-                    <strong>👥 Отдел кадров:</strong><br>
-                    <a href="mailto:hr@gomelzlin.by" style="color: var(--primary-red);">hr@gomelzlin.by</a><br>
-                    <a href="tel:+375232123460" style="color: var(--primary-red);">+375 232 12-34-60</a>
+                
+                <div class="contact-item">
+                    <i class="fas fa-envelope contact-icon"></i>
+                    <div class="contact-content">
+                        <div class="contact-label">Email</div>
+                        <p class="contact-value">
+                            <a href="mailto:info@gomelzlin.by">info@gomelzlin.by</a>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="contact-item">
+                    <i class="fas fa-clock contact-icon"></i>
+                    <div class="contact-content">
+                        <div class="contact-label">Режим работы</div>
+                        <p class="contact-value">Пн-Пт: 8:00-17:00<br>Сб-Вс: выходной</p>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <!-- Местоположение и карта -->
+        <!-- Карта -->
         <div>
-            <h2>Местоположение</h2>
-            <div style="width: 100%; height: 400px; background: var(--light-gray); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray); margin-bottom: 2rem; position: relative;">
-                <div style="text-align: center;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
-                    <p style="font-size: 1.1rem;">Здесь будет Яндекс карта с отметкой завода в Гомеле</p>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Координаты: 52.4345° N, 30.9754° E</p>
+            <h2 style="margin-bottom: 2rem; color: var(--primary-red);">
+                <i class="fas fa-map me-2"></i>
+                Местоположение
+            </h2>
+            
+            <div class="map-container">
+                <div id="yandex-map" class="map-placeholder">
+                    <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem; color: var(--primary-red);"></i>
+                    <h4 style="margin-bottom: 0.5rem;">Яндекс Карта</h4>
+                    <p style="margin-bottom: 0.5rem;">ОАО "ГЗЛиН" в Гомеле</p>
+                    <small style="opacity: 0.7;">Координаты: 52.4345° N, 30.9754° E</small>
                 </div>
-                <!-- Placeholder для будущей интеграции с Яндекс Картами -->
-                <div id="yandex-map" style="position: absolute; width: 100%; height: 100%; border-radius: 10px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Отделы компании -->
+    <div style="margin: 4rem 0;">
+        <h2 style="margin-bottom: 2rem; text-align: center; color: var(--primary-red);">
+            <i class="fas fa-building me-2"></i>
+            Отделы компании
+        </h2>
+        
+        <div class="departments-grid">
+            <div class="department-card">
+                <div class="department-header">
+                    <i class="fas fa-shopping-cart department-icon"></i>
+                    <h3 class="department-title">Отдел продаж</h3>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-envelope me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="mailto:sales@gomelzlin.by">sales@gomelzlin.by</a>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-phone me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="tel:+375232123458">+375 232 12-34-58</a>
+                </div>
             </div>
             
-            <!-- Фото здания -->
-            <div>
-                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop" 
-                     alt="Здание завода ГЗЛиН" 
-                     style="width: 100%; height: 250px; object-fit: cover; border-radius: 10px; box-shadow: var(--shadow);">
-                <p style="text-align: center; margin-top: 0.5rem; color: var(--secondary-gray); font-size: 0.9rem;">
-                    Главное здание ОАО "Гомельский завод литейных изделий и нормалей"
+            <div class="department-card">
+                <div class="department-header">
+                    <i class="fas fa-cogs department-icon"></i>
+                    <h3 class="department-title">Технический отдел</h3>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-envelope me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="mailto:tech@gomelzlin.by">tech@gomelzlin.by</a>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-phone me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="tel:+375232123457">+375 232 12-34-57</a>
+                </div>
+            </div>
+            
+            <div class="department-card">
+                <div class="department-header">
+                    <i class="fas fa-calculator department-icon"></i>
+                    <h3 class="department-title">Бухгалтерия</h3>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-envelope me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="mailto:accounting@gomelzlin.by">accounting@gomelzlin.by</a>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-phone me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="tel:+375232123459">+375 232 12-34-59</a>
+                </div>
+            </div>
+            
+            <div class="department-card">
+                <div class="department-header">
+                    <i class="fas fa-users department-icon"></i>
+                    <h3 class="department-title">Отдел кадров</h3>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-envelope me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="mailto:hr@gomelzlin.by">hr@gomelzlin.by</a>
+                </div>
+                <div class="department-contact">
+                    <i class="fas fa-phone me-2" style="color: var(--secondary-gray);"></i>
+                    <a href="tel:+375232123460">+375 232 12-34-60</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Как добраться -->
+    <div class="transport-section">
+        <h2 style="text-align: center; margin-bottom: 1rem; color: var(--primary-red);">
+            <i class="fas fa-route me-2"></i>
+            Как добраться
+        </h2>
+        <p style="text-align: center; color: var(--secondary-gray); margin-bottom: 2rem;">
+            Выберите удобный для вас способ добраться до нашего завода
+        </p>
+        
+        <div class="transport-grid">
+            <div class="transport-item">
+                <div class="transport-icon">🚗</div>
+                <h4 style="margin-bottom: 1rem;">На автомобиле</h4>
+                <p style="color: var(--secondary-gray); margin: 0;">
+                    GPS координаты: 52.4345° N, 30.9754° E<br>
+                    Парковка возле главного входа
+                </p>
+            </div>
+            
+            <div class="transport-item">
+                <div class="transport-icon">🚌</div>
+                <h4 style="margin-bottom: 1rem;">Общественный транспорт</h4>
+                <p style="color: var(--secondary-gray); margin: 0;">
+                    Автобусы №12, 25, 47 до остановки "Промышленная"<br>
+                    Далее 200 метров пешком
+                </p>
+            </div>
+            
+            <div class="transport-item">
+                <div class="transport-icon">🚕</div>
+                <h4 style="margin-bottom: 1rem;">Такси</h4>
+                <p style="color: var(--secondary-gray); margin: 0;">
+                    Адрес: г. Гомель, ул. Промышленная, 15<br>
+                    Время в пути от центра: 15-20 минут
                 </p>
             </div>
         </div>
     </div>
     
-    <!-- Форма обратной связи -->
-    <div style="margin-top: 4rem;">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Напишите нам</h2>
-        <div style="max-width: 800px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 3rem;">
-            <form method="post" id="contactForm">
-                {% csrf_token %}
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Имя *</label>
-                        <input type="text" name="name" required 
-                               style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email *</label>
-                        <input type="email" name="email" required 
-                               style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                    </div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Телефон</label>
-                        <input type="tel" name="phone" placeholder="+375 XX XXX-XX-XX"
-                               style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Тема обращения *</label>
-                        <select name="subject" required 
-                                style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                            <option value="">Выберите тему</option>
-                            <option value="general">Общие вопросы</option>
-                            <option value="sales">Вопросы по продукции</option>
-                            <option value="support">Техническая поддержка</option>
-                            <option value="partnership">Сотрудничество</option>
-                            <option value="careers">Трудоустройство</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 2rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Сообщение *</label>
-                    <textarea name="message" rows="6" required placeholder="Опишите ваш вопрос подробно..."
-                              style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px; resize: vertical;"></textarea>
-                </div>
-                
-                <div style="text-align: center;">
-                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">
-                        Отправить сообщение
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Схема проезда -->
-    <div style="margin-top: 4rem; background: var(--light-gray); border-radius: 10px; padding: 3rem;">
-        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--primary-red);">Как добраться</h2>
+    <!-- Фото главного здания -->
+    <div class="building-section">
+        <h2 style="margin-bottom: 2rem; color: var(--primary-red);">
+            <i class="fas fa-building me-2"></i>
+            Главное здание ОАО "Гомельский завод литейных изделий и нормалей"
+        </h2>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+        <img src="{% static 'images/main-building.jpg' %}" 
+             alt="Главное здание ОАО ГЗЛиН" 
+             class="building-image"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        
+        <!-- Заглушка если изображение не загрузилось -->
+        <div style="display: none; height: 400px; background: var(--light-gray); border-radius: 15px; align-items: center; justify-content: center; color: var(--secondary-gray);">
             <div style="text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🚗</div>
-                <h3 style="margin-bottom: 1rem;">На автомобиле</h3>
-                <p>Из центра Гомеля по ул. Советской до ул. Промышленной, далее 500 метров до завода. Есть парковка для посетителей.</p>
-            </div>
-            
-            <div style="text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🚌</div>
-                <h3 style="margin-bottom: 1rem;">Общественный транспорт</h3>
-                <p>Автобусы №12, 15, 28 до остановки "Промышленная". Далее 200 метров пешком до главного входа.</p>
-            </div>
-            
-            <div style="text-align: center;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🚕</div>
-                <h3 style="margin-bottom: 1rem;">Такси</h3>
-                <p>Заказ такси до адреса: г. Гомель, ул. Промышленная, 15. Время в пути от центра города - 15-20 минут.</p>
+                <i class="fas fa-building" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p>Фото главного здания завода</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Инициализация Яндекс Карты (заглушка)
+// Инициализация Яндекс Карты
 function initYandexMap() {
     // Здесь будет код инициализации Яндекс Карты
-    console.log('Yandex Map will be initialized here');
+    ymaps.ready(function() {
+        var map = new ymaps.Map('yandex-map', {
+            center: [52.4345, 30.9754],
+            zoom: 15
+        });
+        
+        var placemark = new ymaps.Placemark([52.4345, 30.9754], {
+            balloonContent: 'ОАО "Гомельский завод литейных изделий и нормалей"'
+        }, {
+            preset: 'islands#redIcon'
+        });
+        
+        map.geoObjects.add(placemark);
+    });
 }
 
-// Обработка формы обратной связи
-document.getElementById('contactForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Здесь будет AJAX отправка формы
-    alert('Спасибо за ваше сообщение! Мы свяжемся с вами в ближайшее время.');
-    this.reset();
-});
+// Плавная анимация при скролле
+function initScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+
+    document.querySelectorAll('.department-card, .transport-item').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+}
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    initYandexMap();
+    initScrollAnimations();
+    
+    // Инициализируем карту только если API загружен
+    if (typeof ymaps !== 'undefined') {
+        initYandexMap();
+    }
 });
 </script>
 

@@ -24,300 +24,82 @@
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
-    
-    <style>
-        :root {
-            --primary-red: #cb413b;
-            --secondary-gray: #808080;
-            --white: #ffffff;
-            --dark-gray: #333333;
-            --light-gray: #f8f9fa;
-            --shadow: 0 4px 20px rgba(203, 65, 59, 0.1);
-        }
-
-        /* Дополнительные стили для шапки и навигации */
-        .header {
-            background: linear-gradient(135deg, #cb413b 0%, #a73530 100%);
-            color: white;
-            padding: 0.75rem 0;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .header.scrolled {
-            padding: 0.5rem 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            text-decoration: none;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .logo:hover {
-            color: white;
-            text-decoration: none;
-        }
-        
-        .nav {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-        
-        .nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .nav a:hover {
-            color: #ffdddd;
-        }
-        
-        .nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: white;
-            transition: width 0.3s ease;
-        }
-        
-        .nav a:hover::after {
-            width: 100%;
-        }
-        
-        .user-actions {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-        
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-primary {
-            background: white;
-            color: var(--primary-red);
-        }
-        
-        .btn-primary:hover {
-            background: #f0f0f0;
-            color: var(--primary-red);
-        }
-        
-        .btn-outline {
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-        }
-        
-        .btn-outline:hover {
-            background: white;
-            color: var(--primary-red);
-        }
-        
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-        
-        main {
-            padding-top: 80px;
-            min-height: calc(100vh - 80px);
-        }
-        
-        .footer {
-            background: #343a40;
-            color: white;
-            padding: 3rem 0 1rem;
-            margin-top: 3rem;
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-        
-        .footer-section h3 {
-            margin-bottom: 1rem;
-            color: var(--primary-red);
-        }
-        
-        .footer-section a {
-            color: #adb5bd;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 0.5rem;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-section a:hover {
-            color: white;
-        }
-        
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid #495057;
-            color: #ccc;
-        }
-        
-        .messages {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            z-index: 9999;
-            max-width: 400px;
-        }
-        
-        .message {
-            padding: 1rem 1.5rem;
-            margin-bottom: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            animation: slideInRight 0.3s ease-out;
-        }
-        
-        .message.success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .message.error {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .message.warning {
-            background: #ffc107;
-            color: #856404;
-        }
-        
-        .message.info {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        /* Мобильная адаптация */
-        @media (max-width: 768px) {
-            .nav {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: #cb413b;
-                flex-direction: column;
-                padding: 1rem;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            }
-            
-            .nav.active {
-                display: flex;
-            }
-            
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .user-actions {
-                gap: 0.5rem;
-            }
-            
-            .user-actions .btn {
-                font-size: 0.9rem;
-                padding: 0.5rem 0.75rem;
-            }
-            
-            .logo {
-                font-size: 1.5rem;
-            }
-            
-            .footer-content {
-                grid-template-columns: 1fr;
-                text-align: center;
-            }
-        }
-    </style>
 </head>
 <body>
     <!-- Header -->
     <header class="header" id="header">
         <div class="container">
             <div class="header-content">
+                <!-- Logo -->
                 <a href="{% url 'core:home' %}" class="logo">
                     <i class="fas fa-industry"></i>
-                    <span>ОАО "ГЗЛиН"</span>
+                    ОАО "ГЗЛиН"
                 </a>
                 
-                <nav class="nav" id="nav">
-                    <a href="{% url 'core:home' %}">Главная</a>
-                    <div class="dropdown">
-                        <a href="{% url 'company:about' %}">О компании</a>
-                    </div>
-                    <a href="{% url 'catalog:product_list' %}">Продукция</a>
-                    <a href="{% url 'dealers:dealer_list' %}">Дилерские центры</a>
-                    <a href="{% url 'core:contacts' %}">Контакты</a>
+                <!-- Navigation -->
+                <nav id="nav">
+                    <ul style="display: flex; list-style: none; margin: 0; padding: 0; gap: 2rem;">
+                        <li><a href="{% url 'core:home' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Главная</a></li>
+                        <li class="dropdown">
+                            <a href="{% url 'company:about' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s; display: flex; align-items: center;">
+                                О компании
+                                <i class="fas fa-chevron-down ms-1" style="font-size: 0.8rem;"></i>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a href="{% url 'company:about' %}">
+                                    <i class="fas fa-building me-2"></i>О компании
+                                </a>
+                                <a href="{% url 'company:leadership' %}">
+                                    <i class="fas fa-users me-2"></i>Руководство
+                                </a>
+                                <a href="{% url 'company:partners' %}">
+                                    <i class="fas fa-handshake me-2"></i>Партнёры
+                                </a>
+                                <a href="{% url 'company:requisites' %}">
+                                    <i class="fas fa-file-contract me-2"></i>Реквизиты
+                                </a>
+                            </div>
+                        </li>
+                        <li><a href="{% url 'catalog:product_list' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Продукция</a></li>
+                        <li><a href="{% url 'dealers:dealer_list' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Дилерские центры</a></li>
+                        <li><a href="{% url 'core:contacts' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Контакты</a></li>
+                    </ul>
                 </nav>
                 
+                <!-- User Actions -->
                 <div class="user-actions">
+                    <!-- Корзина -->
+                    <a href="{% url 'orders:cart' %}" class="cart-link" title="Корзина">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </a>
+                    
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline">
-                            <i class="fas fa-user"></i>
-                            <span class="d-none d-md-inline ms-1">{{ user.get_short_name|default:user.username }}</span>
-                        </a>
-                        <a href="{% url 'accounts:logout' %}" class="btn btn-primary">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span class="d-none d-md-inline ms-1">Выйти</span>
-                        </a>
+                        <div class="dropdown">
+                            <a href="#" class="user-menu-toggle">
+                                <i class="fas fa-user"></i>
+                                <span class="d-none d-md-inline ms-1">{{ user.get_short_name }}</span>
+                                <i class="fas fa-chevron-down ms-1"></i>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a href="{% url 'accounts:profile' %}">
+                                    <i class="fas fa-user me-2"></i>Личный кабинет
+                                </a>
+                                <a href="{% url 'orders:order_list' %}">
+                                    <i class="fas fa-list me-2"></i>Мои заказы
+                                </a>
+                                <a href="{% url 'orders:cart' %}">
+                                    <i class="fas fa-shopping-cart me-2"></i>Корзина
+                                </a>
+                                <hr>
+                                <a href="{% url 'accounts:logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                                </a>
+                            </div>
+                        </div>
                     {% else %}
                         <a href="{% url 'accounts:login' %}" class="btn btn-outline">
                             <i class="fas fa-sign-in-alt"></i>
@@ -337,6 +119,12 @@
             </div>
         </div>
     </header>
+
+    <!-- Мобильная корзина (фиксированная кнопка) -->
+    <a href="{% url 'orders:cart' %}" class="cart-link-mobile" title="Корзина">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-count" id="cartCountMobile">0</span>
+    </a>
 
     <!-- Messages -->
     {% if messages %}
@@ -411,6 +199,7 @@
 
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/cart.js' %}"></script>
     <script>
         // Скрипт для скролла хедера
         window.addEventListener('scroll', function() {
@@ -435,6 +224,103 @@
             
             if (!nav.contains(event.target) && !toggle.contains(event.target)) {
                 nav.classList.remove('active');
+            }
+        });
+
+        // Обработка выпадающих меню навигации
+        document.querySelectorAll('nav .dropdown > a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const dropdown = this.parentElement;
+                const menu = dropdown.querySelector('.dropdown-menu');
+                
+                // Закрываем все другие меню
+                document.querySelectorAll('nav .dropdown-menu').forEach(otherMenu => {
+                    if (otherMenu !== menu) {
+                        otherMenu.classList.remove('active');
+                    }
+                });
+                
+                // Переключаем текущее меню
+                menu.classList.toggle('active');
+            });
+        });
+
+        // Плавная прокрутка для якорных ссылок
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Lazy loading для изображений
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        img.classList.add('loaded');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img.lazy').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+
+        // Обработка форм с AJAX
+        function submitFormAjax(form, callback) {
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (callback) callback(data);
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                window.GZLinCart.showNotification('Произошла ошибка', 'error');
+            });
+        }
+
+        // Инициализация компонентов при загрузке DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Добавляем анимации появления для элементов
+            const animatedElements = document.querySelectorAll('.fade-in, .slide-in-up, .slide-in-left');
+            
+            if ('IntersectionObserver' in window) {
+                const animationObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }
+                    });
+                });
+
+                animatedElements.forEach(el => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(20px)';
+                    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    animationObserver.observe(el);
+                });
             }
         });
     </script>

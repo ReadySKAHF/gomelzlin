@@ -505,3 +505,44 @@ window.ZLinApp = {
     performSearch,
     hideSearchDropdown
 };
+
+// Функции для работы с корзиной
+function updateCartCount() {
+    fetch('/api/cart/count/')
+        .then(response => response.json())
+        .then(data => {
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                cartCount.textContent = data.count || 0;
+                if (data.count > 0) {
+                    cartCount.style.display = 'flex';
+                } else {
+                    cartCount.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.log('Ошибка обновления корзины:', error));
+}
+
+// Управление выпадающим меню пользователя
+function toggleUserMenu(event) {
+    event.preventDefault();
+    const dropdown = event.target.closest('.dropdown');
+    const menu = dropdown.querySelector('.dropdown-menu');
+    menu.classList.toggle('active');
+}
+
+// Закрытие выпадающего меню при клике вне его
+document.addEventListener('click', function(event) {
+    const dropdowns = document.querySelectorAll('.dropdown-menu');
+    dropdowns.forEach(menu => {
+        if (!menu.closest('.dropdown').contains(event.target)) {
+            menu.classList.remove('active');
+        }
+    });
+});
+
+// Обновление счетчика корзины при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    updateCartCount();
+});

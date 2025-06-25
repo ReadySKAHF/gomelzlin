@@ -35,9 +35,19 @@
         </div>
     </div>
     
-    <div style="text-align: center; margin: 3rem 0;">
-        <a href="{% url 'company:leadership' %}" class="btn btn-primary">Познакомиться с руководством</a>
-        <a href="{% url 'company:partners' %}" class="btn btn-outline">Наши партнеры</a>
+    <!-- В конце страницы добавить секцию с кнопками -->
+    <div style="text-align: center; margin: 4rem 0;">
+        <h2 style="margin-bottom: 2rem;">Узнайте больше о нашей компании</h2>
+        <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{% url 'company:leadership' %}" class="btn btn-outline-primary">
+                <i class="fas fa-users me-2"></i>
+                Познакомиться с руководством
+            </a>
+            <a href="{% url 'company:partners' %}" class="btn btn-outline-primary">
+                <i class="fas fa-handshake me-2"></i>
+                Наши партнёры
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}
