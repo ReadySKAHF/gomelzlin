@@ -1,253 +1,288 @@
+<!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ОАО "ГЗЛиН"{% endblock %}</title>
+    <meta name="description" content="ОАО 'ГЗЛиН' - ведущий производитель литейных изделий и сельскохозяйственной техники в Республике Беларусь с 1965 года.">
+    <meta name="keywords" content="жатки, комбайны, метизы, сельхозтехника, литейные изделия, ГЗЛиН, Гомель">
+    <meta name="author" content="ОАО 'ГЗЛиН'">
     
-    <!-- SEO мета-теги -->
-    <meta name="description" content="{% block meta_description %}Ведущий производитель литейных изделий и нормалей в Беларуси с 1965 года{% endblock %}">
-    <meta name="keywords" content="{% block meta_keywords %}литейные изделия, нормали, фитинги, арматура, Гомель, ГЗЛиН{% endblock %}">
+    <!-- Open Graph для социальных сетей -->
+    <meta property="og:title" content="{% block og_title %}{% block title %}ОАО 'ГЗЛиН'{% endblock %}{% endblock %}">
+    <meta property="og:description" content="Ведущий производитель литейных изделий и сельскохозяйственной техники">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ОАО 'ГЗЛиН'">
     
-    <!-- Styles -->
+    <title>{% block title %}ОАО "ГЗЛиН" - Производство сельхозтехники и литейных изделий{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% load static %}{% static 'favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% load static %}{% static 'images/apple-touch-icon.png' %}">
+    
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="{% load static %}{% static 'css/styles.css' %}" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+    
     <style>
-        :root {
-            --primary-red: #cb413b;
-            --secondary-gray: #808080;
-            --white: #ffffff;
-            --light-gray: #f5f5f5;
-            --dark-gray: #333;
-            --shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: var(--dark-gray);
-            background: var(--white);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Header */
-        header {
-            background: var(--white);
-            box-shadow: var(--shadow);
+        /* Дополнительные стили для шапки и навигации */
+        .header {
+            background: linear-gradient(135deg, #cb413b 0%, #a73530 100%);
+            color: white;
+            padding: 0.75rem 0;
             position: fixed;
-            width: 100%;
             top: 0;
+            width: 100%;
             z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
         }
-
+        
+        .header.scrolled {
+            padding: 0.5rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 0;
         }
-
+        
         .logo {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: var(--primary-red);
+            text-decoration: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo:hover {
+            color: white;
             text-decoration: none;
         }
-
-        nav ul {
+        
+        .nav {
             display: flex;
             list-style: none;
+            margin: 0;
+            padding: 0;
             gap: 2rem;
         }
-
-        nav a {
+        
+        .nav a {
+            color: white;
             text-decoration: none;
-            color: var(--dark-gray);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
             font-weight: 500;
-            transition: color 0.3s;
-            position: relative;
         }
-
-        nav a:hover, nav a.active {
-            color: var(--primary-red);
+        
+        .nav a:hover, .nav a.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
         }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary-red);
-            transition: width 0.3s;
-        }
-
-        nav a:hover::after, nav a.active::after {
-            width: 100%;
-        }
-
+        
         .user-actions {
             display: flex;
             gap: 1rem;
             align-items: center;
         }
-
-        .btn {
-            padding: 0.5rem 1rem;
+        
+        .cart-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.2);
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
             text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            display: inline-block;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-
-        .btn-primary {
-            background: var(--primary-red);
+        
+        .cart-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
             color: white;
+            text-decoration: none;
         }
-
-        .btn-primary:hover {
-            background: #a53530;
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            border: 2px solid var(--primary-red);
-            color: var(--primary-red);
-            background: transparent;
-        }
-
-        .btn-outline:hover {
-            background: var(--primary-red);
+        
+        .cart-counter {
+            background: #28a745;
             color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+            position: absolute;
+            top: -5px;
+            right: -5px;
         }
-
-        /* Main content */
-        main {
-            margin-top: 80px;
-            min-height: calc(100vh - 80px);
-        }
-
-        /* Footer */
-        footer {
-            background: var(--dark-gray);
+        
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
             color: white;
-            padding: 2rem 0 1rem;
-            margin-top: 3rem;
+            font-size: 1.5rem;
+            cursor: pointer;
         }
-
+        
+        .footer {
+            background: #343a40;
+            color: white;
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+        
         .footer-content {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
             margin-bottom: 2rem;
         }
-
+        
         .footer-section h3 {
-            color: var(--primary-red);
+            color: #cb413b;
             margin-bottom: 1rem;
         }
-
+        
         .footer-section a {
-            color: white;
+            color: #ccc;
             text-decoration: none;
             display: block;
             margin-bottom: 0.5rem;
-            transition: color 0.3s;
+            transition: color 0.3s ease;
         }
-
+        
         .footer-section a:hover {
-            color: var(--primary-red);
+            color: white;
         }
-
+        
         .footer-bottom {
             text-align: center;
-            padding-top: 1rem;
-            border-top: 1px solid var(--secondary-gray);
-            color: var(--secondary-gray);
+            padding-top: 2rem;
+            border-top: 1px solid #495057;
+            color: #ccc;
         }
-
-        /* Messages */
+        
         .messages {
             position: fixed;
-            top: 100px;
+            top: 80px;
             right: 20px;
-            z-index: 2000;
+            z-index: 9999;
             max-width: 400px;
         }
-
+        
         .message {
-            padding: 1rem;
-            border-radius: 5px;
+            padding: 1rem 1.5rem;
             margin-bottom: 1rem;
-            box-shadow: var(--shadow);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: slideInRight 0.3s ease-out;
         }
-
+        
         .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #28a745;
+            color: white;
         }
-
+        
         .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: #dc3545;
+            color: white;
         }
-
+        
         .message.warning {
-            background: #fff3cd;
+            background: #ffc107;
             color: #856404;
-            border: 1px solid #ffeaa7;
         }
-
+        
         .message.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            background: #17a2b8;
+            color: white;
         }
-
-        /* Responsive */
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Мобильная адаптация */
         @media (max-width: 768px) {
-            nav ul {
+            .nav {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #cb413b;
+                flex-direction: column;
+                padding: 1rem;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             }
-
-            .header-content {
-                flex-wrap: wrap;
+            
+            .nav.active {
+                display: flex;
             }
-
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
             .user-actions {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-                margin-top: 1rem;
+                gap: 0.5rem;
+            }
+            
+            .user-actions .btn {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .messages {
+                right: 10px;
+                left: 10px;
+                max-width: none;
             }
         }
-
-        {% block extra_css %}{% endblock %}
     </style>
 </head>
 <body>
+    {% csrf_token %}
+    
     <!-- Header -->
-    <header>
+    <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="{% url 'core:home' %}" class="logo">ГЗЛиН</a>
+                <a href="{% url 'core:home' %}" class="logo">
+                    <i class="fas fa-industry"></i>
+                    ОАО "ГЗЛиН"
+                </a>
+                
                 <nav>
-                    <ul>
+                    <ul class="nav" id="mainNav">
                         <li><a href="{% url 'core:home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Главная</a></li>
                         <li><a href="{% url 'company:about' %}" {% if 'company' in request.resolver_match.namespace %}class="active"{% endif %}>О компании</a></li>
                         <li><a href="{% url 'catalog:product_list' %}" {% if 'catalog' in request.resolver_match.namespace %}class="active"{% endif %}>Продукция</a></li>
@@ -255,16 +290,71 @@
                         <li><a href="{% url 'core:contacts' %}" {% if request.resolver_match.url_name == 'contacts' %}class="active"{% endif %}>Контакты</a></li>
                     </ul>
                 </nav>
+                
                 <div class="user-actions">
+                    <!-- Поиск -->
+                    <div class="search-widget d-none d-md-block" style="position: relative;">
+                        <form method="get" action="{% url 'catalog:product_search' %}" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input 
+                                type="search" 
+                                name="q" 
+                                placeholder="Поиск товаров..." 
+                                style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem; border-radius: 6px; width: 200px;"
+                                autocomplete="off"
+                            >
+                            <button type="submit" style="background: none; border: none; color: white; padding: 0.5rem;">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline">{{ user.get_full_name|default:user.username }}</a>
-                        <a href="{% url 'orders:cart' %}" class="btn btn-primary">
-                            Корзина <span class="badge">0</span>
+                        <!-- Корзина -->
+                        <a href="{% url 'orders:cart' %}" class="cart-btn">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="d-none d-md-inline">Корзина</span>
+                            <span class="cart-counter" id="cartCounter" style="display: none;">0</span>
                         </a>
+                        
+                        <!-- Профиль -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i>
+                                <span class="d-none d-md-inline">{{ user.get_full_name|default:user.username }}</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                    <i class="fas fa-user me-2"></i>Профиль
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'orders:order_list' %}">
+                                    <i class="fas fa-list me-2"></i>Мои заказы
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     {% else %}
-                        <a href="{% url 'accounts:login' %}" class="btn btn-outline">Войти</a>
-                        <a href="{% url 'accounts:register' %}" class="btn btn-primary">Регистрация</a>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="d-none d-md-inline ms-1">Войти</span>
+                        </a>
+                        <a href="{% url 'accounts:register' %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i>
+                            <span class="d-none d-md-inline ms-1">Регистрация</span>
+                        </a>
                     {% endif %}
+                    
+                    <!-- Мобильное меню -->
+                    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -274,8 +364,11 @@
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
-            <div class="message {{ message.tags }}">
-                {{ message }}
+            <div class="message {{ message.tags }}" onclick="this.remove()">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>{{ message }}</span>
+                    <button type="button" class="btn-close btn-close-white ms-3" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
             </div>
         {% endfor %}
     </div>
@@ -287,49 +380,104 @@
     </main>
 
     <!-- Footer -->
-    <footer>
+    <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>ОАО "ГЗЛиН"</h3>
-                    <p>Ведущий производитель литейных изделий и нормалей в Республике Беларусь с 1965 года.</p>
+                    <p>Ведущий производитель литейных изделий и сельскохозяйственной техники в Республике Беларусь с 1965 года.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-white">
+                            <i class="fab fa-facebook fa-lg"></i>
+                        </a>
+                        <a href="#" class="text-white">
+                            <i class="fab fa-instagram fa-lg"></i>
+                        </a>
+                        <a href="#" class="text-white">
+                            <i class="fab fa-telegram fa-lg"></i>
+                        </a>
+                    </div>
                 </div>
+                
                 <div class="footer-section">
                     <h3>Контакты</h3>
-                    <a href="tel:+375232123456">+375 232 12-34-56</a>
-                    <a href="mailto:info@gomelzlin.by">info@gomelzlin.by</a>
-                    <p>г. Гомель, ул. Промышленная, 15</p>
+                    <p><i class="fas fa-map-marker-alt me-2"></i>г. Гомель, ул. Промышленная, 15</p>
+                    <a href="tel:+375232123456"><i class="fas fa-phone me-2"></i>+375 232 12-34-56</a>
+                    <a href="mailto:info@gomelzlin.by"><i class="fas fa-envelope me-2"></i>info@gomelzlin.by</a>
+                    <p><i class="fas fa-clock me-2"></i>Пн-Пт: 8:00-17:00</p>
                 </div>
+                
+                <div class="footer-section">
+                    <h3>Продукция</h3>
+                    <a href="{% url 'catalog:product_list' %}">Каталог товаров</a>
+                    <a href="{% url 'catalog:product_search' %}">Поиск товаров</a>
+                    <a href="#">Новинки</a>
+                    <a href="#">Популярные товары</a>
+                </div>
+                
                 <div class="footer-section">
                     <h3>Полезные ссылки</h3>
                     <a href="{% url 'company:about' %}">О компании</a>
-                    <a href="{% url 'catalog:product_list' %}">Продукция</a>
+                    <a href="{% url 'company:management' %}">Руководство</a>
+                    <a href="{% url 'company:partners' %}">Партнеры</a>
                     <a href="{% url 'dealers:dealer_list' %}">Дилерские центры</a>
-                    <a href="{% url 'core:contacts' %}">Контакты</a>
                 </div>
             </div>
+            
             <div class="footer-bottom">
                 <p>&copy; 2025 ОАО "Гомельский завод литейных изделий и нормалей". Все права защищены.</p>
+                <p class="small">УНП: 400000000 | Свидетельство о гос. регистрации №400000000</p>
             </div>
         </div>
     </footer>
 
     <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% load static %}{% static 'js/main.js' %}"></script>
+    
     <script>
-        // Убираем сообщения через 5 секунд
+        // Базовые функции для шапки
+        function toggleMobileMenu() {
+            const nav = document.getElementById('mainNav');
+            nav.classList.toggle('active');
+        }
+        
+        // Эффект прокрутки для шапки
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+        
+        // Автоматическое скрытие сообщений
         document.addEventListener('DOMContentLoaded', function() {
             const messages = document.querySelectorAll('.message');
             messages.forEach(message => {
                 setTimeout(() => {
-                    message.style.opacity = '0';
-                    setTimeout(() => {
-                        message.remove();
-                    }, 300);
+                    if (message.parentElement) {
+                        message.style.opacity = '0';
+                        message.style.transform = 'translateX(100%)';
+                        setTimeout(() => {
+                            if (message.parentElement) {
+                                message.remove();
+                            }
+                        }, 300);
+                    }
                 }, 5000);
             });
         });
-
-        {% block extra_js %}{% endblock %}
+        
+        // Обновление счетчика корзины при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof window.ZLinApp !== 'undefined') {
+                window.ZLinApp.updateCartCounter();
+            }
+        });
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

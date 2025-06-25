@@ -102,22 +102,11 @@ class Product(AbstractBaseModel, SeoModel):
     ]
     
     # Основная информация
-    name = models.CharField(
-        _('Название'),
-        max_length=255
-    )
-    slug = models.SlugField(
-        _('URL'),
-        max_length=255,
-        unique=True
-    )
-    article = models.CharField(
-        _('Артикул'),
-        max_length=50,
-        unique=True
-    )
+    name = models.CharField(_('Название'), max_length=255)
+    slug = models.SlugField(_('URL'), max_length=255, unique=True)
+    article = models.CharField(_('Артикул'), max_length=50, unique=True)
     category = models.ForeignKey(
-        Category,
+        'Category',
         on_delete=models.PROTECT,
         related_name='products',
         verbose_name=_('Категория')
@@ -129,31 +118,22 @@ class Product(AbstractBaseModel, SeoModel):
         max_length=500,
         blank=True
     )
-    description = models.TextField(
-        _('Подробное описание'),
-        blank=True
-    )
-    specifications = models.TextField(
-        _('Технические характеристики'),
-        blank=True,
-        help_text=_('Каждая характеристика с новой строки в формате "Название: Значение"')
-    )
+    description = models.TextField(_('Подробное описание'), blank=True)
+    specifications = models.TextField(_('Технические характеристики'), blank=True)
     
     # Цена и наличие
     price = models.DecimalField(
         _('Цена'),
         max_digits=10,
         decimal_places=2,
-        validators=[MinValueValidator(0)]
+        default=0
     )
     old_price = models.DecimalField(
         _('Старая цена'),
         max_digits=10,
         decimal_places=2,
         blank=True,
-        null=True,
-        validators=[MinValueValidator(0)],
-        help_text=_('Для отображения скидки')
+        null=True
     )
     
     # Склад
@@ -163,8 +143,7 @@ class Product(AbstractBaseModel, SeoModel):
     )
     min_stock_level = models.PositiveIntegerField(
         _('Минимальный остаток'),
-        default=5,
-        help_text=_('Уровень для предупреждения о низком остатке')
+        default=5
     )
     unit = models.CharField(
         _('Единица измерения'),
@@ -230,6 +209,14 @@ class Product(AbstractBaseModel, SeoModel):
     orders_count = models.PositiveIntegerField(
         _('Количество заказов'),
         default=0
+    )
+    
+    # Изображение (опционально)
+    image = models.ImageField(
+        _('Изображение'),
+        upload_to='products/',
+        blank=True,
+        null=True
     )
     
     # Даты

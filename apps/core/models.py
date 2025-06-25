@@ -32,9 +32,21 @@ class UUIDModel(models.Model):
 
 class AbstractBaseModel(TimeStampedModel):
     """
-    Базовая абстрактная модель для всех моделей приложения
+    Абстрактная базовая модель с общими полями
     """
-    is_active = models.BooleanField(_('Активно'), default=True)
+    created_at = models.DateTimeField(
+        _('Дата создания'),
+        auto_now_add=True
+    )
+    updated_at = models.DateTimeField(
+        _('Дата обновления'),
+        auto_now=True
+    )
+    is_active = models.BooleanField(
+        _('Активный'),
+        default=True,
+        help_text=_('Отметьте, чтобы объект был активным')
+    )
     
     class Meta:
         abstract = True
@@ -45,19 +57,19 @@ class SeoModel(models.Model):
     Абстрактная модель для SEO полей
     """
     meta_title = models.CharField(
-        _('Meta Title'),
-        max_length=60,
+        _('SEO заголовок'),
+        max_length=255,
         blank=True,
-        help_text=_('Оптимальная длина: 50-60 символов')
+        help_text=_('Заголовок для поисковых систем (до 60 символов)')
     )
-    meta_description = models.CharField(
-        _('Meta Description'),
-        max_length=160,
+    meta_description = models.TextField(
+        _('SEO описание'),
         blank=True,
-        help_text=_('Оптимальная длина: 150-160 символов')
+        max_length=160,
+        help_text=_('Описание для поисковых систем (до 160 символов)')
     )
     meta_keywords = models.CharField(
-        _('Meta Keywords'),
+        _('SEO ключевые слова'),
         max_length=255,
         blank=True,
         help_text=_('Ключевые слова через запятую')
