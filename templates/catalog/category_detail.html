@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    {% if category %}
+        <h1>{{ category.name }}</h1>
+        <p style="color: var(--secondary-gray); margin-bottom: 2rem;">{{ category.description }}</p>
+    {% else %}
+        <h1>{{ category_name }}</h1>
+    {% endif %}
+    
+    <!-- Фильтры и сортировка -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <select style="padding: 0.5rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                <option>Все товары</option>
+                <option>В наличии</option>
+                <option>Под заказ</option>
+            </select>
+            <select style="padding: 0.5rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                <option>Сортировка по умолчанию</option>
+                <option>По цене (возрастание)</option>
+                <option>По цене (убывание)</option>
+                <option>По названию</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-outline btn-sm" onclick="toggleView('grid')" id="gridBtn">⊞ Плитка</button>
+            <button class="btn btn-outline btn-sm" onclick="toggleView('list')" id="listBtn">☰ Список</button>
+        </div>
+    </div>
+    
+    <!-- Сетка товаров -->
+    <div id="productGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem;">
+        {% for product in products %}
+        <div class="product-card" style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s; cursor: pointer;" 
+             onclick="window.location.href='{% if product.get_absolute_url %}{{ product.get_absolute_url }}{% else %}{% url 'catalog:product_detail' slug=product.slug %}{% endif %}'">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 200px; object-fit: cover;">
+            {% else %}
+                <img src="{{ product.image }}" alt="{{ product.name }}" style="width: 100%; height: 200px; object-fit: cover;">
+            {% endif %}
+            <div style="padding: 1.5rem;">
+                <h3 style="color: var(--primary-red); margin-bottom: 0.5rem; font-size: 1.1rem;">{{ product.name }}</h3>
+                {% if product.article %}
+                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
+                {% endif %}
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">{{ product.price }} BYN</div>
+                        {% if product.old_price and product.old_price > product.price %}
+                            <div style="font-size: 0.9rem; color: var(--secondary-gray); text-decoration: line-through;">{{ product.old_price }} BYN</div>
+                        {% endif %}
+                    </div>
+                    {% if user.is_authenticated %}
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart({{ product.id }})">В корзину</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
+            <p>В данной категории пока нет товаров</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Список товаров -->
+    <div id="productList" style="display: none;">
+        {% for product in products %}
+        <div class="product-item" style="display: flex; gap: 1.5rem; padding: 1.5rem; border-bottom: 1px solid var(--light-gray); align-items: center; cursor: pointer;" 
+             onclick="window.location.href='{% if product.get_absolute_url %}{{ product.get_absolute_url }}{% else %}{% url 'catalog:product_detail' slug=product.slug %}{% endif %}'">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
+            {% else %}
+                <img src="{{ product.image }}" alt="{{ product.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
+            {% endif %}
+            <div style="flex: 1;">
+                <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">{{ product.name }}</h3>
+                {% if product.article %}
+                    <p style="color: var(--secondary-gray); margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
+                {% endif %}
+                {% if product.short_description %}
+                    <p style="color: var(--dark-gray);">{{ product.short_description|truncatewords:20 }}</p>
+                {% endif %}
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-red); margin-bottom: 0.5rem;">{{ product.price }} BYN</div>
+                {% if product.old_price and product.old_price > product.price %}
+                    <div style="font-size: 0.9rem; color: var(--secondary-gray); text-decoration: line-through; margin-bottom: 0.5rem;">{{ product.old_price }} BYN</div>
+                {% endif %}
+                <div style="font-size: 0.9rem; color: var(--secondary-gray);">В наличии</div>
+            </div>
+            {% if user.is_authenticated %}
+                <button class="btn btn-primary" onclick="event.stopPropagation(); addToCart({{ product.id }})">В корзину</button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleView(viewType) {
+    const gridView = document.getElementById('productGrid');
+    const listView = document.getElementById('productList');
+    const gridBtn = document.getElementById('gridBtn');
+    const listBtn = document.getElementById('listBtn');
+    
+    if (viewType === 'grid') {
+        gridView.style.display = 'grid';
+        listView.style.display = 'none';
+        gridBtn.classList.add('btn-primary');
+        gridBtn.classList.remove('btn-outline');
+        listBtn.classList.add('btn-outline');
+        listBtn.classList.remove('btn-primary');
+    } else {
+        gridView.style.display = 'none';
+        listView.style.display = 'block';
+        listBtn.classList.add('btn-primary');
+        listBtn.classList.remove('btn-outline');
+        gridBtn.classList.add('btn-outline');
+        gridBtn.classList.remove('btn-primary');
+    }
+}
+
+function addToCart(productId) {
+    {% if not user.is_authenticated %}
+        alert('Для добавления товаров в корзину необходимо войти в систему');
+        window.location.href = '{% url "accounts:login" %}';
+        return;
+    {% endif %}
+    
+    fetch('{% url "orders:add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `product_id=${productId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Товар добавлен в корзину');
+        } else {
+            alert(data.message || 'Ошибка при добавлении товара');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка');
+    });
+}
+
+// Инициализация вида сетки
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('gridBtn').classList.add('btn-primary');
+    document.getElementById('gridBtn').classList.remove('btn-outline');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <!-- Хлебные крошки -->
+    <div style="margin-bottom: 2rem; color: var(--secondary-gray);">
+        <a href="{% url 'core:home' %}" style="color: var(--primary-red);">Главная</a> / 
+        <a href="{% url 'catalog:product_list' %}" style="color: var(--primary-red);">Каталог</a> / 
+        {% if product.category %}
+            <a href="{{ product.category.get_absolute_url }}" style="color: var(--primary-red);">{{ product.category.name }}</a> / 
+        {% endif %}
+        <span>{{ product.name }}</span>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 3rem;">
+        <!-- Изображение товара -->
+        <div>
+            {% if product.main_image %}
+                <img src="{{ product.main_image.image.url }}" alt="{{ product.name }}" style="width: 100%; border-radius: 10px; box-shadow: var(--shadow);">
+            {% elif product.image %}
+                <img src="{{ product.image }}" alt="{{ product.name }}" style="width: 100%; border-radius: 10px; box-shadow: var(--shadow);">
+            {% else %}
+                <div style="width: 100%; height: 400px; background: var(--light-gray); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray);">
+                    Изображение товара
+                </div>
+            {% endif %}
+            
+            <!-- Дополнительные изображения -->
+            {% if product.images.count > 1 %}
+            <div style="display: flex; gap: 1rem; margin-top: 1rem; overflow-x: auto;">
+                {% for image in product.images.all %}
+                <img src="{{ image.image.url }}" alt="{{ product.name }}" 
+                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px; cursor: pointer; border: 2px solid transparent;"
+                     onclick="changeMainImage(this.src)">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Информация о товаре -->
+        <div>
+            <h1 style="margin-bottom: 1rem;">{{ product.name }}</h1>
+            
+            {% if product.article %}
+                <p style="color: var(--secondary-gray); margin-bottom: 1rem;">
+                    <strong>Артикул:</strong> {{ product.article }}
+                </p>
+            {% endif %}
+            
+            <!-- Цена -->
+            <div style="margin-bottom: 2rem;">
+                <div style="font-size: 2rem; font-weight: bold; color: var(--primary-red); margin-bottom: 0.5rem;">
+                    {{ product.price }} BYN
+                    {% if product.unit %} / {{ product.get_unit_display }}{% endif %}
+                </div>
+                {% if product.old_price and product.old_price > product.price %}
+                    <div style="font-size: 1.2rem; color: var(--secondary-gray); text-decoration: line-through;">
+                        {{ product.old_price }} BYN
+                    </div>
+                    <div style="color: var(--primary-red); font-weight: bold;">
+                        Скидка {{ product.discount_percentage }}%
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Наличие -->
+            <div style="margin-bottom: 2rem;">
+                {% if product.is_in_stock %}
+                    <div style="color: var(--success); font-weight: bold;">✓ В наличии</div>
+                    {% if product.stock_quantity %}
+                        <div style="color: var(--secondary-gray); font-size: 0.9rem;">{{ product.stock_quantity }} {{ product.get_unit_display }}</div>
+                    {% endif %}
+                {% else %}
+                    <div style="color: var(--danger); font-weight: bold;">✗ Нет в наличии</div>
+                {% endif %}
+            </div>
+            
+            <!-- Краткое описание -->
+            {% if product.short_description %}
+                <p style="margin-bottom: 2rem; line-height: 1.6;">{{ product.short_description }}</p>
+            {% endif %}
+            
+            <!-- Кнопки действий -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                {% if user.is_authenticated %}
+                    {% if product.is_in_stock %}
+                        <button class="btn btn-primary" onclick="addToCart({{ product.id }})">
+                            Добавить в корзину
+                        </button>
+                    {% endif %}
+                    <button class="btn btn-outline" onclick="addToWishlist({{ product.id }})">
+                        ❤ В избранное
+                    </button>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-primary">
+                        Войти для заказа
+                    </a>
+                {% endif %}
+                <button class="btn btn-outline" onclick="shareProduct()">
+                    📤 Поделиться
+                </button>
+            </div>
+            
+            <!-- Характеристики -->
+            {% if product.get_specifications_dict %}
+            <div style="background: var(--light-gray); padding: 1.5rem; border-radius: 10px;">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-red);">Характеристики</h3>
+                {% for key, value in product.get_specifications_dict.items %}
+                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #ddd;">
+                    <span style="font-weight: 500;">{{ key }}:</span>
+                    <span>{{ value }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Подробное описание -->
+    {% if product.description %}
+    <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <h2 style="color: var(--primary-red); margin-bottom: 1rem;">Описание</h2>
+        <div style="line-height: 1.8;">{{ product.description|linebreaks }}</div>
+    </div>
+    {% endif %}
+    
+    <!-- Похожие товары -->
+    <div>
+        <h2 style="color: var(--primary-red); margin-bottom: 2rem;">Похожие товары</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+            <!-- Здесь будут похожие товары -->
+            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 1rem; text-align: center;">
+                <div style="color: var(--secondary-gray);">Загрузка похожих товаров...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function changeMainImage(src) {
+    const mainImage = document.querySelector('img[style*="width: 100%"]');
+    if (mainImage) {
+        mainImage.src = src;
+    }
+}
+
+function addToCart(productId) {
+    fetch('{% url "orders:add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `product_id=${productId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Товар добавлен в корзину');
+        } else {
+            alert(data.message || 'Ошибка при добавлении товара');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка');
+    });
+}
+
+function addToWishlist(productId) {
+    alert('Функция добавления в избранное будет реализована позже');
+}
+
+function shareProduct() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ product.name }}',
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Ссылка скопирована в буфер обмена');
+    }
+}
+</script>
+{% endblock %}

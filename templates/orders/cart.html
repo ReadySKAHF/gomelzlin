@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Корзина - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <h1>Корзина</h1>
+    
+    {% if cart_items %}
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); margin: 2rem 0;">
+            <!-- Заголовки таблицы -->
+            <div style="display: grid; grid-template-columns: 80px 1fr 120px 120px 120px 80px; gap: 1rem; padding: 1.5rem; border-bottom: 1px solid var(--light-gray); font-weight: bold; color: var(--dark-gray);">
+                <div>Фото</div>
+                <div>Товар</div>
+                <div>Цена</div>
+                <div>Количество</div>
+                <div>Сумма</div>
+                <div></div>
+            </div>
+            
+            <!-- Товары в корзине -->
+            {% for item in cart_items %}
+            <div style="display: grid; grid-template-columns: 80px 1fr 120px 120px 120px 80px; gap: 1rem; padding: 1.5rem; border-bottom: 1px solid var(--light-gray); align-items: center;">
+                <!-- Фото товара -->
+                <div>
+                    {% if item.product.main_image %}
+                        <img src="{{ item.product.main_image.image.url }}" alt="{{ item.product.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
+                    {% else %}
+                        <div style="width: 60px; height: 60px; background: var(--light-gray); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: var(--secondary-gray);">Фото</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Информация о товаре -->
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">
+                        <a href="{{ item.product.get_absolute_url }}" style="color: var(--primary-red); text-decoration: none;">
+                            {{ item.product.name }}
+                        </a>
+                    </h3>
+                    <p style="color: var(--secondary-gray); font-size: 0.9rem;">Артикул: {{ item.product.article }}</p>
+                </div>
+                
+                <!-- Цена -->
+                <div style="font-weight: bold;">{{ item.product.price }} BYN</div>
+                
+                <!-- Количество -->
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button class="btn btn-outline btn-sm" onclick="updateQuantity({{ item.id }}, -1)">-</button>
+                    <input type="number" value="{{ item.quantity }}" min="1" style="width: 60px; text-align: center; border: 1px solid var(--light-gray); border-radius: 3px; padding: 0.25rem;" onchange="updateQuantity({{ item.id }}, this.value, true)">
+                    <button class="btn btn-outline btn-sm" onclick="updateQuantity({{ item.id }}, 1)">+</button>
+                </div>
+                
+                <!-- Общая сумма -->
+                <div style="font-weight: bold; color: var(--primary-red);" id="total-{{ item.id }}">{{ item.get_total_price }} BYN</div>
+                
+                <!-- Удалить -->
+                <div>
+                    <button class="btn btn-danger btn-sm" onclick="removeFromCart({{ item.id }})" title="Удалить">🗑️</button>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Итого -->
+            <div style="padding: 1.5rem; background: var(--light-gray);">
+                <div style="text-align: right;">
+                    <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">
+                        Количество товаров: <strong>{{ cart.items_count }}</strong>
+                    </div>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-red);">
+                        Итого: <strong id="cart-total">{{ cart.total_price }} BYN</strong>
+                    </div>
+                </div>
+                <div style="text-align: right; margin-top: 1rem;">
+                    <a href="{% url 'catalog:product_list' %}" class="btn btn-outline">Продолжить покупки</a>
+                    <a href="{% url 'orders:checkout' %}" class="btn btn-primary">Оформить заказ</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem; background: white; border-radius: 10px; box-shadow: var(--shadow);">
+            <div style="font-size: 4rem; margin-bottom: 1rem; color: var(--secondary-gray);">🛒</div>
+            <h2 style="color: var(--secondary-gray); margin-bottom: 1rem;">Корзина пуста</h2>
+            <p style="color: var(--secondary-gray); margin-bottom: 2rem;">Добавьте товары из каталога</p>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Перейти в каталог</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function updateQuantity(itemId, change, absolute = false) {
+    let url = '{% url "orders:update_cart" %}';
+    let formData = new FormData();
+    formData.append('item_id', itemId);
+    
+    if (absolute) {
+        formData.append('quantity', change);
+    } else {
+        formData.append('change', change);
+    }
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Обновляем страницу для простоты
+        } else {
+            alert(data.message || 'Ошибка при обновлении корзины');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка');
+    });
+}
+
+function removeFromCart(itemId) {
+    if (!confirm('Удалить товар из корзины?')) return;
+    
+    let url = '{% url "orders:remove_from_cart" %}';
+    let formData = new FormData();
+    formData.append('item_id', itemId);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch(url, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Обновляем страницу для простоты
+        } else {
+            alert(data.message || 'Ошибка при удалении товара');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Произошла ошибка');
+    });
+}
+</script>
+{% endblock %}

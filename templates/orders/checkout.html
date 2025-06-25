@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформление заказа - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <h1>Оформление заказа</h1>
+    
+    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem; margin-top: 2rem;">
+        <!-- Форма заказа -->
+        <div>
+            <form method="post" style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow);">
+                {% csrf_token %}
+                
+                <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Контактная информация</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Имя</label>
+                        <input type="text" name="first_name" required value="{{ user.first_name }}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Фамилия</label>
+                        <input type="text" name="last_name" required value="{{ user.last_name }}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                    <input type="email" name="email" required value="{{ user.email }}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Телефон</label>
+                    <input type="tel" name="phone" required placeholder="+375 XX XXX-XX-XX" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                </div>
+                
+                <h2 style="color: var(--primary-red); margin: 2rem 0 1.5rem;">Доставка</h2>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Способ доставки</label>
+                    <select name="delivery_method" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;" onchange="toggleDeliveryFields(this.value)">
+                        <option value="pickup">Самовывоз (бесплатно)</option>
+                        <option value="delivery">Доставка курьером</option>
+                        <option value="transport_company">Транспортная компания</option>
+                    </select>
+                </div>
+                
+                <div id="deliveryAddress" style="display: none; margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Адрес доставки</label>
+                    <textarea name="delivery_address" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;" placeholder="Укажите полный адрес доставки"></textarea>
+                </div>
+                
+                <h2 style="color: var(--primary-red); margin: 2rem 0 1.5rem;">Оплата</h2>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Способ оплаты</label>
+                    <select name="payment_method" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                        <option value="cash">Наличный расчет</option>
+                        <option value="bank_transfer">Банковский перевод</option>
+                        <option value="card">Банковская карта</option>
+                        <option value="invoice">По счету</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Комментарий к заказу</label>
+                    <textarea name="notes" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;" placeholder="Дополнительная информация (не обязательно)"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 1rem;">
+                    Оформить заказ
+                </button>
+            </form>
+        </div>
+        
+        <!-- Сводка заказа -->
+        <div>
+            <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow); position: sticky; top: 2rem;">
+                <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Ваш заказ</h2>
+                
+                <!-- Товары в заказе -->
+                <div style="margin-bottom: 1.5rem;">
+                    <!-- Здесь будут товары из корзины -->
+                    <div style="color: var(--secondary-gray); text-align: center; padding: 1rem;">
+                        Загрузка товаров...
+                    </div>
+                </div>
+                
+                <!-- Итого -->
+                <div style="border-top: 1px solid var(--light-gray); padding-top: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Товары:</span>
+                        <span>0.00 BYN</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>Доставка:</span>
+                        <span id="deliveryPrice">Бесплатно</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; color: var(--primary-red); margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--light-gray);">
+                        <span>Итого:</span>
+                        <span>0.00 BYN</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleDeliveryFields(method) {
+    const addressField = document.getElementById('deliveryAddress');
+    const deliveryPrice = document.getElementById('deliveryPrice');
+    
+    if (method === 'pickup') {
+        addressField.style.display = 'none';
+        deliveryPrice.textContent = 'Бесплатно';
+    } else {
+        addressField.style.display = 'block';
+        if (method === 'delivery') {
+            deliveryPrice.textContent = '20.00 BYN';
+        } else {
+            deliveryPrice.textContent = 'По тарифам ТК';
+        }
+    }
+}
+</script>
+{% endblock %}
