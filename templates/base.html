@@ -1,330 +1,367 @@
-<!-- templates/base.html -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ОАО 'ГЗЛиН' - ведущий производитель литейных изделий и сельскохозяйственной техники в Республике Беларусь с 1965 года.">
-    <meta name="keywords" content="жатки, комбайны, метизы, сельхозтехника, литейные изделия, ГЗЛиН, Гомель">
-    <meta name="author" content="ОАО 'ГЗЛиН'">
-    
-    <!-- Open Graph для социальных сетей -->
-    <meta property="og:title" content="{% block og_title %}{% firstof page_title "ОАО 'ГЗЛиН'" %}{% endblock %}">
-    <meta property="og:description" content="Ведущий производитель литейных изделий и сельскохозяйственной техники">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="ОАО 'ГЗЛиН'">
-    
-    <title>{% block title %}ОАО "ГЗЛиН" - Производство сельхозтехники и литейных изделий{% endblock %}</title>
-    
-    <!-- Favicon -->
-    {% load static %}
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
-    
-    <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="{% static 'css/main.css' %}" rel="stylesheet">
-    
+    <title>{% block title %}ОАО "ГЗЛиН" - Современные решения{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-red: #cb413b;
+            --secondary-gray: #808080;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-gray);
+            background: var(--white);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-red);
+            text-decoration: none;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--dark-gray);
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--primary-red);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-red);
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after, nav a.active::after {
+            width: 100%;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #a53530;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            border: 2px solid var(--primary-red);
+            color: var(--primary-red);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        /* Mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary-red);
+            cursor: pointer;
+        }
+
+        /* Main content */
+        main {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Grid layouts */
+        .grid {
+            display: grid;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        .card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--dark-gray);
+        }
+
+        .card-subtitle {
+            color: var(--secondary-gray);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-gray);
+            color: white;
+            padding: 2rem 0 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--primary-red);
+            margin-bottom: 1rem;
+        }
+
+        .footer-section a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary-red);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--secondary-gray);
+            color: var(--secondary-gray);
+        }
+
+        /* Badge */
+        .badge {
+            background: var(--primary-red);
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        /* Success/Error messages */
+        .message {
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+            }
+
+            .user-actions {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Header -->
-    <header class="header" id="header">
+    <header>
         <div class="container">
             <div class="header-content">
-                <!-- Logo -->
-                <a href="{% url 'core:home' %}" class="logo">
-                    <i class="fas fa-industry"></i>
-                    ОАО "ГЗЛиН"
-                </a>
-                
-                <!-- Navigation -->
-                <nav id="nav">
-                    <ul style="display: flex; list-style: none; margin: 0; padding: 0; gap: 2rem;">
-                        <li><a href="{% url 'core:home' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Главная</a></li>
-                        <li class="dropdown">
-                            <a href="{% url 'company:about' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s; display: flex; align-items: center;">
-                                О компании
-                                <i class="fas fa-chevron-down ms-1" style="font-size: 0.8rem;"></i>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a href="{% url 'company:about' %}">
-                                    <i class="fas fa-building me-2"></i>О компании
-                                </a>
-                                <a href="{% url 'company:leadership' %}">
-                                    <i class="fas fa-users me-2"></i>Руководство
-                                </a>
-                                <a href="{% url 'company:partners' %}">
-                                    <i class="fas fa-handshake me-2"></i>Партнёры
-                                </a>
-                                <a href="{% url 'company:requisites' %}">
-                                    <i class="fas fa-file-contract me-2"></i>Реквизиты
-                                </a>
-                            </div>
-                        </li>
-                        <li><a href="{% url 'catalog:product_list' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Продукция</a></li>
-                        <li><a href="{% url 'dealers:dealer_list' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Дилерские центры</a></li>
-                        <li><a href="{% url 'core:contacts' %}" style="color: white; text-decoration: none; padding: 0.5rem 0; transition: color 0.3s;">Контакты</a></li>
+                <a href="{% url 'core:home' %}" class="logo">ГЗЛиН</a>
+                <nav>
+                    <ul>
+                        <li><a href="{% url 'core:home' %}" class="nav-link">Главная</a></li>
+                        <li><a href="{% url 'company:about' %}" class="nav-link">О компании</a></li>
+                        <li><a href="{% url 'catalog:product_list' %}" class="nav-link">Продукция</a></li>
+                        <li><a href="{% url 'dealers:dealer_list' %}" class="nav-link">Дилеры</a></li>
+                        <li><a href="{% url 'core:contacts' %}" class="nav-link">Контакты</a></li>
                     </ul>
                 </nav>
-                
-                <!-- User Actions -->
                 <div class="user-actions">
-                    <!-- Корзина -->
-                    <a href="{% url 'orders:cart' %}" class="cart-link" title="Корзина">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="cart-count" id="cartCount">0</span>
-                    </a>
-                    
                     {% if user.is_authenticated %}
-                        <div class="dropdown">
-                            <a href="#" class="user-menu-toggle">
-                                <i class="fas fa-user"></i>
-                                <span class="d-none d-md-inline ms-1">{{ user.get_short_name }}</span>
-                                <i class="fas fa-chevron-down ms-1"></i>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a href="{% url 'accounts:profile' %}">
-                                    <i class="fas fa-user me-2"></i>Личный кабинет
-                                </a>
-                                <a href="{% url 'orders:order_list' %}">
-                                    <i class="fas fa-list me-2"></i>Мои заказы
-                                </a>
-                                <a href="{% url 'orders:cart' %}">
-                                    <i class="fas fa-shopping-cart me-2"></i>Корзина
-                                </a>
-                                <hr>
-                                <a href="{% url 'accounts:logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Выйти
-                                </a>
-                            </div>
-                        </div>
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline">{{ user.get_short_name|default:user.email }}</a>
                     {% else %}
-                        <a href="{% url 'accounts:login' %}" class="btn btn-outline">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="d-none d-md-inline ms-1">Войти</span>
-                        </a>
-                        <a href="{% url 'accounts:register' %}" class="btn btn-primary">
-                            <i class="fas fa-user-plus"></i>
-                            <span class="d-none d-md-inline ms-1">Регистрация</span>
-                        </a>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline">Войти</a>
                     {% endif %}
-                    
-                    <!-- Мобильное меню -->
-                    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-                        <i class="fas fa-bars"></i>
-                    </button>
+                    <a href="{% url 'orders:cart' %}" class="btn btn-primary">
+                        Корзина <span class="badge" id="cartCount">{{ cart.items_count|default:0 }}</span>
+                    </a>
                 </div>
+                <button class="mobile-menu-btn">☰</button>
             </div>
         </div>
     </header>
 
-    <!-- Мобильная корзина (фиксированная кнопка) -->
-    <a href="{% url 'orders:cart' %}" class="cart-link-mobile" title="Корзина">
-        <i class="fas fa-shopping-cart"></i>
-        <span class="cart-count" id="cartCountMobile">0</span>
-    </a>
-
-    <!-- Messages -->
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            <div class="message {{ message.tags }}" onclick="this.remove()">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span>{{ message }}</span>
-                    <button type="button" class="btn-close btn-close-white ms-3" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Main Content -->
     <main>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
+    <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
                     <h3>ОАО "ГЗЛиН"</h3>
-                    <p>Ведущий производитель литейных изделий и сельскохозяйственной техники в Республике Беларусь с 1965 года.</p>
-                    <div class="d-flex gap-3 mt-3">
-                        <a href="#" class="text-white">
-                            <i class="fab fa-facebook fa-lg"></i>
-                        </a>
-                        <a href="#" class="text-white">
-                            <i class="fab fa-instagram fa-lg"></i>
-                        </a>
-                        <a href="#" class="text-white">
-                            <i class="fab fa-telegram fa-lg"></i>
-                        </a>
-                    </div>
+                    <p>Ведущий производитель литейных изделий и нормалей в Республике Беларусь с 1965 года.</p>
                 </div>
-                
                 <div class="footer-section">
                     <h3>Контакты</h3>
-                    <p><i class="fas fa-map-marker-alt me-2"></i>г. Гомель, ул. Промышленная, 15</p>
-                    <a href="tel:+375232123456"><i class="fas fa-phone me-2"></i>+375 232 12-34-56</a>
-                    <a href="mailto:info@gomelzlin.by"><i class="fas fa-envelope me-2"></i>info@gomelzlin.by</a>
-                    <p><i class="fas fa-clock me-2"></i>Пн-Пт: 8:00-17:00</p>
+                    <a href="tel:+375232123456">+375 232 12-34-56</a>
+                    <a href="mailto:info@gomelzlin.by">info@gomelzlin.by</a>
+                    <p>г. Гомель, ул. Промышленная, 15</p>
                 </div>
-                
-                <div class="footer-section">
-                    <h3>Продукция</h3>
-                    <a href="{% url 'catalog:product_list' %}">Каталог товаров</a>
-                    <a href="{% url 'catalog:product_search' %}">Поиск товаров</a>
-                    <a href="#">Новинки</a>
-                    <a href="#">Популярные товары</a>
-                </div>
-                
                 <div class="footer-section">
                     <h3>Полезные ссылки</h3>
                     <a href="{% url 'company:about' %}">О компании</a>
-                    <a href="{% url 'company:leadership' %}">Руководство</a>
-                    <a href="{% url 'company:partners' %}">Партнеры</a>
+                    <a href="{% url 'catalog:product_list' %}">Продукция</a>
                     <a href="{% url 'dealers:dealer_list' %}">Дилерские центры</a>
+                    <a href="{% url 'core:contacts' %}">Контакты</a>
                 </div>
             </div>
-            
             <div class="footer-bottom">
                 <p>&copy; 2025 ОАО "Гомельский завод литейных изделий и нормалей". Все права защищены.</p>
-                <p class="small">УНП: 400000000 | Свидетельство о гос.регистрации № 123456789</p>
             </div>
         </div>
     </footer>
 
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/cart.js' %}"></script>
-    <script>
-        // Скрипт для скролла хедера
-        window.addEventListener('scroll', function() {
-            const header = document.getElementById('header');
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
-        });
-
-        // Мобильное меню
-        function toggleMobileMenu() {
-            const nav = document.getElementById('nav');
-            nav.classList.toggle('active');
-        }
-
-        // Закрытие мобильного меню при клике вне его
-        document.addEventListener('click', function(event) {
-            const nav = document.getElementById('nav');
-            const toggle = document.querySelector('.mobile-menu-toggle');
-            
-            if (!nav.contains(event.target) && !toggle.contains(event.target)) {
-                nav.classList.remove('active');
-            }
-        });
-
-        // Обработка выпадающих меню навигации
-        document.querySelectorAll('nav .dropdown > a').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const dropdown = this.parentElement;
-                const menu = dropdown.querySelector('.dropdown-menu');
-                
-                // Закрываем все другие меню
-                document.querySelectorAll('nav .dropdown-menu').forEach(otherMenu => {
-                    if (otherMenu !== menu) {
-                        otherMenu.classList.remove('active');
-                    }
-                });
-                
-                // Переключаем текущее меню
-                menu.classList.toggle('active');
-            });
-        });
-
-        // Плавная прокрутка для якорных ссылок
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Lazy loading для изображений
-        if ('IntersectionObserver' in window) {
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.src = img.dataset.src;
-                        img.classList.remove('lazy');
-                        img.classList.add('loaded');
-                        imageObserver.unobserve(img);
-                    }
-                });
-            });
-
-            document.querySelectorAll('img.lazy').forEach(img => {
-                imageObserver.observe(img);
-            });
-        }
-
-        // Обработка форм с AJAX
-        function submitFormAjax(form, callback) {
-            const formData = new FormData(form);
-            
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (callback) callback(data);
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                window.GZLinCart.showNotification('Произошла ошибка', 'error');
-            });
-        }
-
-        // Инициализация компонентов при загрузке DOM
-        document.addEventListener('DOMContentLoaded', function() {
-            // Добавляем анимации появления для элементов
-            const animatedElements = document.querySelectorAll('.fade-in, .slide-in-up, .slide-in-left');
-            
-            if ('IntersectionObserver' in window) {
-                const animationObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.style.opacity = '1';
-                            entry.target.style.transform = 'translateY(0)';
-                        }
-                    });
-                });
-
-                animatedElements.forEach(el => {
-                    el.style.opacity = '0';
-                    el.style.transform = 'translateY(20px)';
-                    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                    animationObserver.observe(el);
-                });
-            }
-        });
-    </script>
-    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

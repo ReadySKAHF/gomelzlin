@@ -50,19 +50,52 @@ class PartnersView(TemplateView):
             {
                 'name': 'ОАО "БЕЛАЗ"',
                 'description': 'Ведущий производитель карьерной техники',
-                'website': 'https://belaz.by'
+                'website': 'https://belaz.by',
+                'logo': 'https://via.placeholder.com/150x100?text=BELAZ'
             },
             {
                 'name': 'ОАО "МТЗ"',
                 'description': 'Минский тракторный завод',
-                'website': 'https://mtz.by'
+                'website': 'https://mtz.by',
+                'logo': 'https://via.placeholder.com/150x100?text=MTZ'
             },
             {
                 'name': 'ОАО "МАЗ"',
                 'description': 'Минский автомобильный завод',
-                'website': 'https://maz.by'
+                'website': 'https://maz.by',
+                'logo': 'https://via.placeholder.com/150x100?text=MAZ'
             }
         ]
+        return context
+
+class RequisitesView(TemplateView):
+    """Страница реквизитов компании"""
+    template_name = 'company/requisites.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Реквизиты'
+        context['requisites'] = {
+            'full_name': 'Открытое акционерное общество "Гомельский завод литейных изделий"',
+            'short_name': 'ОАО "ГЗЛиН"',
+            'unp': '400000000',
+            'okpo': '12345678',
+            'legal_address': '246000, Республика Беларусь, г. Гомель, ул. Промышленная, 15',
+            'postal_address': '246000, Республика Беларусь, г. Гомель, ул. Промышленная, 15',
+            'phone': '+375 (232) 12-34-56',
+            'fax': '+375 (232) 12-34-57',
+            'email': 'info@gomelzlin.by',
+            'website': 'www.gomelzlin.by',
+            'bank_details': {
+                'bank_name': 'ОАО "Белагропромбанк"',
+                'bank_code': '153001749',
+                'account_byn': 'BY12 1530 0000 0000 0000 1234',
+                'account_usd': 'BY12 1530 0000 0000 0000 5678',
+                'account_eur': 'BY12 1530 0000 0000 0000 9012'
+            },
+            'director': 'Иванов Иван Иванович',
+            'chief_accountant': 'Петрова Анна Сергеевна'
+        }
         return context
 
 class PoliciesView(TemplateView):
@@ -71,4 +104,39 @@ class PoliciesView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Политики компании'
+        return context
+
+class HRPolicyView(TemplateView):
+    """Кадровая политика"""
+    template_name = 'company/hr_policy.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Кадровая политика'
+        return context
+
+class SocialPolicyView(TemplateView):
+    """Социальная политика"""
+    template_name = 'company/social_policy.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Социальная политика'
+        context['social_tasks'] = [
+            {
+                'title': 'ЗАЩИТА ОКРУЖАЮЩЕЙ СРЕДЫ',
+                'description': 'Мы заботимся об экологии и используем современные технологии для минимизации воздействия на окружающую среду.',
+                'icon': 'fas fa-leaf'
+            },
+            {
+                'title': 'ОБЕСПЕЧЕНИЕ БЕЗОПАСНОСТИ СОТРУДНИКОВ',
+                'description': 'Безопасность труда - наш приоритет. Мы обеспечиваем современные средства защиты и регулярное обучение персонала.',
+                'icon': 'fas fa-hard-hat'
+            },
+            {
+                'title': 'ОБРАЗОВАТЕЛЬНЫЕ ПРОЕКТЫ ОАО "ГЗЛиН"',
+                'description': 'Поддержка образования и развития профессиональных навыков сотрудников и молодых специалистов.',
+                'icon': 'fas fa-graduation-cap'
+            }
+        ]
         return context

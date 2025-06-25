@@ -1,296 +1,141 @@
-<!-- templates/orders/cart.html -->
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Корзина - ОАО "ГЗЛиН"{% endblock %}
 
-{% block extra_css %}
-<style>
-    .cart-page {
-        padding: 3rem 0;
-    }
-    
-    .cart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    
-    .cart-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-    
-    .cart-container {
-        background: white;
-        border-radius: 15px;
-        box-shadow: var(--shadow);
-        overflow: hidden;
-        margin-bottom: 2rem;
-    }
-    
-    .cart-table-header {
-        display: grid;
-        grid-template-columns: 80px 1fr 120px 120px 120px 80px;
-        gap: 1rem;
-        padding: 1.5rem;
-        border-bottom: 2px solid var(--light-gray);
-        font-weight: bold;
-        color: var(--dark-gray);
-        background: var(--light-gray);
-    }
-    
-    .cart-summary {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 2rem;
-        align-items: start;
-    }
-    
-    .continue-shopping {
-        background: var(--light-gray);
-        border-radius: 15px;
-        padding: 2rem;
-        text-align: center;
-    }
-    
-    .checkout-section {
-        background: white;
-        border-radius: 15px;
-        box-shadow: var(--shadow);
-        padding: 2rem;
-        position: sticky;
-        top: 100px;
-    }
-    
-    .price-breakdown {
-        border-bottom: 1px solid var(--light-gray);
-        padding-bottom: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .price-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.5rem;
-    }
-    
-    .total-price {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: var(--primary-red);
-    }
-    
-    @media (max-width: 768px) {
-        .cart-table-header {
-            display: none;
-        }
-        
-        .cart-container {
-            border-radius: 10px;
-        }
-        
-        .cart-summary {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-        
-        .checkout-section {
-            position: static;
-        }
-        
-        .cart-actions {
-            width: 100%;
-        }
-        
-        .cart-actions .btn {
-            flex: 1;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="container cart-page">
-    <!-- Хлебные крошки -->
-    <nav aria-label="breadcrumb" style="margin-bottom: 2rem;">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'core:home' %}">Главная</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Корзина</li>
-        </ol>
-    </nav>
+<div class="container" style="padding: 2rem 0;">
+    <h1>Корзина</h1>
     
-    <!-- Заголовок корзины -->
-    <div class="cart-header">
-        <h1>
-            <i class="fas fa-shopping-cart me-2 text-primary"></i>
-            Корзина
-        </h1>
-        <div class="cart-actions">
-            <button onclick="window.GZLinCart.clearCart()" class="btn btn-outline" title="Очистить корзину">
-                <i class="fas fa-trash me-2"></i>
-                Очистить
-            </button>
-            <a href="{% url 'catalog:product_list' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i>
-                Продолжить покупки
-            </a>
-        </div>
-    </div>
-    
-    <!-- Основной контент корзины -->
-    <div class="cart-summary">
-        <!-- Товары в корзине -->
-        <div>
-            <!-- Заголовок таблицы (только для десктопа) -->
-            <div class="cart-table-header">
-                <div>Фото</div>
-                <div>Товар</div>
-                <div>Цена</div>
-                <div>Количество</div>
-                <div>Сумма</div>
-                <div></div>
-            </div>
-            
-            <!-- Контейнер с товарами -->
-            <div class="cart-container">
-                <div class="cart-items">
-                    <!-- Товары будут загружены через JavaScript -->
-                    <div class="empty-cart" style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                        <i class="fas fa-shopping-cart" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                        <h3>Корзина пуста</h3>
-                        <p>Добавьте товары из каталога</p>
-                        <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Перейти в каталог</a>
+    {% if cart_items %}
+        <div id="cartContent">
+            <div id="cartItems">
+                {% for item in cart_items %}
+                <div class="cart-item" data-item-id="{{ item.id }}">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img src="{{ item.product.image.url|default:'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=80&h=80&fit=crop' }}" 
+                             alt="{{ item.product.name }}" 
+                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
+                        <div>
+                            <div style="font-weight: bold;">{{ item.product.name }}</div>
+                            <div style="color: var(--secondary-gray); font-size: 0.9rem;">
+                                Артикул: {{ item.product.article|default:'Н/Д' }}
+                            </div>
+                            <div style="color: var(--primary-red); font-weight: bold;">
+                                {{ item.product.price }} BYN за шт.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <button class="quantity-btn btn btn-outline" 
+                                    data-item-id="{{ item.id }}" 
+                                    data-change="decrease"
+                                    style="padding: 0.2rem 0.5rem; min-width: 30px;">-</button>
+                            <input type="number" 
+                                   class="quantity-input" 
+                                   data-item-id="{{ item.id }}"
+                                   data-prev-value="{{ item.quantity }}"
+                                   value="{{ item.quantity }}" 
+                                   min="1" 
+                                   style="width: 60px; text-align: center; padding: 0.3rem; border: 1px solid var(--light-gray); border-radius: 3px;">
+                            <button class="quantity-btn btn btn-outline" 
+                                    data-item-id="{{ item.id }}" 
+                                    data-change="increase"
+                                    style="padding: 0.2rem 0.5rem; min-width: 30px;">+</button>
+                        </div>
+                        
+                        <div style="text-align: right; min-width: 80px;">
+                            <div class="item-total" style="font-weight: bold;">{{ item.get_total_price }} BYN</div>
+                            <button class="remove-item-btn" 
+                                    data-item-id="{{ item.id }}"
+                                    style="background: none; border: none; color: var(--primary-red); cursor: pointer; font-size: 0.9rem;">
+                                Удалить
+                            </button>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
+            </div>
+            
+            <div class="cart-total" style="text-align: right; padding: 1rem; font-size: 1.2rem; font-weight: bold; color: var(--primary-red); border-top: 2px solid var(--light-gray); margin-top: 1rem;">
+                Итого: {{ cart.total_price }} BYN
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                <button class="clear-cart-btn btn btn-outline">Очистить корзину</button>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'orders:checkout' %}" class="btn btn-primary">Оформить заказ</a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}?next={% url 'orders:checkout' %}" class="btn btn-primary">Войти для оформления</a>
+                {% endif %}
             </div>
         </div>
-        
-        <!-- Сводка заказа -->
-        <div class="checkout-section">
-            <h3 style="margin-bottom: 1.5rem; color: var(--primary-red);">
-                <i class="fas fa-calculator me-2"></i>
-                Итого к оплате
-            </h3>
-            
-            <div class="cart-total">
-                <!-- Итоговая сумма будет загружена через JavaScript -->
-                <div style="text-align: center; color: var(--secondary-gray); padding: 2rem 0;">
-                    <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                    <p>Добавьте товары для расчета</p>
-                </div>
-            </div>
-            
-            <!-- Дополнительная информация -->
-            <div style="background: var(--light-gray); border-radius: 10px; padding: 1.5rem; margin-top: 1.5rem;">
-                <h4 style="margin-bottom: 1rem; font-size: 1.1rem;">
-                    <i class="fas fa-info-circle me-2 text-primary"></i>
-                    Информация о доставке
-                </h4>
-                <ul style="margin: 0; padding-left: 1.2rem; color: var(--secondary-gray); font-size: 0.9rem;">
-                    <li>Бесплатная доставка по Гомелю при заказе от 500 BYN</li>
-                    <li>Доставка по Беларуси 3-5 рабочих дней</li>
-                    <li>Самовывоз с завода бесплатно</li>
-                </ul>
-            </div>
-            
-            <!-- Контакты для заказа -->
-            <div style="background: linear-gradient(135deg, var(--primary-red), #e55550); color: white; border-radius: 10px; padding: 1.5rem; margin-top: 1.5rem; text-align: center;">
-                <h4 style="margin-bottom: 1rem; color: white;">
-                    <i class="fas fa-phone me-2"></i>
-                    Заказать по телефону
-                </h4>
-                <p style="margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: bold;">
-                    <a href="tel:+375232123456" style="color: white; text-decoration: none;">
-                        +375 232 12-34-56
-                    </a>
-                </p>
-                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Пн-Пт: 8:00-17:00</p>
-            </div>
+    {% else %}
+        <div class="empty-cart-message" style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
+            <h2>Корзина пуста</h2>
+            <p style="margin: 1rem 0;">Добавьте товары в корзину, чтобы оформить заказ</p>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Перейти к каталогу</a>
         </div>
-    </div>
-    
-    <!-- Рекомендуемые товары -->
-    <div style="margin-top: 4rem;">
-        <h2 style="margin-bottom: 2rem; text-align: center;">
-            <i class="fas fa-star me-2 text-primary"></i>
-            Рекомендуемые товары
-        </h2>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-            <!-- Примеры рекомендуемых товаров -->
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="{% static 'images/products/sample1.jpg' %}" alt="Жатка валковая навесная" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div class="product-content">
-                    <h4 class="product-title">Жатка валковая навесная 6-метровая</h4>
-                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">Артикул: ЖВН-6А</p>
-                    <div class="product-price">281,439 BYN</div>
-                    <button class="btn btn-primary add-to-cart-btn" style="width: 100%;" 
-                            data-product-id="sample1" 
-                            data-product-name="Жатка валковая навесная 6-метровая"
-                            data-product-price="281439"
-                            data-product-image="{% static 'images/products/sample1.jpg' %}">
-                        <i class="fas fa-shopping-cart me-2"></i>
-                        В корзину
-                    </button>
-                </div>
-            </div>
-            
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="{% static 'images/products/sample2.jpg' %}" alt="Кормоуборочная техника" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div class="product-content">
-                    <h4 class="product-title">Режущий аппарат КСК-100</h4>
-                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">Артикул: РА-КСК-100</p>
-                    <div class="product-price">45,250 BYN</div>
-                    <button class="btn btn-primary add-to-cart-btn" style="width: 100%;"
-                            data-product-id="sample2" 
-                            data-product-name="Режущий аппарат КСК-100"
-                            data-product-price="45250"
-                            data-product-image="{% static 'images/products/sample2.jpg' %}">
-                        <i class="fas fa-shopping-cart me-2"></i>
-                        В корзину
-                    </button>
-                </div>
-            </div>
-            
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="{% static 'images/products/sample3.jpg' %}" alt="Метизная продукция" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div class="product-content">
-                    <h4 class="product-title">Болт М16х60 оцинкованный</h4>
-                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">Артикул: Б-М16-60-Ц</p>
-                    <div class="product-price">2.50 BYN</div>
-                    <button class="btn btn-primary add-to-cart-btn" style="width: 100%;"
-                            data-product-id="sample3" 
-                            data-product-name="Болт М16х60 оцинкованный"
-                            data-product-price="2.50"
-                            data-product-image="{% static 'images/products/sample3.jpg' %}">
-                        <i class="fas fa-shopping-cart me-2"></i>
-                        В корзину
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 </div>
 
-<script>
-// Инициализация страницы корзины
-document.addEventListener('DOMContentLoaded', function() {
-    // Помечаем, что мы на странице корзины
-    document.body.classList.add('cart-page-body');
+<style>
+/* Cart styles */
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--light-gray);
+    transition: background-color 0.3s;
+}
+
+.cart-item:hover {
+    background-color: var(--light-gray);
+}
+
+.quantity-btn {
+    transition: all 0.2s ease;
+}
+
+.quantity-btn:hover {
+    transform: scale(1.1);
+}
+
+.quantity-input {
+    border: 1px solid var(--light-gray);
+    border-radius: 3px;
+    padding: 0.3rem;
+    text-align: center;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: var(--primary-red);
+}
+
+@media (max-width: 768px) {
+    .cart-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
     
-    // Обновляем содержимое корзины
-    if (window.GZLinCart) {
-        window.GZLinCart.updateCartPage();
+    .cart-item > div {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+</style>
+
+<script>
+// Обновляем счетчик корзины в хедере
+document.addEventListener('DOMContentLoaded', function() {
+    const cartCount = document.getElementById('cartCount');
+    if (cartCount) {
+        cartCount.textContent = '{{ cart.items_count|default:0 }}';
     }
 });
 </script>

@@ -1,30 +1,32 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}О компании - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 3rem 0;">
+<div class="container" style="padding: 2rem 0;">
     <h1>О компании</h1>
     
-    <div style="margin: 2rem 0;">
-        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=400&fit=crop" 
-             alt="Завод ГЗЛиН" style="width: 100%; height: 400px; object-fit: cover; border-radius: 10px;">
+    <div class="product-nav">
+        <button class="category-btn active" onclick="showAboutTab('info')">О нас</button>
+        <button class="category-btn" onclick="showAboutTab('leadership')">Руководство</button>
+        <button class="category-btn" onclick="showAboutTab('partners')">Партнёры</button>
+        <button class="category-btn" onclick="showAboutTab('requisites')">Реквизиты</button>
+        <button class="category-btn" onclick="showAboutTab('hr')">Кадровая политика</button>
+        <button class="category-btn" onclick="showAboutTab('social')">Социальная политика</button>
     </div>
-    
-    <div style="max-width: 800px;">
+
+    <div id="about-info" class="about-tab active">
         <h2>ОАО "Гомельский завод литейных изделий и нормалей"</h2>
-        <p style="font-size: 1.1rem; line-height: 1.8; margin: 1.5rem 0;">
-            Предприятие основано в 1965 году и является ведущим производителем литейных изделий и нормалей в Республике Беларусь. 
-            За более чем полувековую историю завод зарекомендовал себя как надежный партнер и поставщик качественной продукции.
-        </p>
+        <p>Предприятие основано в 1965 году и является ведущим производителем литейных изделий и нормалей в Республике Беларусь. За более чем полувековую историю завод зарекомендовал себя как надежный партнер и поставщик качественной продукции.</p>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 3rem 0;">
+        <div class="grid grid-2" style="margin-top: 2rem;">
             <div>
-                <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Наша миссия</h3>
+                <h3>Наша миссия</h3>
                 <p>Обеспечение промышленности Беларуси и стран СНГ высококачественными литейными изделиями и нормалями, способствуя развитию экономики региона.</p>
             </div>
             <div>
-                <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Наши ценности</h3>
+                <h3>Наши ценности</h3>
                 <ul style="list-style-position: inside;">
                     <li>Качество продукции</li>
                     <li>Инновационные решения</li>
@@ -34,20 +36,206 @@
             </div>
         </div>
     </div>
-    
-    <!-- В конце страницы добавить секцию с кнопками -->
-    <div style="text-align: center; margin: 4rem 0;">
-        <h2 style="margin-bottom: 2rem;">Узнайте больше о нашей компании</h2>
-        <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
-            <a href="{% url 'company:leadership' %}" class="btn btn-outline-primary">
-                <i class="fas fa-users me-2"></i>
-                Познакомиться с руководством
-            </a>
-            <a href="{% url 'company:partners' %}" class="btn btn-outline-primary">
-                <i class="fas fa-handshake me-2"></i>
-                Наши партнёры
-            </a>
+
+    <div id="about-leadership" class="about-tab">
+        <h2>Руководство</h2>
+        <div class="grid grid-3">
+            <div class="card leader-card">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="Генеральный директор">
+                <div class="card-content">
+                    <div class="card-title">Иванов Иван Иванович</div>
+                    <div class="card-subtitle">Генеральный директор</div>
+                    <p>📧 director@gomelzlin.by<br>📞 +375 232 12-34-56</p>
+                </div>
+            </div>
+            <div class="card leader-card">
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b3e4?w=200&h=200&fit=crop&crop=face" alt="Технический директор">
+                <div class="card-content">
+                    <div class="card-title">Петрова Анна Сергеевна</div>
+                    <div class="card-subtitle">Технический директор</div>
+                    <p>📧 tech@gomelzlin.by<br>📞 +375 232 12-34-57</p>
+                </div>
+            </div>
+            <div class="card leader-card">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Коммерческий директор">
+                <div class="card-content">
+                    <div class="card-title">Сидоров Петр Алексеевич</div>
+                    <div class="card-subtitle">Коммерческий директор</div>
+                    <p>📧 sales@gomelzlin.by<br>📞 +375 232 12-34-58</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="about-partners" class="about-tab">
+        <h2>Наши партнёры</h2>
+        <div class="grid grid-4">
+            <div class="card" onclick="window.open('https://belaz.by', '_blank')">
+                <div class="card-content">
+                    <div class="card-title">ОАО "БЕЛАЗ"</div>
+                    <p>Ведущий производитель карьерной техники</p>
+                </div>
+            </div>
+            <div class="card" onclick="window.open('https://mtz.by', '_blank')">
+                <div class="card-content">
+                    <div class="card-title">ОАО "МТЗ"</div>
+                    <p>Минский тракторный завод</p>
+                </div>
+            </div>
+            <div class="card" onclick="window.open('https://maz.by', '_blank')">
+                <div class="card-content">
+                    <div class="card-title">ОАО "МАЗ"</div>
+                    <p>Минский автомобильный завод</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-content">
+                    <div class="card-title">ОАО "БМЗ"</div>
+                    <p>Белорусский металлургический завод</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="about-requisites" class="about-tab">
+        <h2>Реквизиты предприятия</h2>
+        <div style="background: var(--light-gray); padding: 2rem; border-radius: 10px;">
+            <p><strong>Полное наименование:</strong> Открытое акционерное общество "Гомельский завод литейных изделий и нормалей"</p>
+            <p><strong>Сокращенное наименование:</strong> ОАО "ГЗЛиН"</p>
+            <p><strong>УНП:</strong> 400123456</p>
+            <p><strong>Юридический адрес:</strong> 246000, г. Гомель, ул. Промышленная, 15</p>
+            <p><strong>Р/с:</strong> BY12 ALFA 1234 5678 9012 3456 7890</p>
+            <p><strong>Банк:</strong> ОАО "Альфа-Банк"</p>
+            <p><strong>БИК:</strong> ALFABY2X</p>
+            <p><strong>Телефон:</strong> +375 232 12-34-56</p>
+            <p><strong>Email:</strong> info@gomelzlin.by</p>
+        </div>
+    </div>
+
+    <div id="about-hr" class="about-tab">
+        <h2>Кадровая политика</h2>
+        <p>Кадровая политика ОАО "ГЗЛиН" направлена на создание профессиональной команды высококвалифицированных специалистов, способных обеспечить устойчивое развитие предприятия.</p>
+        
+        <h3>Основные принципы:</h3>
+        <ul style="list-style-position: inside; margin: 1rem 0;">
+            <li>Справедливое вознаграждение за труд</li>
+            <li>Обеспечение безопасных условий труда</li>
+            <li>Непрерывное обучение и развитие персонала</li>
+            <li>Равные возможности для всех сотрудников</li>
+            <li>Социальная поддержка работников</li>
+        </ul>
+
+        <p>Предприятие инвестирует в развитие персонала, предоставляя возможности для повышения квалификации, участия в профессиональных семинарах и конференциях.</p>
+    </div>
+
+    <div id="about-social" class="about-tab">
+        <h2>Социальная политика</h2>
+        
+        <div class="grid grid-2" style="margin: 2rem 0;">
+            <div>
+                <h3 style="color: var(--primary-red);">🌱 ЗАЩИТА ОКРУЖАЮЩЕЙ СРЕДЫ</h3>
+                <p>Внедрение экологически чистых технологий и минимизация воздействия на окружающую среду. Постоянный мониторинг выбросов и соблюдение экологических стандартов.</p>
+            </div>
+            <div>
+                <h3 style="color: var(--primary-red);">🛡️ ОБЕСПЕЧЕНИЕ БЕЗОПАСНОСТИ СОТРУДНИКОВ</h3>
+                <p>Создание безопасных условий труда, регулярные инструктажи по технике безопасности, обеспечение современными средствами защиты.</p>
+            </div>
+        </div>
+
+        <h3 style="color: var(--primary-red);">📚 ОБРАЗОВАТЕЛЬНЫЕ ПРОЕКТЫ ОАО "ГЗЛиН"</h3>
+        <p>Сотрудничество с учебными заведениями, организация производственной практики для студентов, поддержка молодых специалистов.</p>
+
+        <div class="grid grid-3" style="margin-top: 2rem;">
+            <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&h=200&fit=crop" alt="Экология" style="border-radius: 10px;">
+            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop" alt="Безопасность" style="border-radius: 10px;">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&h=200&fit=crop" alt="Образование" style="border-radius: 10px;">
         </div>
     </div>
 </div>
+
+<style>
+/* About section tabs */
+.product-nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    padding: 0.7rem 1.5rem;
+    background: var(--light-gray);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.category-btn.active, .category-btn:hover {
+    background: var(--primary-red);
+    color: white;
+}
+
+.about-tab {
+    display: none;
+    animation: fadeIn 0.5s ease-in;
+}
+
+.about-tab.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Leadership cards */
+.leader-card {
+    text-align: center;
+}
+
+.leader-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 1rem auto;
+    object-fit: cover;
+    border: 3px solid var(--primary-red);
+}
+
+@media (max-width: 768px) {
+    .product-nav {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// About section tabs
+function showAboutTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.about-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show target tab
+    document.getElementById('about-' + tabName).classList.add('active');
+    
+    // Update buttons
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    event.target.classList.add('active');
+}
+
+// Initialize about section with first tab
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.about-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.getElementById('about-info').classList.add('active');
+});
+</script>
 {% endblock %}
