@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Руководство - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <h1>Руководство</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem;">
+        {% for leader in leaders %}
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
+            <img src="{{ leader.photo }}" alt="{{ leader.name }}" 
+                 style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-red); margin-bottom: 1rem;">
+            <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">{{ leader.name }}</h3>
+            <p style="color: var(--secondary-gray); margin-bottom: 1rem;">{{ leader.position }}</p>
+            <p>📧 <a href="mailto:{{ leader.email }}">{{ leader.email }}</a></p>
+            <p>📞 <a href="tel:{{ leader.phone }}">{{ leader.phone }}</a></p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,28 +1,23 @@
-# apps/orders/views.py
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
+@method_decorator(login_required, name='dispatch')
 class CartView(TemplateView):
-    def get(self, request):
-        return HttpResponse('<h1>Корзина</h1><p>В разработке...</p>')
-
-class AddToCartView(TemplateView):
-    def post(self, request):
-        return HttpResponse('<h1>Добавление в корзину</h1><p>В разработке...</p>')
-
-class UpdateCartView(TemplateView):
-    def post(self, request):
-        return HttpResponse('<h1>Обновление корзины</h1><p>В разработке...</p>')
-
-class RemoveFromCartView(TemplateView):
-    def post(self, request):
-        return HttpResponse('<h1>Удаление из корзины</h1><p>В разработке...</p>')
-
-class CheckoutView(TemplateView):
-    def get(self, request):
-        return HttpResponse('<h1>Оформление заказа</h1><p>В разработке...</p>')
+    template_name = 'orders/cart.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Корзина'
+        return context
 
 class OrderDetailView(TemplateView):
-    def get(self, request, number):
-        return HttpResponse(f'<h1>Заказ: {number}</h1><p>В разработке...</p>')
+    template_name = 'orders/order_detail.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        number = kwargs.get('number')
+        context['title'] = f'Заказ #{number}'
+        context['order_number'] = number
+        return context

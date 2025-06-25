@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <div style="max-width: 500px; margin: 0 auto; background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow);">
+        <h1 style="text-align: center; margin-bottom: 2rem;">Регистрация</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Имя</label>
+                    <input type="text" name="first_name" required 
+                           style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Фамилия</label>
+                    <input type="text" name="last_name" required 
+                           style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                </div>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                <input type="email" name="email" required 
+                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Телефон</label>
+                <input type="tel" name="phone" placeholder="+375 XX XXX-XX-XX"
+                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Организация</label>
+                <input type="text" name="organization" 
+                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Пароль</label>
+                <input type="password" name="password" required 
+                       style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">Зарегистрироваться</button>
+        </form>
+        
+        <p style="text-align: center;">
+            Уже есть аккаунт? <a href="{% url 'accounts:login' %}" style="color: var(--primary-red);">Войти</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,37 +1,54 @@
-# apps/accounts/views.py
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.views.generic import TemplateView
-from django.http import HttpResponse
+from django.utils.decorators import method_decorator
 
 class LoginView(TemplateView):
-    def get(self, request):
-        return HttpResponse('<h1>Страница входа</h1><p>В разработке...</p>')
+    template_name = 'accounts/login.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Вход в систему'
+        return context
+    
+    def post(self, request):
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        if email and password:
+            user = authenticate(request, username=email, password=password)
+            if user:
+                login(request, user)
+                messages.success(request, 'Добро пожаловать!')
+                return redirect('core:home')
+            else:
+                messages.error(request, 'Неверный email или пароль')
+        else:
+            messages.error(request, 'Заполните все поля')
+        
+        return render(request, self.template_name, self.get_context_data())
 
 class RegisterView(TemplateView):
-    def get(self, request):
-        return HttpResponse('<h1>Страница регистрации</h1><p>В разработке...</p>')
+    template_name = 'accounts/register.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Регистрация'
+        return context
 
-class LogoutView(TemplateView):
-    def get(self, request):
-        return HttpResponse('<h1>Выход из системы</h1><p>В разработке...</p>')
-
+@method_decorator(login_required, name='dispatch')
 class ProfileView(TemplateView):
-    def get(self, request):
-        return HttpResponse('<h1>Профиль пользователя</h1><p>В разработке...</p>')
+    template_name = 'accounts/profile.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Личный кабинет'
+        return context
 
-# apps/catalog/views.py
-from django.shortcuts import render
-from django.views.generic import TemplateView
-from django.http import HttpResponse
-
-class ProductListView(TemplateView):
-    def get(self, request):
-        return HttpResponse('<h1>Каталог товаров</h1><p>В разработке...</p>')
-
-class CategoryDetailView(TemplateView):
-    def get(self, request, slug):
-        return HttpResponse(f'<h1>Категория: {slug}</h1><p>В разработке...</p>')
-
-class ProductDetailView(TemplateView):
-    def get(self, request, slug):
-        return HttpResponse(f'<h1>Товар: {slug}</h1><p>В разработке...</p>')
+def logout_view(request):
+    from django.contrib.auth import logout
+    logout(request)
+    messages.success(request, 'Вы успешно вышли из системы')
+    return redirect('core:home')

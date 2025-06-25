@@ -1,10 +1,8 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
+from django.conf import settings
 from apps.core.models import AbstractBaseModel
-
-User = get_user_model()
 
 
 class CustomerManager(models.Manager):
@@ -51,7 +49,7 @@ class Customer(AbstractBaseModel):
     
     # Связь с пользователем
     user = models.OneToOneField(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='customer_profile',
         verbose_name=_('Пользователь'),
@@ -178,7 +176,7 @@ class Customer(AbstractBaseModel):
         help_text=_('Откуда узнал о компании')
     )
     assigned_manager = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -245,6 +243,7 @@ class Customer(AbstractBaseModel):
     
     def update_metrics(self):
         """Обновляет метрики клиента"""
+        # Импортируем здесь, чтобы избежать циркулярного импорта
         from apps.orders.models import Order
         
         orders = Order.objects.filter(customer_email=self.email, status__in=['paid', 'completed'])
@@ -265,292 +264,3 @@ class Customer(AbstractBaseModel):
             'total_orders', 'total_spent', 'average_order_value', 
             'last_order_date', 'status'
         ])
-
-
-class Organization(AbstractBaseModel):
-    """
-    Модель организации для юридических лиц
-    """
-    LEGAL_FORMS = [
-        ('OOO', _('ООО')),
-        ('OAO', _('ОАО')),
-        ('ZAO', _('ЗАО')),
-        ('IP', _('ИП')),
-        ('UP', _('УП')),
-        ('GP', _('ГП')),
-        ('OTHER', _('Другое')),
-    ]
-    
-    customer = models.OneToOneField(
-        Customer,
-        on_delete=models.CASCADE,
-        related_name='organization',
-        verbose_name=_('Клиент')
-    )
-    
-    # Основная информация
-    full_name = models.CharField(
-        _('Полное наименование'),
-        max_length=500
-    )
-    short_name = models.CharField(
-        _('Краткое наименование'),
-        max_length=255
-    )
-    legal_form = models.CharField(
-        _('Организационно-правовая форма'),
-        max_length=10,
-        choices=LEGAL_FORMS,
-        default='OOO'
-    )
-    
-    # Регистрационные данные
-    unp = models.CharField(
-        _('УНП'),
-        max_length=9,
-        unique=True,
-        validators=[
-            RegexValidator(
-                regex=r'^\d{9}$',
-                message=_('УНП должен содержать 9 цифр')
-            )
-        ]
-    )
-    registration_number = models.CharField(
-        _('Регистрационный номер'),
-        max_length=50,
-        blank=True
-    )
-    registration_date = models.DateField(
-        _('Дата регистрации'),
-        blank=True,
-        null=True
-    )
-    registration_authority = models.CharField(
-        _('Орган регистрации'),
-        max_length=255,
-        blank=True
-    )
-    
-    # Адреса
-    legal_address = models.TextField(
-        _('Юридический адрес')
-    )
-    postal_address = models.TextField(
-        _('Почтовый адрес'),
-        blank=True
-    )
-    actual_address = models.TextField(
-        _('Фактический адрес'),
-        blank=True
-    )
-    
-    # Банковские реквизиты
-    bank_account = models.CharField(
-        _('Расчетный счет'),
-        max_length=28,
-        blank=True
-    )
-    bank_name = models.CharField(
-        _('Наименование банка'),
-        max_length=255,
-        blank=True
-    )
-    bank_code = models.CharField(
-        _('БИК банка'),
-        max_length=8,
-        blank=True
-    )
-    bank_address = models.TextField(
-        _('Адрес банка'),
-        blank=True
-    )
-    
-    # Налоговая информация
-    vat_payer = models.BooleanField(
-        _('Плательщик НДС'),
-        default=True
-    )
-    vat_number = models.CharField(
-        _('Номер плательщика НДС'),
-        max_length=20,
-        blank=True
-    )
-    
-    # Руководство
-    director_name = models.CharField(
-        _('ФИО руководителя'),
-        max_length=100,
-        blank=True
-    )
-    director_position = models.CharField(
-        _('Должность руководителя'),
-        max_length=100,
-        default='Директор'
-    )
-    accountant_name = models.CharField(
-        _('ФИО главного бухгалтера'),
-        max_length=100,
-        blank=True
-    )
-    
-    # Дополнительная информация
-    activity_codes = models.TextField(
-        _('Коды видов деятельности'),
-        blank=True,
-        help_text=_('Коды ОКЭД через запятую')
-    )
-    employee_count = models.PositiveIntegerField(
-        _('Количество сотрудников'),
-        blank=True,
-        null=True
-    )
-    website = models.URLField(
-        _('Веб-сайт'),
-        blank=True
-    )
-    
-    class Meta:
-        verbose_name = _('Организация')
-        verbose_name_plural = _('Организации')
-        ordering = ['short_name']
-    
-    def __str__(self):
-        return f'{self.get_legal_form_display()} "{self.short_name}"'
-    
-    @property
-    def display_name(self):
-        """Отображаемое название организации"""
-        return f'{self.get_legal_form_display()} "{self.short_name}"'
-    
-    def get_legal_address_parts(self):
-        """Разбирает юридический адрес на части"""
-        # Здесь можно добавить логику парсинга адреса
-        return {
-            'full_address': self.legal_address,
-            'postal_code': '',
-            'city': '',
-            'street': ''
-        }
-
-
-class CustomerTag(AbstractBaseModel):
-    """
-    Теги для категоризации клиентов
-    """
-    name = models.CharField(
-        _('Название'),
-        max_length=50,
-        unique=True
-    )
-    color = models.CharField(
-        _('Цвет'),
-        max_length=7,
-        default='#007bff',
-        help_text=_('Цвет в формате HEX')
-    )
-    description = models.TextField(
-        _('Описание'),
-        blank=True
-    )
-    
-    class Meta:
-        verbose_name = _('Тег клиента')
-        verbose_name_plural = _('Теги клиентов')
-        ordering = ['name']
-    
-    def __str__(self):
-        return self.name
-
-
-class CustomerTagAssignment(models.Model):
-    """
-    Привязка тегов к клиентам
-    """
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.CASCADE,
-        related_name='tag_assignments',
-        verbose_name=_('Клиент')
-    )
-    tag = models.ForeignKey(
-        CustomerTag,
-        on_delete=models.CASCADE,
-        related_name='customer_assignments',
-        verbose_name=_('Тег')
-    )
-    assigned_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name=_('Назначил')
-    )
-    assigned_at = models.DateTimeField(
-        _('Дата назначения'),
-        auto_now_add=True
-    )
-    
-    class Meta:
-        verbose_name = _('Назначение тега')
-        verbose_name_plural = _('Назначения тегов')
-        unique_together = ['customer', 'tag']
-    
-    def __str__(self):
-        return f'{self.customer} - {self.tag}'
-
-
-class CustomerNote(AbstractBaseModel):
-    """
-    Заметки о клиентах
-    """
-    NOTE_TYPES = [
-        ('general', _('Общая')),
-        ('call', _('Звонок')),
-        ('meeting', _('Встреча')),
-        ('email', _('Email')),
-        ('complaint', _('Жалоба')),
-        ('praise', _('Благодарность')),
-    ]
-    
-    customer = models.ForeignKey(
-        Customer,
-        on_delete=models.CASCADE,
-        related_name='notes',
-        verbose_name=_('Клиент')
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.PROTECT,
-        verbose_name=_('Автор')
-    )
-    note_type = models.CharField(
-        _('Тип заметки'),
-        max_length=20,
-        choices=NOTE_TYPES,
-        default='general'
-    )
-    title = models.CharField(
-        _('Заголовок'),
-        max_length=200
-    )
-    content = models.TextField(
-        _('Содержание')
-    )
-    is_important = models.BooleanField(
-        _('Важная'),
-        default=False
-    )
-    reminder_date = models.DateTimeField(
-        _('Напомнить'),
-        blank=True,
-        null=True
-    )
-    
-    class Meta:
-        verbose_name = _('Заметка о клиенте')
-        verbose_name_plural = _('Заметки о клиентах')
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f'{self.customer} - {self.title}'

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}ОАО "ГЗЛиН" - Главная{% endblock %}
+
+{% block content %}
+<div style="background: linear-gradient(135deg, var(--primary-red), #e55550); color: white; padding: 4rem 0; text-align: center;">
+    <div class="container">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">ОАО "Гомельский завод литейных изделий и нормалей"</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Современные решения в области литейного производства и металлообработки. Качество, надежность и инновации с 1965 года.
+        </p>
+        <a href="{% url 'company:about' %}" class="btn btn-outline" style="color: white; border-color: white;">Узнать больше</a>
+    </div>
+</div>
+
+<div class="container" style="padding: 3rem 0;">
+    <h2 style="text-align: center; margin-bottom: 2rem;">Наши преимущества</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🏭</div>
+            <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Современное производство</h3>
+            <p>Высокотехнологичное оборудование и передовые технологии литейного производства</p>
+        </div>
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔬</div>
+            <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Контроль качества</h3>
+            <p>Строгий контроль качества на всех этапах производства и сертификация продукции</p>
+        </div>
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🚚</div>
+            <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Быстрая доставка</h3>
+            <p>Развитая дилерская сеть и логистическая система по всей Беларуси</p>
+        </div>
+    </div>
+</div>
+
+<div style="background: var(--light-gray); padding: 3rem 0;">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Популярные категории</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+            <a href="{% url 'catalog:product_list' %}" style="text-decoration: none; color: inherit;">
+                <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s;">
+                    <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=200&fit=crop" 
+                         alt="Фитинги" style="width: 100%; height: 200px; object-fit: cover;">
+                    <div style="padding: 1.5rem;">
+                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Фитинги</h3>
+                        <p style="color: var(--secondary-gray); margin-bottom: 1rem;">156 товаров</p>
+                        <p>Широкий ассортимент фитингов для трубопроводов различного назначения</p>
+                    </div>
+                </div>
+            </a>
+            <a href="{% url 'catalog:product_list' %}" style="text-decoration: none; color: inherit;">
+                <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s;">
+                    <img src="https://images.unsplash.com/photo-1562577309-2592ab84b1bc?w=300&h=200&fit=crop" 
+                         alt="Арматура" style="width: 100%; height: 200px; object-fit: cover;">
+                    <div style="padding: 1.5rem;">
+                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Трубопроводная арматура</h3>
+                        <p style="color: var(--secondary-gray); margin-bottom: 1rem;">89 товаров</p>
+                        <p>Краны, вентили, задвижки и другая запорная арматура</p>
+                    </div>
+                </div>
+            </a>
+            <a href="{% url 'catalog:product_list' %}" style="text-decoration: none; color: inherit;">
+                <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s;">
+                    <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop" 
+                         alt="Литейные изделия" style="width: 100%; height: 200px; object-fit: cover;">
+                    <div style="padding: 1.5rem;">
+                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Литейные изделия</h3>
+                        <p style="color: var(--secondary-gray); margin-bottom: 1rem;">234 товара</p>
+                        <p>Отливки из различных сплавов по индивидуальным заказам</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

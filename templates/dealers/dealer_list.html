@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Дилерские центры - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <h1>Дилерские центры</h1>
+    <p style="margin-bottom: 2rem;">Наши дилерские центры расположены во всех областных центрах Республики Беларусь</p>
+    
+    <div style="width: 100%; height: 400px; background: var(--light-gray); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray); margin-bottom: 3rem;">
+        🗺️ Здесь будет интерактивная карта Беларуси с отмеченными дилерскими центрами
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        {% for dealer in dealers %}
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 1.5rem;">
+            <h3 style="color: var(--primary-red); margin-bottom: 1rem;">{{ dealer.name }}</h3>
+            <p>📍 {{ dealer.address }}</p>
+            <p>📞 <a href="tel:{{ dealer.phone }}">{{ dealer.phone }}</a></p>
+            <p>📧 <a href="mailto:{{ dealer.email }}">{{ dealer.email }}</a></p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -3,24 +3,12 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
-from mptt.models import MPTTModel, TreeForeignKey
 from apps.core.models import AbstractBaseModel, SeoModel
-import os
 
 
-def category_image_path(instance, filename):
-    """Путь для изображений категорий"""
-    return f'categories/{instance.slug}/{filename}'
-
-
-def product_image_path(instance, filename):
-    """Путь для изображений товаров"""
-    return f'products/{instance.product.slug}/{filename}'
-
-
-class Category(MPTTModel, AbstractBaseModel, SeoModel):
+class Category(AbstractBaseModel, SeoModel):
     """
-    Модель категории товаров с иерархической структурой
+    Модель категории товаров
     """
     name = models.CharField(
         _('Название'),
@@ -36,7 +24,7 @@ class Category(MPTTModel, AbstractBaseModel, SeoModel):
         _('Описание'),
         blank=True
     )
-    parent = TreeForeignKey(
+    parent = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
         null=True,
@@ -46,15 +34,9 @@ class Category(MPTTModel, AbstractBaseModel, SeoModel):
     )
     image = models.ImageField(
         _('Изображение'),
-        upload_to=category_image_path,
+        upload_to='categories/',
         blank=True,
         null=True
-    )
-    icon = models.CharField(
-        _('Иконка'),
-        max_length=50,
-        blank=True,
-        help_text=_('CSS класс иконки или эмодзи')
     )
     sort_order = models.PositiveIntegerField(
         _('Порядок сортировки'),
@@ -66,14 +48,10 @@ class Category(MPTTModel, AbstractBaseModel, SeoModel):
         help_text=_('Отображать на главной странице')
     )
     
-    class MPTTMeta:
-        order_insertion_by = ['sort_order', 'name']
-    
     class Meta:
         verbose_name = _('Категория')
         verbose_name_plural = _('Категории')
-        unique_together = ['slug', 'parent']
-        ordering = ['tree_id', 'lft']
+        ordering = ['sort_order', 'name']
     
     def __str__(self):
         return self.name
@@ -85,19 +63,6 @@ class Category(MPTTModel, AbstractBaseModel, SeoModel):
     
     def get_absolute_url(self):
         return reverse('catalog:category_detail', kwargs={'slug': self.slug})
-    
-    @property
-    def product_count(self):
-        """Количество товаров в категории (включая подкategории)"""
-        return Product.objects.filter(
-            category__in=self.get_descendants(include_self=True),
-            is_active=True
-        ).count()
-    
-    def get_breadcrumbs(self):
-        """Возвращает хлебные крошки для категории"""
-        ancestors = self.get_ancestors(include_self=True)
-        return [{'name': cat.name, 'url': cat.get_absolute_url()} for cat in ancestors]
 
 
 class ProductManager(models.Manager):
@@ -114,11 +79,6 @@ class ProductManager(models.Manager):
     def featured(self):
         """Возвращает рекомендуемые товары"""
         return self.active().filter(is_featured=True)
-    
-    def by_category(self, category):
-        """Возвращает товары категории и её подкategорий"""
-        categories = category.get_descendants(include_self=True)
-        return self.active().filter(category__in=categories)
 
 
 class Product(AbstractBaseModel, SeoModel):
@@ -194,14 +154,6 @@ class Product(AbstractBaseModel, SeoModel):
         null=True,
         validators=[MinValueValidator(0)],
         help_text=_('Для отображения скидки')
-    )
-    cost_price = models.DecimalField(
-        _('Себестоимость'),
-        max_digits=10,
-        decimal_places=2,
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(0)]
     )
     
     # Склад
@@ -334,11 +286,6 @@ class Product(AbstractBaseModel, SeoModel):
         """Проверяет наличие скидки"""
         return self.discount_percentage > 0
     
-    @property
-    def main_image(self):
-        """Возвращает главное изображение товара"""
-        return self.images.filter(is_main=True).first() or self.images.first()
-    
     def get_specifications_dict(self):
         """Преобразует характеристики в словарь"""
         if not self.specifications:
@@ -369,7 +316,7 @@ class ProductImage(AbstractBaseModel):
     )
     image = models.ImageField(
         _('Изображение'),
-        upload_to=product_image_path
+        upload_to='products/'
     )
     alt_text = models.CharField(
         _('Альтернативный текст'),
@@ -392,98 +339,3 @@ class ProductImage(AbstractBaseModel):
     
     def __str__(self):
         return f'Изображение для {self.product.name}'
-    
-    def save(self, *args, **kwargs):
-        # Если это главное изображение, убираем флаг у других
-        if self.is_main:
-            ProductImage.objects.filter(
-                product=self.product,
-                is_main=True
-            ).exclude(pk=self.pk).update(is_main=False)
-        
-        super().save(*args, **kwargs)
-    
-    def delete(self, *args, **kwargs):
-        # Удаляем файл изображения
-        if self.image:
-            if os.path.isfile(self.image.path):
-                os.remove(self.image.path)
-        super().delete(*args, **kwargs)
-
-
-class ProductAttribute(AbstractBaseModel):
-    """
-    Атрибуты товаров (цвет, размер и т.д.)
-    """
-    ATTRIBUTE_TYPES = [
-        ('text', _('Текст')),
-        ('number', _('Число')),
-        ('boolean', _('Да/Нет')),
-        ('choice', _('Выбор')),
-    ]
-    
-    name = models.CharField(
-        _('Название'),
-        max_length=100
-    )
-    type = models.CharField(
-        _('Тип'),
-        max_length=20,
-        choices=ATTRIBUTE_TYPES,
-        default='text'
-    )
-    choices = models.TextField(
-        _('Варианты выбора'),
-        blank=True,
-        help_text=_('Каждый вариант с новой строки (только для типа "Выбор")')
-    )
-    is_required = models.BooleanField(
-        _('Обязательный'),
-        default=False
-    )
-    sort_order = models.PositiveIntegerField(
-        _('Порядок'),
-        default=0
-    )
-    
-    class Meta:
-        verbose_name = _('Атрибут товара')
-        verbose_name_plural = _('Атрибуты товаров')
-        ordering = ['sort_order', 'name']
-    
-    def __str__(self):
-        return self.name
-    
-    def get_choices_list(self):
-        """Возвращает список вариантов выбора"""
-        if self.type == 'choice' and self.choices:
-            return [choice.strip() for choice in self.choices.split('\n') if choice.strip()]
-        return []
-
-
-class ProductAttributeValue(models.Model):
-    """
-    Значения атрибутов для конкретных товаров
-    """
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        related_name='attribute_values',
-        verbose_name=_('Товар')
-    )
-    attribute = models.ForeignKey(
-        ProductAttribute,
-        on_delete=models.CASCADE,
-        verbose_name=_('Атрибут')
-    )
-    value = models.TextField(
-        _('Значение')
-    )
-    
-    class Meta:
-        verbose_name = _('Значение атрибута')
-        verbose_name_plural = _('Значения атрибутов')
-        unique_together = ['product', 'attribute']
-    
-    def __str__(self):
-        return f'{self.product.name} - {self.attribute.name}: {self.value}'

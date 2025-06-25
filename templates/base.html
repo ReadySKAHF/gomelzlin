@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ОАО "ГЗЛиН"{% endblock %}</title>
+    
+    <!-- SEO мета-теги -->
+    <meta name="description" content="{% block meta_description %}Ведущий производитель литейных изделий и нормалей в Беларуси с 1965 года{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}литейные изделия, нормали, фитинги, арматура, Гомель, ГЗЛиН{% endblock %}">
+    
+    <!-- Styles -->
+    <style>
+        :root {
+            --primary-red: #cb413b;
+            --secondary-gray: #808080;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-gray);
+            background: var(--white);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-red);
+            text-decoration: none;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--dark-gray);
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--primary-red);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-red);
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after, nav a.active::after {
+            width: 100%;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #a53530;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            border: 2px solid var(--primary-red);
+            color: var(--primary-red);
+            background: transparent;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        /* Main content */
+        main {
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-gray);
+            color: white;
+            padding: 2rem 0 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--primary-red);
+            margin-bottom: 1rem;
+        }
+
+        .footer-section a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary-red);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--secondary-gray);
+            color: var(--secondary-gray);
+        }
+
+        /* Messages */
+        .messages {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 2000;
+            max-width: 400px;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+            }
+
+            .user-actions {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin-top: 1rem;
+            }
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="{% url 'core:home' %}" class="logo">ГЗЛиН</a>
+                <nav>
+                    <ul>
+                        <li><a href="{% url 'core:home' %}" {% if request.resolver_match.url_name == 'home' %}class="active"{% endif %}>Главная</a></li>
+                        <li><a href="{% url 'company:about' %}" {% if 'company' in request.resolver_match.namespace %}class="active"{% endif %}>О компании</a></li>
+                        <li><a href="{% url 'catalog:product_list' %}" {% if 'catalog' in request.resolver_match.namespace %}class="active"{% endif %}>Продукция</a></li>
+                        <li><a href="{% url 'dealers:dealer_list' %}" {% if 'dealers' in request.resolver_match.namespace %}class="active"{% endif %}>Дилеры</a></li>
+                        <li><a href="{% url 'core:contacts' %}" {% if request.resolver_match.url_name == 'contacts' %}class="active"{% endif %}>Контакты</a></li>
+                    </ul>
+                </nav>
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline">{{ user.get_full_name|default:user.username }}</a>
+                        <a href="{% url 'orders:cart' %}" class="btn btn-primary">
+                            Корзина <span class="badge">0</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline">Войти</a>
+                        <a href="{% url 'accounts:register' %}" class="btn btn-primary">Регистрация</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ОАО "ГЗЛиН"</h3>
+                    <p>Ведущий производитель литейных изделий и нормалей в Республике Беларусь с 1965 года.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <a href="tel:+375232123456">+375 232 12-34-56</a>
+                    <a href="mailto:info@gomelzlin.by">info@gomelzlin.by</a>
+                    <p>г. Гомель, ул. Промышленная, 15</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Полезные ссылки</h3>
+                    <a href="{% url 'company:about' %}">О компании</a>
+                    <a href="{% url 'catalog:product_list' %}">Продукция</a>
+                    <a href="{% url 'dealers:dealer_list' %}">Дилерские центры</a>
+                    <a href="{% url 'core:contacts' %}">Контакты</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ОАО "Гомельский завод литейных изделий и нормалей". Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Убираем сообщения через 5 секунд
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(message => {
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
+
+        {% block extra_js %}{% endblock %}
+    </script>
+</body>
+</html>

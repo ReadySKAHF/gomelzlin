@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Контакты - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0;">
+    <h1>Контакты</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-top: 2rem;">
+        <div>
+            <h2>Основная информация</h2>
+            <div style="background: var(--light-gray); padding: 2rem; border-radius: 10px;">
+                <p><strong>Адрес:</strong> {{ company_info.address }}</p>
+                <p><strong>Телефон:</strong> <a href="tel:{{ company_info.phone }}">{{ company_info.phone }}</a></p>
+                <p><strong>Email:</strong> <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a></p>
+                <p><strong>Режим работы:</strong><br>{{ company_info.working_hours|linebreaks }}</p>
+            </div>
+        </div>
+        
+        <div>
+            <h2>Местоположение</h2>
+            <div style="width: 100%; height: 400px; background: var(--light-gray); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray);">
+                🗺️ Здесь будет Яндекс карта с отметкой завода в Гомеле
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

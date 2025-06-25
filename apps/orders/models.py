@@ -1,14 +1,11 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.urls import reverse
+from django.conf import settings
 from decimal import Decimal
 import uuid
 from apps.core.models import AbstractBaseModel
-from apps.catalog.models import Product
-
-User = get_user_model()
 
 
 class OrderManager(models.Manager):
@@ -76,7 +73,7 @@ class Order(AbstractBaseModel):
         editable=False
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name='orders',
         verbose_name=_('Пользователь'),
@@ -305,8 +302,9 @@ class OrderItem(models.Model):
         related_name='items',
         verbose_name=_('Заказ')
     )
+    # Используем строковую ссылку на Product, который будет определен в catalog.models
     product = models.ForeignKey(
-        Product,
+        'catalog.Product',
         on_delete=models.PROTECT,
         verbose_name=_('Товар')
     )
@@ -358,7 +356,7 @@ class Cart(models.Model):
     Корзина покупок
     """
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='carts',
         verbose_name=_('Пользователь'),
@@ -430,7 +428,7 @@ class CartItem(models.Model):
         verbose_name=_('Корзина')
     )
     product = models.ForeignKey(
-        Product,
+        'catalog.Product',
         on_delete=models.CASCADE,
         verbose_name=_('Товар')
     )
@@ -492,7 +490,7 @@ class OrderStatusHistory(AbstractBaseModel):
         choices=Order.STATUS_CHOICES
     )
     changed_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -517,7 +515,7 @@ class Wishlist(AbstractBaseModel):
     Список желаний
     """
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='wishlists',
         verbose_name=_('Пользователь')
@@ -552,7 +550,7 @@ class WishlistItem(models.Model):
         verbose_name=_('Список желаний')
     )
     product = models.ForeignKey(
-        Product,
+        'catalog.Product',
         on_delete=models.CASCADE,
         verbose_name=_('Товар')
     )

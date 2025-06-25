@@ -1,10 +1,8 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 import uuid
-
-User = get_user_model()
 
 
 class TimeStampedModel(models.Model):
@@ -113,8 +111,9 @@ class SystemLog(AbstractBaseModel):
         max_length=50,
         choices=ACTION_TYPES
     )
+    # Используем строковую ссылку на User модель вместо прямого импорта
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
