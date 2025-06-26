@@ -295,6 +295,33 @@ def remove_from_cart(request):
             'message': 'Произошла ошибка при удалении товара'
         })
 
+@require_GET
+def get_cart_count(request):
+    """AJAX получение количества товаров в корзине"""
+    try:
+        cart = get_cart_for_request(request)
+        
+        if cart:
+            cart_count = cart.items_count
+            cart_total = str(cart.total_price)
+        else:
+            cart_count = 0
+            cart_total = '0.00'
+        
+        return JsonResponse({
+            'success': True,
+            'cart_count': cart_count,
+            'cart_total': cart_total
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'cart_count': 0,
+            'cart_total': '0.00',
+            'error': str(e)
+        })
+
 @require_POST
 def clear_cart(request):
     """AJAX очистка корзины"""

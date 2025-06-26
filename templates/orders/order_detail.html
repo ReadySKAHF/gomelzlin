@@ -31,60 +31,99 @@
         <!-- Прогресс-бар статуса -->
         <div style="position: relative; margin: 2rem 0;">
             {% with order.status as current_status %}
-            <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
-                <!-- Линия прогресса -->
-                <div style="position: absolute; top: 15px; left: 0; right: 0; height: 4px; background: #e9ecef; z-index: 1;"></div>
-                <div style="position: absolute; top: 15px; left: 0; height: 4px; background: var(--primary-red); z-index: 2; width: 
-                    {% if current_status == 'pending' %}20%
-                    {% elif current_status == 'confirmed' %}40%
-                    {% elif current_status == 'processing' %}60%
-                    {% elif current_status == 'shipped' %}80%
+            
+            <!-- Контейнер для прогресс-бара -->
+            <div style="position: relative;">
+                <!-- Линия прогресса (фоновая) -->
+                <div style="position: absolute; top: 15px; left: 15px; right: 15px; height: 4px; background: #e9ecef; z-index: 1;"></div>
+                
+                <!-- Активная линия прогресса -->
+                <div style="position: absolute; top: 15px; left: 15px; height: 4px; background: var(--primary-red); z-index: 2; transition: width 0.3s ease; width: 
+                    {% if current_status == 'pending' %}0%
+                    {% elif current_status == 'confirmed' %}25%
+                    {% elif current_status == 'processing' %}50%
+                    {% elif current_status == 'shipped' %}75%
                     {% elif current_status == 'delivered' or current_status == 'completed' %}100%
-                    {% else %}20%
+                    {% else %}0%
                     {% endif %};"></div>
 
                 <!-- Этапы статуса -->
-                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'pending' or current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">1</div>
-                    <div style="margin-left: 0.5rem; {% if current_status == 'pending' %}font-weight: bold; color: var(--primary-red);{% endif %}">
-                        <div>Создан</div>
-                        <div style="font-size: 0.8rem; color: var(--secondary-gray);">{{ order.created_at|date:"d.m H:i" }}</div>
-                    </div>
-                </div>
-
-                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">2</div>
-                    <div style="margin-left: 0.5rem; {% if current_status == 'confirmed' %}font-weight: bold; color: var(--primary-red);{% endif %}">
-                        <div>Обрабатывается</div>
-                        <div style="font-size: 0.8rem; color: var(--secondary-gray);">
-                            {% if current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}
-                                {{ order.updated_at|date:"d.m H:i" }}
-                            {% endif %}
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 3;">
+                    
+                    <!-- 1. Создан -->
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; 
+                            background: {% if current_status == 'pending' or current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; 
+                            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem; margin-bottom: 0.5rem;
+                            border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">1</div>
+                        <div style="{% if current_status == 'pending' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                            <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">Создан</div>
+                            <div style="font-size: 0.75rem; color: var(--secondary-gray);">{{ order.created_at|date:"d.m.Y H:i" }}</div>
                         </div>
                     </div>
-                </div>
 
-                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">3</div>
-                    <div style="margin-left: 0.5rem; {% if current_status == 'shipped' %}font-weight: bold; color: var(--primary-red);{% endif %}">
-                        <div>Готов</div>
-                        <div style="font-size: 0.8rem; color: var(--secondary-gray);"></div>
+                    <!-- 2. Обрабатывается -->
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; 
+                            background: {% if current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; 
+                            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem; margin-bottom: 0.5rem;
+                            border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">2</div>
+                        <div style="{% if current_status == 'confirmed' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                            <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">Обрабатывается</div>
+                            <div style="font-size: 0.75rem; color: var(--secondary-gray);">
+                                {% if current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}
+                                    {{ order.updated_at|date:"d.m H:i" }}
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">4</div>
-                    <div style="margin-left: 0.5rem; {% if current_status == 'delivered' %}font-weight: bold; color: var(--primary-red);{% endif %}">
-                        <div>Отправлен</div>
-                        <div style="font-size: 0.8rem; color: var(--secondary-gray);"></div>
+                    <!-- 3. Готов -->
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; 
+                            background: {% if current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; 
+                            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem; margin-bottom: 0.5rem;
+                            border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">3</div>
+                        <div style="{% if current_status == 'processing' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                            <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">Готов</div>
+                            <div style="font-size: 0.75rem; color: var(--secondary-gray);">
+                                {% if current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}
+                                    {{ order.updated_at|date:"d.m H:i" }}
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
-                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">5</div>
-                    <div style="margin-left: 0.5rem; {% if current_status == 'completed' %}font-weight: bold; color: var(--primary-red);{% endif %}">
-                        <div>Получен</div>
-                        <div style="font-size: 0.8rem; color: var(--secondary-gray);"></div>
+                    <!-- 4. Отправлен -->
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; 
+                            background: {% if current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; 
+                            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem; margin-bottom: 0.5rem;
+                            border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">4</div>
+                        <div style="{% if current_status == 'shipped' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                            <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">Отправлен</div>
+                            <div style="font-size: 0.75rem; color: var(--secondary-gray);">
+                                {% if current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}
+                                    {{ order.updated_at|date:"d.m H:i" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Получен -->
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; 
+                            background: {% if current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; 
+                            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem; margin-bottom: 0.5rem;
+                            border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">5</div>
+                        <div style="{% if current_status == 'delivered' or current_status == 'completed' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                            <div style="font-size: 0.9rem; margin-bottom: 0.25rem;">Получен</div>
+                            <div style="font-size: 0.75rem; color: var(--secondary-gray);">
+                                {% if current_status == 'delivered' or current_status == 'completed' %}
+                                    {{ order.updated_at|date:"d.m H:i" }}
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,8 +133,26 @@
         <!-- Текущий статус -->
         <div style="background: var(--light-gray); padding: 1rem; border-radius: var(--radius); margin-top: 1rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ order.get_status_display_color }};"></span>
-                <span style="font-weight: bold;">{{ order.get_status_display }}</span>
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: 
+                    {% if order.status == 'pending' %}#ffc107
+                    {% elif order.status == 'confirmed' %}#17a2b8
+                    {% elif order.status == 'processing' %}#6f42c1
+                    {% elif order.status == 'shipped' %}#fd7e14
+                    {% elif order.status == 'delivered' or order.status == 'completed' %}#28a745
+                    {% elif order.status == 'cancelled' %}#dc3545
+                    {% else %}#6c757d
+                    {% endif %};"></span>
+                <span style="font-weight: bold;">
+                    {% if order.status == 'pending' %}Создан
+                    {% elif order.status == 'confirmed' %}Подтвержден
+                    {% elif order.status == 'processing' %}В обработке
+                    {% elif order.status == 'shipped' %}Отправлен
+                    {% elif order.status == 'delivered' %}Доставлен
+                    {% elif order.status == 'completed' %}Завершен
+                    {% elif order.status == 'cancelled' %}Отменен
+                    {% else %}{{ order.get_status_display }}
+                    {% endif %}
+                </span>
                 <span style="color: var(--secondary-gray);">Обновлено: {{ order.updated_at|date:"d.m.Y H:i" }}</span>
             </div>
         </div>
