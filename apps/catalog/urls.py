@@ -12,7 +12,8 @@ urlpatterns = [
     path('product/<slug:slug>/', views.ProductDetailView.as_view(), name='product_detail'),
     
     # AJAX endpoints
-    path('ajax/subcategories/', views.ajax_subcategories, name='ajax_subcategories'),
-    path('ajax/search-suggestions/', views.ajax_search_suggestions, name='ajax_search_suggestions'),
-    path('ajax/quick-search/', views.quick_search_view, name='ajax_quick_search'),
+     path('ajax/quick-search/', views.quick_search_ajax, name='quick_search_ajax'),
+    # path('ajax/subcategories/', views.ajax_subcategories, name='ajax_subcategories'),
+    # path('ajax/search-suggestions/', views.ajax_search_suggestions, name='ajax_search_suggestions'),
+    # path('ajax/quick-search/', views.quick_search_view, name='ajax_quick_search'),
 ]

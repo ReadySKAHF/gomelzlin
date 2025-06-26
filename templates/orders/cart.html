@@ -11,11 +11,8 @@
         <div id="cartContent">
             <div id="cartItems">
                 {% for item in cart_items %}
-                <div class="cart-item" data-item-id="{{ item.id }}">
+                <div class="cart-item" data-item-id="{{ item.id }}" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #eee;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
-                        <img src="{{ item.product.image.url|default:'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=80&h=80&fit=crop' }}" 
-                             alt="{{ item.product.name }}" 
-                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
                         <div>
                             <div style="font-weight: bold;">{{ item.product.name }}</div>
                             <div style="color: var(--secondary-gray); font-size: 0.9rem;">
@@ -68,7 +65,7 @@
                 {% if user.is_authenticated %}
                     <a href="{% url 'orders:checkout' %}" class="btn btn-primary">Оформить заказ</a>
                 {% else %}
-                    <a href="{% url 'accounts:login' %}?next={% url 'orders:checkout' %}" class="btn btn-primary">Войти для оформления</a>
+                    <a href="/accounts/login/?next={% url 'orders:checkout' %}" class="btn btn-primary">Войти для оформления</a>
                 {% endif %}
             </div>
         </div>
@@ -84,11 +81,6 @@
 <style>
 /* Cart styles */
 .cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid var(--light-gray);
     transition: background-color 0.3s;
 }
 

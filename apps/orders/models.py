@@ -1,3 +1,4 @@
+# apps/orders/models.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -243,15 +244,15 @@ class Order(AbstractBaseModel):
         import string
         from django.utils import timezone
         
-        # Формат: YYYYMMDD-XXXXX (дата + 5 случайных цифр)
+        # Формат: GL-YYYYMMDD-XXXXX (префикс ГЗЛиН + дата + 5 случайных цифр)
         date_part = timezone.now().strftime('%Y%m%d')
         random_part = ''.join(random.choices(string.digits, k=5))
-        number = f'{date_part}-{random_part}'
+        number = f'GL-{date_part}-{random_part}'
         
         # Проверяем уникальность
         while Order.objects.filter(number=number).exists():
             random_part = ''.join(random.choices(string.digits, k=5))
-            number = f'{date_part}-{random_part}'
+            number = f'GL-{date_part}-{random_part}'
         
         return number
     
@@ -290,6 +291,21 @@ class Order(AbstractBaseModel):
         if self.status == 'pending':
             self.status = 'paid'
         self.save(update_fields=['is_paid', 'paid_at', 'status'])
+    
+    def get_status_display_color(self):
+        """Возвращает цвет для отображения статуса"""
+        colors = {
+            'pending': '#ffc107',      # Желтый
+            'confirmed': '#17a2b8',    # Голубой
+            'processing': '#fd7e14',   # Оранжевый
+            'paid': '#28a745',         # Зеленый
+            'shipped': '#6f42c1',      # Фиолетовый
+            'delivered': '#28a745',    # Зеленый
+            'completed': '#28a745',    # Зеленый
+            'cancelled': '#dc3545',    # Красный
+            'refunded': '#6c757d',     # Серый
+        }
+        return colors.get(self.status, '#6c757d')
 
 
 class OrderItem(models.Model):
@@ -325,7 +341,8 @@ class OrderItem(models.Model):
     )
     product_article = models.CharField(
         _('Артикул'),
-        max_length=50
+        max_length=50,
+        blank=True
     )
     
     class Meta:
@@ -341,7 +358,7 @@ class OrderItem(models.Model):
         if not self.product_name:
             self.product_name = self.product.name
         if not self.product_article:
-            self.product_article = self.product.article
+            self.product_article = getattr(self.product, 'article', '')
         if not self.price:
             self.price = self.product.price
         super().save(*args, **kwargs)
@@ -355,10 +372,10 @@ class Cart(models.Model):
     """
     Корзина покупок
     """
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='carts',
+        related_name='cart',
         verbose_name=_('Пользователь'),
         null=True,
         blank=True
@@ -366,7 +383,9 @@ class Cart(models.Model):
     session_key = models.CharField(
         _('Ключ сессии'),
         max_length=40,
-        blank=True
+        blank=True,
+        unique=True,
+        null=True
     )
     created_at = models.DateTimeField(
         _('Дата создания'),
@@ -380,7 +399,11 @@ class Cart(models.Model):
     class Meta:
         verbose_name = _('Корзина')
         verbose_name_plural = _('Корзины')
-        unique_together = ['user', 'session_key']
+        # Убираем unique_together, так как у нас OneToOneField для user
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['session_key']),
+        ]
     
     def __str__(self):
         if self.user:
@@ -415,6 +438,20 @@ class Cart(models.Model):
     def clear(self):
         """Очищает корзину"""
         self.items.all().delete()
+    
+    def update_quantity(self, product, quantity):
+        """Обновляет количество товара в корзине"""
+        try:
+            item = self.items.get(product=product)
+            if quantity <= 0:
+                item.delete()
+                return None
+            else:
+                item.quantity = quantity
+                item.save()
+                return item
+        except CartItem.DoesNotExist:
+            return None
 
 
 class CartItem(models.Model):
@@ -458,14 +495,17 @@ class CartItem(models.Model):
         """Увеличивает количество"""
         self.quantity += amount
         self.save()
+        return self
     
     def decrease_quantity(self, amount=1):
         """Уменьшает количество"""
         if self.quantity > amount:
             self.quantity -= amount
             self.save()
+            return self
         else:
             self.delete()
+            return None
 
 
 class OrderStatusHistory(AbstractBaseModel):
@@ -566,3 +606,126 @@ class WishlistItem(models.Model):
     
     def __str__(self):
         return f'{self.wishlist.name} - {self.product.name}'
+
+
+# Утилитарные функции
+
+def get_or_create_cart(user=None, session_key=None):
+    """Получить или создать корзину для пользователя или сессии"""
+    if user and user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=user)
+        return cart
+    elif session_key:
+        cart, created = Cart.objects.get_or_create(session_key=session_key)
+        return cart
+    return None
+
+
+def merge_carts(session_cart, user_cart):
+    """Объединить корзины при входе пользователя в систему"""
+    if not session_cart or not user_cart:
+        return user_cart
+    
+    # Переносим товары из сессионной корзины в пользовательскую
+    for session_item in session_cart.items.all():
+        user_item, created = user_cart.items.get_or_create(
+            product=session_item.product,
+            defaults={'quantity': session_item.quantity}
+        )
+        
+        if not created:
+            user_item.quantity += session_item.quantity
+            user_item.save()
+    
+    # Удаляем сессионную корзину
+    session_cart.delete()
+    
+    return user_cart
+
+
+def create_order_from_cart(cart, order_data):
+    """Создать заказ из корзины с правильным сохранением данных"""
+    from django.db import transaction
+    
+    with transaction.atomic():
+        # Создаем заказ с правильными данными
+        order = Order.objects.create(
+            user=order_data.get('user'),
+            session_key=order_data.get('session_key', ''),
+            
+            # Контактная информация
+            customer_name=order_data.get('customer_name', ''),
+            customer_email=order_data.get('customer_email', ''),
+            customer_phone=order_data.get('customer_phone', ''),
+            
+            # Информация о компании
+            company_name=order_data.get('company_name', ''),
+            company_unp=order_data.get('company_unp', ''),
+            company_address=order_data.get('company_address', ''),
+            
+            # Доставка
+            delivery_method=order_data.get('delivery_method', 'pickup'),
+            delivery_address=order_data.get('delivery_address', ''),
+            delivery_date=order_data.get('delivery_date'),
+            delivery_time=order_data.get('delivery_time', ''),
+            delivery_cost=Decimal(str(order_data.get('delivery_cost', '0.00'))),
+            
+            # Оплата
+            payment_method=order_data.get('payment_method', 'cash'),
+            
+            # Суммы (будут пересчитаны)
+            subtotal=Decimal('0.00'),
+            discount_amount=Decimal(str(order_data.get('discount_amount', '0.00'))),
+            tax_amount=Decimal(str(order_data.get('tax_amount', '0.00'))),
+            total_amount=Decimal('0.00'),
+            
+            # Дополнительная информация
+            notes=order_data.get('notes', ''),
+            admin_notes=order_data.get('admin_notes', ''),
+            
+            # Метаинформация
+            ip_address=order_data.get('ip_address'),
+            user_agent=order_data.get('user_agent', ''),
+        )
+        
+        # Переносим товары из корзины в заказ
+        subtotal = Decimal('0.00')
+        for cart_item in cart.items.all():
+            order_item = OrderItem.objects.create(
+                order=order,
+                product=cart_item.product,
+                product_name=cart_item.product.name,
+                product_article=getattr(cart_item.product, 'article', ''),
+                price=cart_item.product.price,
+                quantity=cart_item.quantity
+            )
+            subtotal += order_item.get_total_price()
+        
+        # Обновляем суммы заказа
+        order.subtotal = subtotal
+        order.total_amount = subtotal + order.delivery_cost - order.discount_amount + order.tax_amount
+        order.save()
+        
+        # Создаем запись в истории статусов
+        OrderStatusHistory.objects.create(
+            order=order,
+            new_status=order.status,
+            comment='Заказ создан'
+        )
+        
+        # Очищаем корзину
+        cart.clear()
+        
+        return order
+
+
+def get_cart_for_request(request):
+    """Получить корзину для текущего запроса"""
+    if request.user.is_authenticated:
+        return get_or_create_cart(user=request.user)
+    else:
+        session_key = request.session.session_key
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+        return get_or_create_cart(session_key=session_key)

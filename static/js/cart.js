@@ -3,7 +3,6 @@
 
 class CartManager {
     constructor() {
-        this.baseUrl = '/cart/';  // Базовый URL для API корзины
         this.init();
     }
 
@@ -31,18 +30,6 @@ class CartManager {
             // Обработчик для кнопки очистки корзины
             if (e.target.classList.contains('clear-cart-btn')) {
                 this.clearCart();
-            }
-
-            // Обработчик для кнопок "Добавить в корзину"
-            if (e.target.classList.contains('add-to-cart-btn') || 
-                e.target.onclick && e.target.onclick.toString().includes('addToCart')) {
-                e.preventDefault();
-                const productId = e.target.dataset.productId;
-                const productName = e.target.dataset.productName;
-                const productPrice = e.target.dataset.productPrice;
-                if (productId) {
-                    this.addToCart(productId, productName, productPrice);
-                }
             }
         });
 
@@ -73,7 +60,7 @@ class CartManager {
             formData.append('product_id', productId);
             formData.append('quantity', 1);
 
-            const response = await fetch(this.baseUrl + 'add/', {
+            const response = await fetch('/cart/add/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -115,7 +102,7 @@ class CartManager {
             formData.append('item_id', itemId);
             formData.append('change', change);
 
-            const response = await fetch(this.baseUrl + 'update/', {
+            const response = await fetch('/cart/update/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -176,7 +163,7 @@ class CartManager {
             formData.append('item_id', itemId);
             formData.append('quantity', quantity);
 
-            const response = await fetch(this.baseUrl + 'update-quantity/', {
+            const response = await fetch('/cart/update-quantity/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -219,7 +206,7 @@ class CartManager {
             const formData = new FormData();
             formData.append('item_id', itemId);
 
-            const response = await fetch(this.baseUrl + 'remove/', {
+            const response = await fetch('/cart/remove/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -261,7 +248,7 @@ class CartManager {
         }
 
         try {
-            const response = await fetch(this.baseUrl + 'clear/', {
+            const response = await fetch('/cart/clear/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': this.getCSRFToken()
@@ -447,7 +434,6 @@ class CartManager {
     initializeCartUI() {
         // Инициализация интерфейса корзины
         this.addAnimationStyles();
-        this.updateCartCount();
         
         // Загружаем текущее состояние корзины
         this.loadCartState();
@@ -514,7 +500,7 @@ class CartManager {
 
     async loadCartState() {
         try {
-            const response = await fetch(this.baseUrl + 'count/', {
+            const response = await fetch('/cart/count/', {
                 method: 'GET',
                 headers: {
                     'X-CSRFToken': this.getCSRFToken()

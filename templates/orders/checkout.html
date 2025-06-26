@@ -1,105 +1,176 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Оформление заказа - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 3rem 0;">
+<div class="container" style="padding: 2rem 0;">
     <h1>Оформление заказа</h1>
     
-    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 3rem; margin-top: 2rem;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2rem;">
         <!-- Форма заказа -->
         <div>
-            <form method="post" style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow);">
+            <h2>Информация о заказчике</h2>
+            <form method="post">
                 {% csrf_token %}
                 
-                <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Контактная информация</h2>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Имя</label>
-                        <input type="text" name="first_name" required value="{{ user.first_name }}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
+                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Контактные данные *</legend>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="customer_name" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">ФИО *</label>
+                        <input type="text" id="customer_name" name="customer_name" required 
+                               placeholder="Введите полное ФИО"
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
                     </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Фамилия</label>
-                        <input type="text" name="last_name" required value="{{ user.last_name }}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="customer_email" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Email *</label>
+                        <input type="email" id="customer_email" name="customer_email" 
+                               value="{{ user.email }}" required
+                               placeholder="example@domain.com"
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
                     </div>
-                </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="customer_phone" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Телефон *</label>
+                        <input type="tel" id="customer_phone" name="customer_phone" required
+                               placeholder="+375 (XX) XXX-XX-XX"
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                </fieldset>
                 
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
-                    <input type="email" name="email" required value="{{ user.email }}" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                </div>
+                <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
+                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Информация о компании (для юр. лиц)</legend>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="company_name" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Название организации</label>
+                        <input type="text" id="company_name" name="company_name"
+                               placeholder="ООО «Название компании»"
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="company_unp" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">УНП</label>
+                        <input type="text" id="company_unp" name="company_unp"
+                               placeholder="123456789"
+                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="company_address" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Юридический адрес</label>
+                        <textarea id="company_address" name="company_address" rows="3"
+                                  placeholder="Адрес регистрации организации"
+                                  style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                    </div>
+                </fieldset>
                 
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Телефон</label>
-                    <input type="tel" name="phone" required placeholder="+375 XX XXX-XX-XX" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                </div>
+                <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
+                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Доставка *</legend>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="delivery_method" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Способ доставки *</label>
+                        <select id="delivery_method" name="delivery_method" required
+                                style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                            <option value="pickup">Самовывоз (бесплатно)</option>
+                            <option value="delivery">Доставка по городу</option>
+                            <option value="transport_company">Транспортная компания</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="delivery_address" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Адрес доставки</label>
+                        <textarea id="delivery_address" name="delivery_address" rows="3"
+                                  placeholder="Укажите точный адрес доставки (если не самовывоз)"
+                                  style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                        <small style="color: var(--secondary-gray);">При самовывозе оставьте поле пустым</small>
+                    </div>
+                </fieldset>
                 
-                <h2 style="color: var(--primary-red); margin: 2rem 0 1.5rem;">Доставка</h2>
-                
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Способ доставки</label>
-                    <select name="delivery_method" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;" onchange="toggleDeliveryFields(this.value)">
-                        <option value="pickup">Самовывоз (бесплатно)</option>
-                        <option value="delivery">Доставка курьером</option>
-                        <option value="transport_company">Транспортная компания</option>
-                    </select>
-                </div>
-                
-                <div id="deliveryAddress" style="display: none; margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Адрес доставки</label>
-                    <textarea name="delivery_address" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;" placeholder="Укажите полный адрес доставки"></textarea>
-                </div>
-                
-                <h2 style="color: var(--primary-red); margin: 2rem 0 1.5rem;">Оплата</h2>
-                
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Способ оплаты</label>
-                    <select name="payment_method" required style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                        <option value="cash">Наличный расчет</option>
-                        <option value="bank_transfer">Банковский перевод</option>
-                        <option value="card">Банковская карта</option>
-                        <option value="invoice">По счету</option>
-                    </select>
-                </div>
+                <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
+                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Оплата *</legend>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <label for="payment_method" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Способ оплаты *</label>
+                        <select id="payment_method" name="payment_method" required
+                                style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                            <option value="cash">Наличный расчет</option>
+                            <option value="bank_transfer">Банковский перевод</option>
+                            <option value="card">Банковская карта</option>
+                            <option value="invoice">По счету (для юр. лиц)</option>
+                        </select>
+                    </div>
+                </fieldset>
                 
                 <div style="margin-bottom: 2rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Комментарий к заказу</label>
-                    <textarea name="notes" rows="3" style="width: 100%; padding: 0.75rem; border: 2px solid var(--light-gray); border-radius: 5px;" placeholder="Дополнительная информация (не обязательно)"></textarea>
+                    <label for="notes" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Комментарий к заказу</label>
+                    <textarea id="notes" name="notes" rows="4"
+                              placeholder="Дополнительная информация к заказу, пожелания по доставке и т.д."
+                              style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
                 </div>
                 
-                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 1rem;">
-                    Оформить заказ
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    📝 Оформить заказ
                 </button>
             </form>
         </div>
         
-        <!-- Сводка заказа -->
+        <!-- Итоги заказа -->
         <div>
-            <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow); position: sticky; top: 2rem;">
-                <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Ваш заказ</h2>
-                
-                <!-- Товары в заказе -->
-                <div style="margin-bottom: 1.5rem;">
-                    <!-- Здесь будут товары из корзины -->
-                    <div style="color: var(--secondary-gray); text-align: center; padding: 1rem;">
-                        Загрузка товаров...
+            <div style="position: sticky; top: 2rem;">
+                <h2>Ваш заказ</h2>
+                <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
+                    {% for item in cart_items %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--light-gray);">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; margin-bottom: 0.25rem;">{{ item.product.name }}</div>
+                            <div style="font-size: 0.9rem; color: var(--secondary-gray);">
+                                {{ item.product.price }} BYN × {{ item.quantity }}
+                            </div>
+                        </div>
+                        <div style="font-weight: bold; color: var(--primary-red);">
+                            {{ item.get_total_price }} BYN
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div style="padding: 1rem 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Товары ({{ cart.items_count }} позиций):</span>
+                            <span style="font-weight: bold;">{{ cart.total_price }} BYN</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Доставка:</span>
+                            <span style="font-weight: bold; color: #28a745;">Уточняется</span>
+                        </div>
+                        
+                        <hr style="margin: 1rem 0; border: 1px solid var(--light-gray);">
+                        
+                        <div style="display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: bold; color: var(--primary-red);">
+                            <span>Итого:</span>
+                            <span>{{ cart.total_price }} BYN</span>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Итого -->
-                <div style="border-top: 1px solid var(--light-gray); padding-top: 1rem;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>Товары:</span>
-                        <span>0.00 BYN</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>Доставка:</span>
-                        <span id="deliveryPrice">Бесплатно</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; color: var(--primary-red); margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--light-gray);">
-                        <span>Итого:</span>
-                        <span>0.00 BYN</span>
+                <div style="background: #e8f4fd; padding: 1.5rem; border-radius: var(--radius); border-left: 4px solid var(--primary-red);">
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">ℹ️ Важная информация</h3>
+                    <ul style="margin: 0; padding-left: 1.5rem; color: var(--dark-gray);">
+                        <li style="margin-bottom: 0.5rem;">После оформления заказа наш менеджер свяжется с вами для подтверждения</li>
+                        <li style="margin-bottom: 0.5rem;">Стоимость доставки рассчитывается индивидуально</li>
+                        <li style="margin-bottom: 0.5rem;">Сроки изготовления уточняются при подтверждении заказа</li>
+                        <li>Возможна оплата наличными при получении или безналичным расчетом</li>
+                    </ul>
+                </div>
+                
+                <div style="background: white; padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 1rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">📞 Контакты</h3>
+                    <div style="color: var(--dark-gray);">
+                        <div style="margin-bottom: 0.5rem;"><strong>Телефон:</strong> +375 (232) 47-82-15</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>Email:</strong> info@gzlin.by</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>Адрес:</strong> г. Гомель, ул. Промышленная, 15</div>
+                        <div style="font-size: 0.9rem; color: var(--secondary-gray);">Пн-Пт: 8:00-17:00, Сб-Вс: выходной</div>
                     </div>
                 </div>
             </div>
@@ -107,22 +178,130 @@
     </div>
 </div>
 
-<script>
-function toggleDeliveryFields(method) {
-    const addressField = document.getElementById('deliveryAddress');
-    const deliveryPrice = document.getElementById('deliveryPrice');
+<style>
+label {
+    color: var(--dark-gray);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-red) !important;
+    box-shadow: 0 0 0 3px rgba(203, 65, 59, 0.1);
+}
+
+input[required]:invalid {
+    border-color: #dc3545;
+}
+
+input[required]:valid {
+    border-color: #28a745;
+}
+
+fieldset {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+
+legend {
+    padding: 0 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .container > div {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
     
-    if (method === 'pickup') {
-        addressField.style.display = 'none';
-        deliveryPrice.textContent = 'Бесплатно';
-    } else {
-        addressField.style.display = 'block';
-        if (method === 'delivery') {
-            deliveryPrice.textContent = '20.00 BYN';
-        } else {
-            deliveryPrice.textContent = 'По тарифам ТК';
-        }
+    .sticky-summary {
+        position: static !important;
     }
 }
+
+/* Анимация при отправке формы */
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.form-submitting {
+    pointer-events: none;
+    opacity: 0.7;
+}
+</style>
+
+<script>
+// Улучшения формы
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const deliveryMethod = document.getElementById('delivery_method');
+    const deliveryAddress = document.getElementById('delivery_address');
+    const paymentMethod = document.getElementById('payment_method');
+    const companyFields = ['company_name', 'company_unp', 'company_address'];
+    
+    // Управление полем адреса доставки
+    function toggleDeliveryAddress() {
+        if (deliveryMethod.value === 'pickup') {
+            deliveryAddress.disabled = true;
+            deliveryAddress.style.background = '#f8f9fa';
+            deliveryAddress.placeholder = 'При самовывозе адрес не требуется';
+        } else {
+            deliveryAddress.disabled = false;
+            deliveryAddress.style.background = '';
+            deliveryAddress.placeholder = 'Укажите точный адрес доставки';
+        }
+    }
+    
+    deliveryMethod.addEventListener('change', toggleDeliveryAddress);
+    toggleDeliveryAddress(); // Инициализация
+    
+    // Управление полями компании в зависимости от способа оплаты
+    function toggleCompanyFields() {
+        const isInvoice = paymentMethod.value === 'invoice';
+        companyFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (isInvoice) {
+                field.required = true;
+                field.style.borderColor = '#ffc107';
+            } else {
+                field.required = false;
+                field.style.borderColor = '';
+            }
+        });
+    }
+    
+    paymentMethod.addEventListener('change', toggleCompanyFields);
+    
+    // Предотвращение повторной отправки формы
+    form.addEventListener('submit', function() {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Оформляем заказ...';
+        form.classList.add('form-submitting');
+        
+        // Восстанавливаем кнопку через 10 секунд (на случай ошибки)
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '📝 Оформить заказ';
+            form.classList.remove('form-submitting');
+        }, 10000);
+    });
+    
+    // Форматирование телефона
+    const phoneInput = document.getElementById('customer_phone');
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.startsWith('375')) {
+            value = '+375 (' + value.slice(3, 5) + ') ' + value.slice(5, 8) + '-' + value.slice(8, 10) + '-' + value.slice(10, 12);
+        }
+        e.target.value = value;
+    });
+    
+    // Валидация УНП
+    const unpInput = document.getElementById('company_unp');
+    unpInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 9);
+    });
+});
 </script>
 {% endblock %}

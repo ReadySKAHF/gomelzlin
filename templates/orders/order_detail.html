@@ -1,318 +1,329 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
+{% block title %}Заказ №{{ order.number }} - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 3rem 0;">
-    <!-- Хлебные крошки -->
-    <div style="margin-bottom: 2rem; color: var(--secondary-gray);">
-        <a href="{% url 'core:home' %}" style="color: var(--primary-red);">Главная</a> / 
-        <a href="{% url 'accounts:profile' %}" style="color: var(--primary-red);">Личный кабинет</a> / 
-        <span>Заказ #{{ order_number }}</span>
-    </div>
-    
+<div class="container" style="padding: 2rem 0;">
+    <!-- Заголовок с номером заказа -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h1>Заказ #{{ order_number }}</h1>
+        <h1>Заказ № {{ order.number }}</h1>
         <div style="display: flex; gap: 1rem;">
-            <button class="btn btn-outline" onclick="window.print()">🖨️ Распечатать</button>
-            <button class="btn btn-primary" onclick="downloadOrder()">📄 Скачать PDF</button>
+            <button class="btn btn-outline" onclick="window.print()">
+                📄 Распечатать
+            </button>
+            <button class="btn btn-primary" onclick="downloadPDF()">
+                📥 Скачать PDF
+            </button>
         </div>
     </div>
-    
+
     <!-- Статус заказа -->
-    <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; margin-bottom: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <div>
-                <h2 style="color: var(--primary-red); margin-bottom: 0.5rem;">Статус заказа</h2>
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <span class="status-badge processing">В обработке</span>
-                    <span style="color: var(--secondary-gray);">Обновлено: 22.06.2025 15:30</span>
-                </div>
-            </div>
+    <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 style="color: var(--primary-red); margin: 0;">Статус заказа</h2>
             <div style="text-align: right;">
-                <div style="font-size: 0.9rem; color: var(--secondary-gray); margin-bottom: 0.5rem;">Дата заказа</div>
-                <div style="font-size: 1.1rem; font-weight: bold;">22.06.2025 14:30</div>
+                <div style="font-weight: bold;">Дата заказа</div>
+                <div>{{ order.created_at|date:"d.m.Y H:i" }}</div>
             </div>
         </div>
-        
-        <!-- Прогресс заказа -->
-        <div style="margin-bottom: 2rem;">
+
+        <!-- Прогресс-бар статуса -->
+        <div style="position: relative; margin: 2rem 0;">
+            {% with order.status as current_status %}
             <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
                 <!-- Линия прогресса -->
-                <div style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: var(--light-gray); z-index: 1;"></div>
-                <div style="position: absolute; top: 50%; left: 0; width: 50%; height: 2px; background: var(--primary-red); z-index: 2;"></div>
-                
-                <!-- Этапы -->
-                <div style="text-align: center; position: relative; z-index: 3;">
-                    <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--primary-red); margin: 0 auto 0.5rem;"></div>
-                    <div style="font-size: 0.9rem; font-weight: bold;">Создан</div>
-                    <div style="font-size: 0.8rem; color: var(--secondary-gray);">22.06 14:30</div>
+                <div style="position: absolute; top: 15px; left: 0; right: 0; height: 4px; background: #e9ecef; z-index: 1;"></div>
+                <div style="position: absolute; top: 15px; left: 0; height: 4px; background: var(--primary-red); z-index: 2; width: 
+                    {% if current_status == 'pending' %}20%
+                    {% elif current_status == 'confirmed' %}40%
+                    {% elif current_status == 'processing' %}60%
+                    {% elif current_status == 'shipped' %}80%
+                    {% elif current_status == 'delivered' or current_status == 'completed' %}100%
+                    {% else %}20%
+                    {% endif %};"></div>
+
+                <!-- Этапы статуса -->
+                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'pending' or current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">1</div>
+                    <div style="margin-left: 0.5rem; {% if current_status == 'pending' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                        <div>Создан</div>
+                        <div style="font-size: 0.8rem; color: var(--secondary-gray);">{{ order.created_at|date:"d.m H:i" }}</div>
+                    </div>
                 </div>
-                
-                <div style="text-align: center; position: relative; z-index: 3;">
-                    <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--primary-red); margin: 0 auto 0.5rem;"></div>
-                    <div style="font-size: 0.9rem; font-weight: bold;">Обрабатывается</div>
-                    <div style="font-size: 0.8rem; color: var(--secondary-gray);">22.06 15:30</div>
+
+                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">2</div>
+                    <div style="margin-left: 0.5rem; {% if current_status == 'confirmed' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                        <div>Обрабатывается</div>
+                        <div style="font-size: 0.8rem; color: var(--secondary-gray);">
+                            {% if current_status == 'confirmed' or current_status == 'processing' or current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}
+                                {{ order.updated_at|date:"d.m H:i" }}
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                
-                <div style="text-align: center; position: relative; z-index: 3;">
-                    <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--light-gray); margin: 0 auto 0.5rem;"></div>
-                    <div style="font-size: 0.9rem; color: var(--secondary-gray);">Готов</div>
+
+                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'shipped' or current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">3</div>
+                    <div style="margin-left: 0.5rem; {% if current_status == 'shipped' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                        <div>Готов</div>
+                        <div style="font-size: 0.8rem; color: var(--secondary-gray);"></div>
+                    </div>
                 </div>
-                
-                <div style="text-align: center; position: relative; z-index: 3;">
-                    <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--light-gray); margin: 0 auto 0.5rem;"></div>
-                    <div style="font-size: 0.9rem; color: var(--secondary-gray);">Отправлен</div>
+
+                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'delivered' or current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">4</div>
+                    <div style="margin-left: 0.5rem; {% if current_status == 'delivered' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                        <div>Отправлен</div>
+                        <div style="font-size: 0.8rem; color: var(--secondary-gray);"></div>
+                    </div>
                 </div>
-                
-                <div style="text-align: center; position: relative; z-index: 3;">
-                    <div style="width: 20px; height: 20px; border-radius: 50%; background: var(--light-gray); margin: 0 auto 0.5rem;"></div>
-                    <div style="font-size: 0.9rem; color: var(--secondary-gray);">Получен</div>
+
+                <div style="display: flex; align-items: center; z-index: 3; position: relative;">
+                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {% if current_status == 'completed' %}var(--primary-red){% else %}#e9ecef{% endif %}; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.8rem;">5</div>
+                    <div style="margin-left: 0.5rem; {% if current_status == 'completed' %}font-weight: bold; color: var(--primary-red);{% endif %}">
+                        <div>Получен</div>
+                        <div style="font-size: 0.8rem; color: var(--secondary-gray);"></div>
+                    </div>
                 </div>
+            </div>
+            {% endwith %}
+        </div>
+
+        <!-- Текущий статус -->
+        <div style="background: var(--light-gray); padding: 1rem; border-radius: var(--radius); margin-top: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ order.get_status_display_color }};"></span>
+                <span style="font-weight: bold;">{{ order.get_status_display }}</span>
+                <span style="color: var(--secondary-gray);">Обновлено: {{ order.updated_at|date:"d.m.Y H:i" }}</span>
             </div>
         </div>
     </div>
-    
+
+    <!-- Основная информация -->
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
         <!-- Товары в заказе -->
         <div>
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem;">
+            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
                 <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Товары в заказе</h2>
                 
-                <!-- Заголовки таблицы -->
-                <div style="display: grid; grid-template-columns: 80px 1fr 120px 100px 120px; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--light-gray); font-weight: bold; color: var(--dark-gray);">
-                    <div>Фото</div>
-                    <div>Товар</div>
-                    <div>Цена</div>
-                    <div>Кол-во</div>
-                    <div>Сумма</div>
-                </div>
-                
-                <!-- Товары -->
-                <div style="display: grid; grid-template-columns: 80px 1fr 120px 100px 120px; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--light-gray); align-items: center;">
-                    <div>
-                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=60&h=60&fit=crop" 
-                             alt="Уголок 90°" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
-                    </div>
-                    <div>
-                        <h4 style="margin-bottom: 0.25rem;">Уголок 90° Ду 50</h4>
-                        <p style="color: var(--secondary-gray); font-size: 0.9rem;">Артикул: УГ-50-90</p>
-                    </div>
-                    <div style="font-weight: bold;">25.50 BYN</div>
-                    <div style="text-align: center;">5 шт</div>
-                    <div style="font-weight: bold; color: var(--primary-red);">127.50 BYN</div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 80px 1fr 120px 100px 120px; gap: 1rem; padding: 1rem; border-bottom: 1px solid var(--light-gray); align-items: center;">
-                    <div>
-                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=60&h=60&fit=crop" 
-                             alt="Тройник" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
-                    </div>
-                    <div>
-                        <h4 style="margin-bottom: 0.25rem;">Тройник Ду 50</h4>
-                        <p style="color: var(--secondary-gray); font-size: 0.9rem;">Артикул: ТР-50</p>
-                    </div>
-                    <div style="font-weight: bold;">32.80 BYN</div>
-                    <div style="text-align: center;">3 шт</div>
-                    <div style="font-weight: bold; color: var(--primary-red);">98.40 BYN</div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: 80px 1fr 120px 100px 120px; gap: 1rem; padding: 1rem; align-items: center;">
-                    <div>
-                        <img src="https://images.unsplash.com/photo-1562577309-2592ab84b1bc?w=60&h=60&fit=crop" 
-                             alt="Кран шаровой" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px;">
-                    </div>
-                    <div>
-                        <h4 style="margin-bottom: 0.25rem;">Кран шаровой Ду 50</h4>
-                        <p style="color: var(--secondary-gray); font-size: 0.9rem;">Артикул: КШ-50</p>
-                    </div>
-                    <div style="font-weight: bold;">78.50 BYN</div>
-                    <div style="text-align: center;">1 шт</div>
-                    <div style="font-weight: bold; color: var(--primary-red);">78.50 BYN</div>
-                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--light-gray);">
+                            <th style="text-align: left; padding: 0.5rem; font-weight: bold;">Фото</th>
+                            <th style="text-align: left; padding: 0.5rem; font-weight: bold;">Товар</th>
+                            <th style="text-align: center; padding: 0.5rem; font-weight: bold;">Цена</th>
+                            <th style="text-align: center; padding: 0.5rem; font-weight: bold;">Кол-во</th>
+                            <th style="text-align: right; padding: 0.5rem; font-weight: bold;">Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr style="border-bottom: 1px solid var(--light-gray);">
+                            <td style="padding: 1rem 0.5rem;">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product_name }}" 
+                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+                                {% else %}
+                                    <div style="width: 50px; height: 50px; background: var(--light-gray); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray);">📦</div>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem 0.5rem;">
+                                <div style="font-weight: bold;">{{ item.product_name }}</div>
+                                <div style="font-size: 0.9rem; color: var(--secondary-gray);">
+                                    Артикул: {{ item.product_article|default:'Н/Д' }}
+                                </div>
+                            </td>
+                            <td style="padding: 1rem 0.5rem; text-align: center;">{{ item.price }} BYN</td>
+                            <td style="padding: 1rem 0.5rem; text-align: center;">{{ item.quantity }} шт</td>
+                            <td style="padding: 1rem 0.5rem; text-align: right; font-weight: bold; color: var(--primary-red);">{{ item.get_total_price }} BYN</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-        
-        <!-- Информация о заказе -->
+
+        <!-- Сумма заказа и доставка -->
         <div>
             <!-- Сумма заказа -->
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; margin-bottom: 2rem;">
-                <h3 style="color: var(--primary-red); margin-bottom: 1.5rem;">Сумма заказа</h3>
+            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Сумма заказа</h2>
                 
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Товары (9 позиций):</span>
-                    <span>304.40 BYN</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Доставка:</span>
-                    <span>Бесплатно</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                    <span>Скидка:</span>
-                    <span style="color: var(--primary-red);">-0.00 BYN</span>
-                </div>
-                <hr style="margin: 1rem 0; border: none; border-top: 1px solid var(--light-gray);">
-                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
-                    <span>Итого:</span>
-                    <span>304.40 BYN</span>
+                <div style="space-y: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                        <span>Товары ({{ order.get_items_count }} позиций):</span>
+                        <span style="font-weight: bold;">{{ order.subtotal }} BYN</span>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                        <span>Доставка:</span>
+                        <span style="font-weight: bold;">
+                            {% if order.delivery_cost > 0 %}
+                                {{ order.delivery_cost }} BYN
+                            {% else %}
+                                Бесплатно
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if order.discount_amount > 0 %}
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; color: #28a745;">
+                        <span>Скидка:</span>
+                        <span style="font-weight: bold;">-{{ order.discount_amount }} BYN</span>
+                    </div>
+                    {% endif %}
+                    
+                    <hr style="margin: 1rem 0; border: 1px solid var(--light-gray);">
+                    
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
+                        <span>Итого:</span>
+                        <span>{{ order.total_amount }} BYN</span>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Информация о доставке -->
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; margin-bottom: 2rem;">
-                <h3 style="color: var(--primary-red); margin-bottom: 1.5rem;">Доставка</h3>
+
+            <!-- Доставка -->
+            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
+                <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Доставка</h2>
                 
-                <div style="margin-bottom: 1rem;">
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Способ доставки:</div>
-                    <div>Самовывоз</div>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Адрес:</div>
-                    <div>г. Гомель, ул. Промышленная, 15<br>ОАО "ГЗЛиН"</div>
-                </div>
-                
-                <div>
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Время работы:</div>
-                    <div style="color: var(--secondary-gray);">Пн-Пт: 8:00-17:00<br>Сб-Вс: выходной</div>
-                </div>
-            </div>
-            
-            <!-- Информация об оплате -->
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; margin-bottom: 2rem;">
-                <h3 style="color: var(--primary-red); margin-bottom: 1.5rem;">Оплата</h3>
-                
-                <div style="margin-bottom: 1rem;">
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Способ оплаты:</div>
-                    <div>Наличный расчет</div>
-                </div>
-                
-                <div style="margin-bottom: 1rem;">
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Статус оплаты:</div>
-                    <span class="status-badge pending">Ожидает оплаты</span>
-                </div>
-                
-                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="payOrder()">
-                    Оплатить заказ
-                </button>
-            </div>
-            
-            <!-- Контактная информация -->
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem;">
-                <h3 style="color: var(--primary-red); margin-bottom: 1.5rem;">Контакты</h3>
-                
-                <div style="margin-bottom: 0.5rem;">
-                    <strong>Заказчик:</strong> Иван Иванов
-                </div>
-                <div style="margin-bottom: 0.5rem;">
-                    <strong>Email:</strong> ivan@example.com
-                </div>
-                <div style="margin-bottom: 0.5rem;">
-                    <strong>Телефон:</strong> +375 29 123-45-67
-                </div>
-                <div>
-                    <strong>Организация:</strong> ООО "Тестовая компания"
+                <div style="space-y: 1rem;">
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 0.25rem;">Способ доставки:</div>
+                        <div>{{ order.get_delivery_method_display }}</div>
+                    </div>
+                    
+                    {% if order.delivery_address %}
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 0.25rem;">Адрес:</div>
+                        <div>{{ order.delivery_address }}</div>
+                    </div>
+                    {% else %}
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 0.25rem;">Адрес:</div>
+                        <div>г. Гомель, ул. Промышленная, 15</div>
+                        <div style="font-size: 0.9rem; color: var(--secondary-gray);">ОАО "ГЗЛиН"</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 0.25rem;">Время работы:</div>
+                        <div>Пн-Пт: 8:00-17:00</div>
+                        <div style="font-size: 0.9rem; color: var(--secondary-gray);">Сб-Вс: выходной</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Действия с заказом -->
-    <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; margin-top: 2rem;">
-        <h3 style="color: var(--primary-red); margin-bottom: 1.5rem;">Действия</h3>
+
+    <!-- Контакты заказчика -->
+    <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Контакты</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+            <div>
+                <div style="font-weight: bold; margin-bottom: 0.25rem;">Заказчик:</div>
+                <div>{{ order.customer_name }}</div>
+            </div>
+            
+            <div>
+                <div style="font-weight: bold; margin-bottom: 0.25rem;">Email:</div>
+                <div>{{ order.customer_email }}</div>
+            </div>
+            
+            <div>
+                <div style="font-weight: bold; margin-bottom: 0.25rem;">Телефон:</div>
+                <div>{{ order.customer_phone }}</div>
+            </div>
+            
+            {% if order.company_name %}
+            <div>
+                <div style="font-weight: bold; margin-bottom: 0.25rem;">Организация:</div>
+                <div>{{ order.company_name }}</div>
+                {% if order.company_unp %}
+                    <div style="font-size: 0.9rem; color: var(--secondary-gray);">УНП: {{ order.company_unp }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Действия -->
+    <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow);">
+        <h2 style="color: var(--primary-red); margin-bottom: 1.5rem;">Действия</h2>
         
         <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-            <button class="btn btn-outline" onclick="repeatOrder()">🔄 Повторить заказ</button>
-            <button class="btn btn-outline" onclick="contactSupport()">💬 Связаться с поддержкой</button>
-            <button class="btn btn-danger" onclick="cancelOrder()" id="cancelBtn">❌ Отменить заказ</button>
+            <button class="btn btn-outline" onclick="repeatOrder()">
+                🔄 Повторить заказ
+            </button>
+            
+            <button class="btn btn-outline" onclick="contactSupport()">
+                💬 Связаться с поддержкой
+            </button>
+            
+            {% if order.can_be_cancelled %}
+            <form method="post" action="{% url 'orders:cancel_order' order.number %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn" style="background: #dc3545; color: white;" 
+                        onclick="return confirm('Вы уверены, что хотите отменить заказ?')">
+                    ❌ Отменить заказ
+                </button>
+            </form>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<style>
-.status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.status-badge.pending {
-    background: rgba(255, 193, 7, 0.1);
-    color: #856404;
-}
-
-.status-badge.processing {
-    background: rgba(23, 162, 184, 0.1);
-    color: #0c5460;
-}
-
-.status-badge.paid {
-    background: rgba(40, 167, 69, 0.1);
-    color: #155724;
-}
-
-.status-badge.cancelled {
-    background: rgba(220, 53, 69, 0.1);
-    color: #721c24;
-}
-
-.btn-danger {
-    background: #dc3545;
-    color: white;
-    border: none;
-}
-
-.btn-danger:hover {
-    background: #c82333;
-}
-
-@media (max-width: 768px) {
-    .container > div:first-of-type {
-        grid-template-columns: 1fr !important;
-    }
-    
-    .container > div:first-of-type > div:first-child > div:nth-child(2) > div {
-        grid-template-columns: 1fr !important;
-        text-align: left;
-    }
-    
-    .container > div:first-of-type > div:first-child > div:nth-child(2) > div > div:last-child {
-        text-align: center;
-        margin-top: 0.5rem;
-    }
-}
-</style>
-
 <script>
-function downloadOrder() {
-    alert('Функция скачивания PDF будет реализована позже');
-}
-
-function payOrder() {
-    alert('Переход к оплате заказа');
+function downloadPDF() {
+    // Здесь можно добавить логику генерации PDF
+    alert('Функция генерации PDF будет добавлена позже');
 }
 
 function repeatOrder() {
-    if (confirm('Добавить товары из этого заказа в корзину?')) {
-        alert('Товары добавлены в корзину');
+    if (confirm('Добавить все товары из этого заказа в корзину?')) {
+        // Логика повторения заказа
+        {% for item in order_items %}
+        addToCart({{ item.product.id }}, '{{ item.product_name|escapejs }}', {{ item.price }});
+        {% endfor %}
     }
 }
 
 function contactSupport() {
-    window.location.href = '{% url "core:contacts" %}';
-}
-
-function cancelOrder() {
-    if (confirm('Вы уверены, что хотите отменить заказ? Это действие нельзя будет отменить.')) {
-        alert('Заказ отменен');
-        document.getElementById('cancelBtn').style.display = 'none';
-        
-        // Обновляем статус
-        document.querySelector('.status-badge').className = 'status-badge cancelled';
-        document.querySelector('.status-badge').textContent = 'Отменен';
-    }
+    window.location.href = 'mailto:info@gzlin.by?subject=Вопрос по заказу №{{ order.number }}';
 }
 </script>
+
+<style>
+@media print {
+    .btn, button {
+        display: none !important;
+    }
+    
+    body {
+        font-size: 12px;
+    }
+    
+    .container {
+        max-width: none;
+        padding: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .container > div {
+        grid-template-columns: 1fr !important;
+    }
+    
+    table {
+        font-size: 0.9rem;
+    }
+    
+    .status-progress {
+        flex-direction: column !important;
+        gap: 1rem;
+    }
+}
+</style>
 {% endblock %}
