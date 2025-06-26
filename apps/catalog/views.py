@@ -30,7 +30,7 @@ class ProductListView(TemplateView):
             # Подсчитываем общее количество товаров в категории и подкатегориях
             total_products = self.get_category_product_count(category)
             
-            # Определяем изображение категории
+            # Определяем изображение категории (эмодзи)
             category_image = self.get_category_image(category.name)
             
             categories_with_counts.append({
@@ -73,115 +73,107 @@ class ProductListView(TemplateView):
         return count
     
     def get_category_image(self, category_name):
-        """Возвращает путь к изображению категории"""
-        category_images = {
-            'Зерноуборочная техника': 'static/images/categories/grain_harvesting.jpg',
-            'Кормоуборочная техника': 'images/categories/feed_harvesting.jpg',
-            'Картофелеуборочная техника': 'images/categories/potato_harvesting.jpg',
-            'Метизная продукция': 'images/categories/hardware.jpg',
-            'Прочая техника': 'images/categories/other_equipment.jpg',
-            'Бункеры-перегрузчики': 'images/categories/bunkers.jpg',
-            'Новинки': 'images/categories/new_products.jpg',
-            'Прочие товары, работы и услуги': 'images/categories/services.jpg',
-            'Режущие системы жаток': 'images/categories/cutting_systems.jpg',
-            'Самоходные носилки': 'images/categories/self_propelled.jpg',
+        """Возвращает эмодзи для категории"""
+        category_emojis = {
+            'Зерноуборочная техника': '🌾',
+            'Кормоуборочная техника': '🚜',
+            'Картофелеуборочная техника': '🥔',
+            'Метизная продукция': '🔩',
+            'Прочая техника': '⚙️',
+            'Бункеры-перегрузчики': '📦',
+            'Новинки': '⭐',
+            'Прочие товары, работы и услуги': '🛠️',
+            'Режущие системы жаток': '🔪',
+            'Самоходные носилки': '🚛',
         }
-        return category_images.get(category_name, 'images/categories/default.jpg')
+        return category_emojis.get(category_name, '🏭')
+
 
 class CategoryDetailView(TemplateView):
     """Детальная страница категории"""
-    template_name = 'catalog/category_list.html'
+    template_name = 'catalog/category_detail.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        slug = kwargs.get('slug')
         
-        # Получаем категорию по slug
-        category = get_object_or_404(Category, slug=kwargs['slug'], is_active=True)
-        context['category'] = category
-        context['title'] = category.name
-        
-        # Проверяем наличие подкатегорий
-        subcategories = category.children.filter(is_active=True).order_by('sort_order', 'name')
-        
-        if subcategories.exists():
-            # Есть подкатегории - показываем их
-            context['show_subcategories'] = True
-            subcategories_with_counts = []
+        try:
+            category = get_object_or_404(Category, slug=slug, is_active=True)
+            context['category'] = category
+            context['title'] = category.name
             
-            for subcategory in subcategories:
-                product_count = subcategory.products.filter(is_active=True, is_published=True).count()
-                subcategories_with_counts.append({
-                    'id': subcategory.id,
-                    'name': subcategory.name,
-                    'description': subcategory.description,
-                    'slug': subcategory.slug,
-                    'product_count': product_count,
-                    'absolute_url': subcategory.get_absolute_url()
-                })
+            # Получаем подкатегории
+            subcategories = category.children.filter(is_active=True).order_by('sort_order', 'name')
             
-            context['subcategories'] = subcategories_with_counts
-        else:
-            # Нет подкатегорий - показываем товары
-            context['show_subcategories'] = False
-            
-            # Получаем параметры отображения
-            view_type = self.request.GET.get('view', 'grid')  # grid или list
-            context['view_type'] = view_type
-            
-            # Получаем товары категории
-            products = category.products.filter(
-                is_active=True, 
+            # Получаем товары в категории
+            products = Product.objects.filter(
+                category=category,
+                is_active=True,
                 is_published=True
-            ).order_by('name')
+            ).select_related('category').order_by('name')
             
-            # Пагинация
-            paginator = Paginator(products, 12)
-            page_number = self.request.GET.get('page')
-            page_obj = paginator.get_page(page_number)
+            context['subcategories'] = subcategories
+            context['products'] = products
+            context['has_subcategories'] = subcategories.exists()
             
-            context['products'] = page_obj
-            context['paginator'] = paginator
-        
+            # Добавляем информацию о количестве товаров для подкатегорий
+            subcategories_with_counts = []
+            for subcat in subcategories:
+                subcategories_with_counts.append({
+                    'category': subcat,
+                    'product_count': subcat.products.filter(is_active=True, is_published=True).count()
+                })
+            context['subcategories_with_counts'] = subcategories_with_counts
+            
+        except Category.DoesNotExist:
+            context['category'] = None
+            context['error'] = 'Категория не найдена'
+            
         return context
 
 
 class ProductDetailView(DetailView):
     """Детальная страница товара"""
+    model = Product
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
-    slug_field = 'slug'
     
     def get_queryset(self):
         return Product.objects.filter(
-            is_active=True, 
+            is_active=True,
             is_published=True
         ).select_related('category')
     
+    def get_object(self):
+        obj = super().get_object()
+        # Увеличиваем счетчик просмотров
+        if hasattr(obj, 'increment_views'):
+            obj.increment_views()
+        return obj
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        product = self.get_object()
-        
-        context['title'] = product.name
         
         # Похожие товары из той же категории
         related_products = Product.objects.filter(
-            category=product.category,
+            category=self.object.category,
             is_active=True,
             is_published=True
-        ).exclude(id=product.id)[:4]
+        ).exclude(id=self.object.id)[:4]
         
         context['related_products'] = related_products
-        
         return context
+
 
 class ProductSearchView(ListView):
     """Поиск товаров"""
-    template_name = 'catalog/search_results.html'
+    model = Product
+    template_name = 'catalog/product_search.html'
     context_object_name = 'products'
     paginate_by = 12
     
     def get_queryset(self):
-        query = self.request.GET.get('q', '')
+        query = self.request.GET.get('q')
         if query:
             return Product.objects.filter(
                 Q(name__icontains=query) | 
@@ -200,7 +192,7 @@ class ProductSearchView(ListView):
 
 
 def quick_search_ajax(request):
-    """AJAX быстрый поиск"""
+    """AJAX поиск для быстрого поиска"""
     query = request.GET.get('q', '')
     results = []
     
@@ -209,10 +201,11 @@ def quick_search_ajax(request):
             Q(name__icontains=query) | Q(article__icontains=query),
             is_active=True,
             is_published=True
-        )[:5]
+        ).select_related('category')[:5]
         
         for product in products:
             results.append({
+                'id': product.id,
                 'name': product.name,
                 'article': product.article,
                 'price': str(product.price),
@@ -222,8 +215,8 @@ def quick_search_ajax(request):
     
     return JsonResponse({'results': results})
 
-# Представления для главной страницы
 
+# Представления для главной страницы
 class HomeView(TemplateView):
     """Главная страница с категориями"""
     template_name = 'pages/home.html'

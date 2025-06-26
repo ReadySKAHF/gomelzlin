@@ -1,121 +1,70 @@
-<!-- templates/catalog/category_detail.html -->
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}{{ category.name }} - ОАО "ГЗЛиН"{% endblock %}
+{% block title %}{{ category.name }} - Каталог ОАО "ГЗЛиН"{% endblock %}
 
 {% block extra_css %}
 <style>
     .category-header {
-        background: linear-gradient(135deg, #cb413b 0%, #a73530 100%);
+        background: linear-gradient(135deg, var(--primary-red) 0%, #a0342e 100%);
         color: white;
         padding: 3rem 0;
-        margin-top: 70px;
-        position: relative;
-        overflow: hidden;
+        margin-bottom: 3rem;
     }
     
-    .category-header::before {
+    .category-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .category-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
+    
+    .subcategories-section {
+        margin-bottom: 4rem;
+    }
+    
+    .section-title {
+        color: var(--primary-red);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .section-title::after {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" patternUnits="userSpaceOnUse" width="100" height="100"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    }
-    
-    .category-content {
-        position: relative;
-        z-index: 2;
-    }
-    
-    .breadcrumb {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-    }
-    
-    .breadcrumb-item + .breadcrumb-item::before {
-        color: rgba(255, 255, 255, 0.7);
-        content: "›";
-    }
-    
-    .breadcrumb a {
-        color: rgba(255, 255, 255, 0.9);
-        text-decoration: none;
-    }
-    
-    .breadcrumb a:hover {
-        color: white;
-    }
-    
-    .view-controls {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        margin: 2rem 0;
-        position: sticky;
-        top: 90px;
-        z-index: 100;
-    }
-    
-    .view-toggle {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .view-btn {
-        padding: 0.5rem 1rem;
-        border: 2px solid #e9ecef;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    
-    .view-btn.active, .view-btn:hover {
-        border-color: #cb413b;
-        color: #cb413b;
-    }
-    
-    .filter-section {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-    }
-    
-    .filter-toggle {
-        background: none;
-        border: none;
-        color: #cb413b;
-        font-weight: 600;
-        cursor: pointer;
-    }
-    
-    .subcategories-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
-        margin: 2rem 0;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: var(--primary-red);
+        border-radius: 2px;
     }
     
     .subcategory-card {
         background: white;
         border-radius: 15px;
-        overflow: hidden;
         box-shadow: 0 5px 25px rgba(0,0,0,0.1);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 1px solid #e9ecef;
+        overflow: hidden;
+        border: 1px solid #f0f0f0;
         text-decoration: none;
         color: inherit;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
     
     .subcategory-card:hover {
-        transform: translateY(-5px) scale(1.02);
+        transform: translateY(-8px);
         box-shadow: 0 15px 40px rgba(203, 65, 59, 0.2);
         text-decoration: none;
         color: inherit;
@@ -128,628 +77,396 @@
         align-items: center;
         justify-content: center;
         font-size: 3rem;
-        color: #cb413b;
-        position: relative;
-        overflow: hidden;
+        color: var(--primary-red);
+        border-bottom: 1px solid #f0f0f0;
     }
     
-    .subcategory-image::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, transparent 30%, rgba(203, 65, 59, 0.1) 50%, transparent 70%);
-        transform: translateX(-100%);
-        transition: transform 0.6s ease;
-    }
-    
-    .subcategory-card:hover .subcategory-image::before {
-        transform: translateX(100%);
-    }
-    
-    .subcategory-info {
+    .subcategory-content {
         padding: 1.5rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     
     .subcategory-name {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #343a40;
-        margin-bottom: 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-red);
+        margin-bottom: 0.8rem;
+        line-height: 1.3;
     }
     
     .subcategory-description {
-        color: #6c757d;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
+        color: var(--secondary-gray);
+        font-size: 0.95rem;
         line-height: 1.5;
+        margin-bottom: 1rem;
+        flex-grow: 1;
     }
     
-    .subcategory-stats {
+    .subcategory-meta {
         display: flex;
         justify-content: space-between;
         align-items: center;
-    }
-    
-    .product-count {
-        background: linear-gradient(135deg, #cb413b 0%, #a73530 100%);
-        color: white;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-    
-    .explore-btn {
-        color: #cb413b;
-        font-weight: 600;
-        text-decoration: none;
-    }
-    
-    .products-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 2rem;
-        margin: 2rem 0;
-    }
-    
-    .products-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        margin-top: auto;
     }
     
     .product-card {
         background: white;
         border-radius: 12px;
-        overflow: hidden;
         box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        overflow: hidden;
         transition: all 0.3s ease;
-        border: 1px solid #e9ecef;
+        border: 1px solid #f0f0f0;
     }
     
     .product-card:hover {
-        transform: translateY(-3px);
+        transform: translateY(-5px);
         box-shadow: 0 8px 30px rgba(203, 65, 59, 0.15);
     }
     
     .product-image {
-        height: 200px;
+        height: 180px;
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 3rem;
-        color: #cb413b;
+        color: var(--primary-red);
     }
     
-    .product-info {
+    .product-content {
         padding: 1.5rem;
     }
     
     .product-name {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #343a40;
-        margin-bottom: 0.5rem;
-        line-height: 1.4;
+        color: var(--dark-gray);
+        margin-bottom: 0.8rem;
+        line-height: 1.3;
     }
     
-    .product-article {
-        font-size: 0.85rem;
-        color: #6c757d;
-        margin-bottom: 1rem;
+    .product-description {
+        color: var(--secondary-gray);
+        font-size: 0.9rem;
+        margin-bottom: 1.2rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .product-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 1rem;
     }
     
     .product-price {
-        font-size: 1.3rem;
         font-weight: 700;
-        color: #cb413b;
+        font-size: 1.2rem;
+        color: var(--primary-red);
+    }
+    
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .subcategories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 0;
+        color: var(--secondary-gray);
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
         margin-bottom: 1rem;
     }
     
-    .product-actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-    
-    .btn-product {
-        flex: 1;
-        background: #cb413b;
-        color: white;
-        border: none;
-        padding: 0.75rem;
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        text-align: center;
-    }
-    
-    .btn-product:hover {
-        background: #a73530;
-        color: white;
-        text-decoration: none;
-    }
-    
-    .btn-cart {
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 0.75rem 1rem;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-    }
-    
-    .btn-cart:hover {
-        background: #218838;
-    }
-    
-    /* List View Styles */
-    .product-list-item {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        display: flex;
-        align-items: center;
-        gap: 2rem;
-        transition: all 0.3s ease;
-    }
-    
-    .product-list-item:hover {
-        box-shadow: 0 4px 20px rgba(203, 65, 59, 0.15);
-    }
-    
-    .product-list-image {
-        width: 120px;
-        height: 120px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.5rem;
-        color: #cb413b;
-        flex-shrink: 0;
-    }
-    
-    .product-list-info {
-        flex: 1;
-    }
-    
-    .product-list-actions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        align-items: flex-end;
-    }
-    
-    .pagination {
-        justify-content: center;
-        margin-top: 3rem;
-    }
-    
-    .page-link {
-        color: #cb413b;
-        border-color: #cb413b;
-    }
-    
-    .page-item.active .page-link {
-        background-color: #cb413b;
-        border-color: #cb413b;
-    }
-    
     @media (max-width: 768px) {
-        .subcategories-grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
+        .category-title {
+            font-size: 2rem;
         }
         
+        .category-subtitle {
+            font-size: 1rem;
+        }
+        
+        .subcategories-grid,
         .products-grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
         }
         
-        .product-list-item {
-            flex-direction: column;
-            text-align: center;
-        }
-        
-        .product-list-actions {
-            align-items: center;
-        }
-        
-        .view-controls {
-            position: static;
+        .subcategory-content,
+        .product-content {
+            padding: 1.2rem;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Category Header -->
+<!-- Хедер категории -->
 <div class="category-header">
     <div class="container">
-        <div class="category-content">
-            <!-- Breadcrumbs -->
-            {% if breadcrumbs %}
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'catalog:product_list' %}">Каталог</a></li>
-                    {% for crumb in breadcrumbs %}
-                    <li class="breadcrumb-item {% if not crumb.url %}active{% endif %}">
-                        {% if crumb.url %}
-                        <a href="{{ crumb.url }}">{{ crumb.name }}</a>
-                        {% else %}
-                        {{ crumb.name }}
-                        {% endif %}
-                    </li>
-                    {% endfor %}
-                </ol>
-            </nav>
-            {% endif %}
-            
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="display-5 fw-bold mb-3">{{ category.name }}</h1>
-                    {% if category.description %}
-                    <p class="lead mb-0">{{ category.description }}</p>
-                    {% endif %}
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <div class="text-white-50">
-                        {% if show_subcategories %}
-                        {{ subcategories|length }} подкатегорий
-                        {% else %}
-                        {{ total_products }} товаров
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
+        <nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
+            <ol class="breadcrumb" style="background: transparent; margin-bottom: 0;">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'core:home' %}" style="color: rgba(255,255,255,0.8);">Главная</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'catalog:product_list' %}" style="color: rgba(255,255,255,0.8);">Каталог</a>
+                </li>
+                <li class="breadcrumb-item active" style="color: white;">{{ category.name }}</li>
+            </ol>
+        </nav>
+        
+        <h1 class="category-title">{{ category.name }}</h1>
+        {% if category.description %}
+            <p class="category-subtitle">{{ category.description }}</p>
+        {% endif %}
     </div>
 </div>
 
-<!-- Main Content -->
 <div class="container">
-    <!-- View Controls -->
-    {% if not show_subcategories %}
-    <div class="view-controls">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="fw-bold">Отображение:</span>
-                    <div class="view-toggle">
-                        <button class="view-btn active" onclick="switchView('grid')">
-                            <i class="fas fa-th"></i> Плитка
-                        </button>
-                        <button class="view-btn" onclick="switchView('list')">
-                            <i class="fas fa-list"></i> Список
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex align-items-center justify-content-md-end gap-3">
-                    <button class="filter-toggle" onclick="toggleFilters()">
-                        <i class="fas fa-filter"></i> Фильтры
-                    </button>
-                    {% if filter_form %}
-                    <form method="get" class="d-flex align-items-center gap-2">
-                        {{ filter_form.sort }}
-                        <button type="submit" class="btn btn-outline-primary btn-sm">Применить</button>
-                    </form>
-                    {% endif %}
-                </div>
-            </div>
+    {% if error %}
+        <div class="empty-state">
+            <div class="empty-state-icon">❌</div>
+            <h3>{{ error }}</h3>
+            <p>Категория не найдена или недоступна</p>
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Вернуться к каталогу</a>
         </div>
-        
-        <!-- Filters Section -->
-        <div class="filter-section mt-3" id="filtersSection" style="display: none;">
-            {% if filter_form %}
-            <form method="get">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Цена от</label>
-                        {{ filter_form.price_from }}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Цена до</label>
-                        {{ filter_form.price_to }}
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-check mt-4">
-                            {{ filter_form.in_stock }}
-                            <label class="form-check-label" for="{{ filter_form.in_stock.id_for_label }}">
-                                Только в наличии
-                            </label>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Применить</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- Subcategories Grid -->
-    {% if show_subcategories %}
-    <div class="subcategories-grid">
-        {% for subcategory in subcategories %}
-        <a href="{{ subcategory.get_absolute_url }}" class="subcategory-card">
-            <div class="subcategory-image">
-                {% if subcategory.image %}
-                    <img src="{{ subcategory.image }}" alt="{{ subcategory.name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                {% else %}
-                    {% if 'валков' in subcategory.name|lower %}
-                        🌾
-                    {% elif 'зерновых' in subcategory.name|lower %}
-                        🌽
-                    {% elif 'подсолнечник' in subcategory.name|lower %}
-                        🌻
-                    {% elif 'кукуруз' in subcategory.name|lower %}
-                        🌽
-                    {% elif 'болт' in subcategory.name|lower %}
-                        🔩
-                    {% elif 'гайка' in subcategory.name|lower %}
-                        ⚙️
-                    {% elif 'винт' in subcategory.name|lower %}
-                        🔧
-                    {% elif 'шайба' in subcategory.name|lower %}
-                        ⭕
-                    {% else %}
-                        🏭
-                    {% endif %}
-                {% endif %}
-            </div>
-            <div class="subcategory-info">
-                <h3 class="subcategory-name">{{ subcategory.name }}</h3>
-                {% if subcategory.description %}
-                <p class="subcategory-description">{{ subcategory.description|truncatechars:100 }}</p>
-                {% endif %}
-                <div class="subcategory-stats">
-                    <span class="product-count">
-                        {{ subcategory.product_count }} товар{{ subcategory.product_count|pluralize:"ов,а,ов" }}
-                    </span>
-                    <span class="explore-btn">
-                        Перейти <i class="fas fa-arrow-right"></i>
-                    </span>
-                </div>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
-    <!-- Products Grid/List -->
-    {% if not show_subcategories and products %}
-    <div id="productsContainer">
-        <div class="products-grid" id="gridView">
-            {% for product in products %}
-            <div class="product-card">
-                <div class="product-image">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                    {% else %}
-                        {% if 'жатка' in product.name|lower %}
-                            🌾
-                        {% elif 'комбайн' in product.name|lower %}
-                            🚜
-                        {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}
-                            🔩
-                        {% elif 'бункер' in product.name|lower %}
-                            📦
-                        {% else %}
-                            🏭
-                        {% endif %}
-                    {% endif %}
-                </div>
-                <div class="product-info">
-                    <h3 class="product-name">{{ product.name }}</h3>
-                    <div class="product-article">Артикул: {{ product.article }}</div>
-                    <div class="product-price">{{ product.price|floatformat:0 }} BYN</div>
-                    
-                    {% if product.short_description %}
-                    <p class="text-muted small mb-3">{{ product.short_description|truncatechars:80 }}</p>
-                    {% endif %}
-                    
-                    <div class="product-actions">
-                        <a href="{{ product.get_absolute_url }}" class="btn-product">
-                            Подробнее
+    {% else %}
+        {% if has_subcategories %}
+            <!-- Подкатегории -->
+            <div class="subcategories-section">
+                <h2 class="section-title">Подкатегории</h2>
+                <div class="subcategories-grid">
+                    {% for subcat_data in subcategories_with_counts %}
+                        <a href="{{ subcat_data.category.get_absolute_url }}" class="subcategory-card">
+                            <div class="subcategory-image">
+                                📦
+                            </div>
+                            <div class="subcategory-content">
+                                <h3 class="subcategory-name">{{ subcat_data.category.name }}</h3>
+                                <p class="subcategory-description">
+                                    {% if subcat_data.category.description %}
+                                        {{ subcat_data.category.description|truncatewords:20 }}
+                                    {% else %}
+                                        Просмотр товаров категории {{ subcat_data.category.name }}
+                                    {% endif %}
+                                </p>
+                                <div class="subcategory-meta">
+                                    <span class="product-count">
+                                        {{ subcat_data.product_count }} товар{{ subcat_data.product_count|pluralize:"ов,ов,ов" }}
+                                    </span>
+                                    <span class="category-arrow">→</span>
+                                </div>
+                            </div>
                         </a>
-                        {% if user.is_authenticated and product.stock_quantity > 0 %}
-                        <button class="btn-cart" onclick="addToCart({{ product.id }})">
-                            <i class="fas fa-cart-plus"></i>
-                        </button>
-                        {% endif %}
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        
-        <div class="products-list" id="listView" style="display: none;">
-            {% for product in products %}
-            <div class="product-list-item">
-                <div class="product-list-image">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;">
+        {% endif %}
+
+        {% if products %}
+            <!-- Товары в категории -->
+            <div class="products-section">
+                <h2 class="section-title">
+                    {% if has_subcategories %}
+                        Товары в категории
                     {% else %}
-                        🏭
+                        Товары
                     {% endif %}
-                </div>
-                <div class="product-list-info">
-                    <h3 class="product-name">{{ product.name }}</h3>
-                    <div class="product-article text-muted">Артикул: {{ product.article }}</div>
-                    {% if product.short_description %}
-                    <p class="text-muted mt-2">{{ product.short_description|truncatechars:150 }}</p>
-                    {% endif %}
-                    <div class="d-flex align-items-center gap-3 mt-2">
-                        <span class="badge bg-light text-dark">{{ product.get_unit_display }}</span>
-                        {% if product.stock_quantity > 0 %}
-                        <span class="badge bg-success">В наличии</span>
-                        {% else %}
-                        <span class="badge bg-warning">Под заказ</span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="product-list-actions">
-                    <div class="product-price mb-2">{{ product.price|floatformat:0 }} BYN</div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
-                            Подробнее
-                        </a>
-                        {% if user.is_authenticated and product.stock_quantity > 0 %}
-                        <button class="btn btn-success btn-sm" onclick="addToCart({{ product.id }})">
-                            <i class="fas fa-cart-plus"></i>
-                        </button>
-                        {% endif %}
-                    </div>
+                </h2>
+                <div class="products-grid">
+                    {% for product in products %}
+                        <div class="product-card">
+                            <div class="product-image">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    {% if 'жатка' in product.name|lower %}
+                                        🌾
+                                    {% elif 'комбайн' in product.name|lower %}
+                                        🚜
+                                    {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}
+                                        🔩
+                                    {% elif 'бункер' in product.name|lower %}
+                                        📦
+                                    {% else %}
+                                        🏭
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="product-content">
+                                <h4 class="product-name">{{ product.name }}</h4>
+                                {% if product.short_description %}
+                                    <p class="product-description">{{ product.short_description }}</p>
+                                {% endif %}
+                                <div class="product-footer">
+                                    <span class="product-price">{{ product.price }} р.</span>
+                                    <button onclick="addToCart({{ product.id }})" class="btn-add-to-cart">
+                                        🛒 В корзину
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
-            {% endfor %}
-        </div>
-    </div>
-    
-    <!-- Pagination -->
-    {% if products.has_other_pages %}
-    <nav aria-label="Навигация по страницам">
-        <ul class="pagination">
-            {% if products.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ products.previous_page_number }}">Предыдущая</a>
-            </li>
-            {% endif %}
-            
-            {% for num in products.paginator.page_range %}
-            {% if products.number == num %}
-            <li class="page-item active">
-                <span class="page-link">{{ num }}</span>
-            </li>
-            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-            <li class="page-item">
-                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
-            </li>
-            {% endif %}
-            {% endfor %}
-            
-            {% if products.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ products.next_page_number }}">Следующая</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
-    
-    {% elif not show_subcategories %}
-    <!-- No Products Found -->
-    <div class="text-center py-5">
-        <div class="mb-4">
-            <i class="fas fa-box-open fa-3x text-muted"></i>
-        </div>
-        <h3>Товары не найдены</h3>
-        <p class="text-muted">В данной категории пока нет товаров или они не соответствуют выбранным фильтрам</p>
-    </div>
+        {% endif %}
+
+        {% if not has_subcategories and not products %}
+            <!-- Пустая категория -->
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <h3>Категория пуста</h3>
+                <p>В данной категории пока нет товаров</p>
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Вернуться к каталогу</a>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
-{% endblock %}
 
-{% block extra_js %}
+<!-- CSRF токен для AJAX запросов -->
+{% csrf_token %}
+
 <script>
-function switchView(viewType) {
-    const gridView = document.getElementById('gridView');
-    const listView = document.getElementById('listView');
-    const buttons = document.querySelectorAll('.view-btn');
+// Функция добавления товара в корзину
+function addToCart(productId, quantity = 1) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
-    buttons.forEach(btn => btn.classList.remove('active'));
+    // Показываем индикатор загрузки на кнопке
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Добавление...';
+    button.disabled = true;
     
-    if (viewType === 'grid') {
-        gridView.style.display = 'grid';
-        listView.style.display = 'none';
-        buttons[0].classList.add('active');
-    } else {
-        gridView.style.display = 'none';
-        listView.style.display = 'flex';
-        buttons[1].classList.add('active');
-    }
-    
-    // Сохраняем предпочтение в localStorage
-    localStorage.setItem('preferredView', viewType);
-}
-
-function toggleFilters() {
-    const filtersSection = document.getElementById('filtersSection');
-    const button = document.querySelector('.filter-toggle');
-    
-    if (filtersSection.style.display === 'none') {
-        filtersSection.style.display = 'block';
-        button.innerHTML = '<i class="fas fa-filter"></i> Скрыть фильтры';
-    } else {
-        filtersSection.style.display = 'none';
-        button.innerHTML = '<i class="fas fa-filter"></i> Фильтры';
-    }
-}
-
-function addToCart(productId) {
-    fetch(`{% url 'orders:add_to_cart' %}`, {
+    fetch('/cart/add/', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
         },
-        body: JSON.stringify({
-            product_id: productId,
-            quantity: 1
-        })
+        body: `product_id=${productId}&quantity=${quantity}`
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Товар добавлен в корзину', 'success');
+            // Обновляем счетчик корзины
+            updateCartCount();
+            
+            // Показываем уведомление
+            showNotification('Товар добавлен в корзину!', 'success');
+            
+            // Меняем кнопку временно
+            button.innerHTML = '✅ Добавлено';
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 1500);
         } else {
             showNotification('Ошибка при добавлении товара', 'error');
+            button.innerHTML = originalText;
+            button.disabled = false;
         }
     })
     .catch(error => {
-        console.error('Ошибка:', error);
+        console.error('Error:', error);
         showNotification('Произошла ошибка', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
     });
 }
 
-function showNotification(message, type) {
+// Обновление счетчика корзины
+function updateCartCount() {
+    fetch('/cart/count/')
+        .then(response => response.json())
+        .then(data => {
+            const cartCountElement = document.querySelector('.cart-count');
+            if (cartCountElement) {
+                cartCountElement.textContent = data.count;
+                
+                // Анимация обновления
+                cartCountElement.style.transform = 'scale(1.3)';
+                cartCountElement.style.background = '#28a745';
+                setTimeout(() => {
+                    cartCountElement.style.transform = 'scale(1)';
+                    cartCountElement.style.background = 'white';
+                }, 300);
+            }
+        })
+        .catch(error => console.error('Ошибка обновления корзины:', error));
+}
+
+// Показ уведомлений
+function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-    notification.style.top = '90px';
-    notification.style.right = '20px';
-    notification.style.zIndex = '9999';
+    notification.className = `notification notification-${type}`;
     notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>${type === 'success' ? '✅' : '❌'}</span>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' : 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+        font-weight: 600;
     `;
     
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        notification.remove();
+        notification.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
 
-// Восстанавливаем предпочтение просмотра
-document.addEventListener('DOMContentLoaded', function() {
-    const preferredView = localStorage.getItem('preferredView');
-    if (preferredView && preferredView === 'list') {
-        switchView('list');
+// CSS для анимаций
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
     }
-});
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+// Обновляем счетчик при загрузке страницы
+document.addEventListener('DOMContentLoaded', updateCartCount);
 </script>
 {% endblock %}

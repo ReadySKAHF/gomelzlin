@@ -1,45 +1,62 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
+{% block title %}Каталог товаров - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="catalog-page">
-    <!-- Хлебные крошки -->
-    <nav class="breadcrumb" style="padding: 1rem 0; margin-bottom: 2rem;">
-        <div class="container">
-            <a href="{% url 'core:home' %}" style="color: var(--secondary-gray); text-decoration: none;">Главная</a>
-            <span style="margin: 0 0.5rem; color: var(--secondary-gray);">→</span>
-            <span style="color: var(--dark-gray); font-weight: 500;">Каталог товаров</span>
-        </div>
-    </nav>
-
-    <!-- Заголовок страницы -->
-    <div class="page-header" style="text-align: center; margin-bottom: 3rem;">
-        <div class="container">
-            <h1 style="font-size: 2.5rem; color: var(--dark-gray); margin-bottom: 1rem;">
-                Каталог продукции ОАО "ГЗЛиН"
-            </h1>
-            <p style="font-size: 1.1rem; color: var(--secondary-gray); max-width: 600px; margin: 0 auto;">
-                Широкий ассортимент сельскохозяйственной техники, метизной продукции и оборудования
-            </p>
-        </div>
+<div class="container" style="padding: 2rem 0;">
+    <!-- Заголовок каталога -->
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="color: #cb413b; font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">
+            Каталог продукции ОАО "ГЗЛиН"
+        </h1>
+        <p style="color: #6c757d; font-size: 1.2rem; max-width: 600px; margin: 0 auto;">
+            Широкий ассортимент сельскохозяйственной техники, метизной продукции и оборудования
+        </p>
     </div>
 
-    <!-- Сетка категорий -->
-    <div class="container">
-        <div class="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
-            {% for category in categories %}
-            <a href="{{ category.absolute_url }}" class="category-card" style="text-decoration: none; color: inherit; display: block;">
-                <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: all 0.3s ease; height: 100%;">
-                    <!-- Изображение категории -->
-                    <div class="category-image" style="height: 200px; background: linear-gradient(135deg, var(--primary-red), #e74c3c); position: relative; overflow: hidden;">
-                        {% if category.image %}
+    <!-- Сетка категорий с увеличенными карточками -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin: 3rem 0;">
+        {% for category in categories %}
+            <a href="{% if category.slug %}/catalog/category/{{ category.slug }}/{% else %}#{% endif %}" 
+               style="text-decoration: none; color: inherit; display: block; height: 100%;">
+                <div style="
+                    background: white;
+                    border-radius: 20px;
+                    overflow: hidden;
+                    box-shadow: 0 10px 40px rgba(203, 65, 59, 0.15);
+                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: 1px solid #f0f0f0;
+                    height: 600px;
+                    display: flex;
+                    flex-direction: column;
+                    cursor: pointer;
+                    position: relative;
+                " 
+                onmouseover="this.style.transform='translateY(-15px) scale(1.03)'; this.style.boxShadow='0 25px 60px rgba(203, 65, 59, 0.3)';"
+                onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 40px rgba(203, 65, 59, 0.15)';">
+                
+                    <!-- Изображение категории с увеличенной высотой -->
+                    <div style="
+                        position: relative; 
+                        height: 250px; 
+                        background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%); 
+                        overflow: hidden;
+                        flex-shrink: 0;
+                    ">
+                        {% if category.image and 'http' in category.image %}
                             <img src="{{ category.image }}" alt="{{ category.name }}" 
                                  style="width: 100%; height: 100%; object-fit: cover;">
                         {% else %}
-                            <!-- Иконки-заглушки для категорий -->
-                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 4rem; color: white;">
+                            <div style="
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                height: 100%; 
+                                font-size: 6rem; 
+                                color: white;
+                                text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+                                transition: transform 0.4s ease;
+                            " class="emoji-container">
                                 {% if category.name == "Зерноуборочная техника" %}🌾
                                 {% elif category.name == "Кормоуборочная техника" %}🚜
                                 {% elif category.name == "Картофелеуборочная техника" %}🥔
@@ -55,173 +72,454 @@
                             </div>
                         {% endif %}
                         
-                        <!-- Overlay для улучшения читаемости -->
-                        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); height: 50px;"></div>
+                        <!-- Градиентный оверлей -->
+                        <div style="
+                            position: absolute; 
+                            bottom: 0; 
+                            left: 0; 
+                            right: 0; 
+                            background: linear-gradient(transparent, rgba(0,0,0,0.7)); 
+                            height: 80px;
+                        "></div>
                     </div>
 
-                    <!-- Содержимое карточки -->
-                    <div style="padding: 1.5rem;">
-                        <div class="category-content">
-                            <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem; line-height: 1.3;">
+                    <!-- Содержимое карточки с увеличенным размером -->
+                    <div style="
+                        padding: 2.5rem 2rem; 
+                        flex-grow: 1; 
+                        display: flex; 
+                        flex-direction: column; 
+                        justify-content: space-between;
+                        background: white;
+                        position: relative;
+                    ">
+                        <div>
+                            <h3 style="
+                                font-size: 1.6rem; 
+                                font-weight: 700; 
+                                color: #cb413b; 
+                                margin-bottom: 1.2rem; 
+                                line-height: 1.3;
+                                transition: color 0.3s ease;
+                            ">
                                 {{ category.name }}
                             </h3>
                             
-                            <div class="category-description" style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.4;">
+                            <div style="
+                                color: #6c757d; 
+                                font-size: 1.1rem; 
+                                margin-bottom: 2rem; 
+                                line-height: 1.6;
+                                min-height: 80px;
+                            ">
                                 {% if category.description %}
-                                    {{ category.description|truncatewords:15 }}
+                                    {{ category.description|truncatewords:25 }}
                                 {% else %}
                                     <!-- Автоматические описания -->
                                     {% if category.name == "Зерноуборочная техника" %}
-                                        Жатки валковые, транспортные, для зерновых культур, подборщики и комплекты оборудования
+                                        Жатки валковые, транспортные, для зерновых культур, подборщики и комплекты оборудования для эффективной уборки зерновых культур
                                     {% elif category.name == "Кормоуборочная техника" %}
-                                        Жатки для трав и грубостебельных культур, кормоуборочные комбайны, косилки и подборщики
+                                        Жатки для трав и грубостебельных культур, кормоуборочные комбайны, косилки и подборщики для заготовки качественных кормов
                                     {% elif category.name == "Картофелеуборочная техника" %}
-                                        Специализированное оборудование для уборки картофеля различных модификаций
+                                        Специализированное оборудование для эффективной уборки картофеля различных сортов и в любых условиях
                                     {% elif category.name == "Метизная продукция" %}
-                                        Болты, винты, гайки, заклепки, оси, шайбы пружинные и шпильки
+                                        Крепежные изделия: болты, винты, гайки, заклепки, оси, шайбы пружинные и шпильки высокого качества
                                     {% elif category.name == "Прочая техника" %}
-                                        Дополнительное сельскохозяйственное оборудование и вспомогательная техника
+                                        Дополнительное сельскохозяйственное оборудование и вспомогательная техника для различных нужд
                                     {% elif category.name == "Бункеры-перегрузчики" %}
-                                        Бункеры различной вместимости и перегрузочное оборудование для зерна
+                                        Бункеры различной вместимости и перегрузочное оборудование для эффективной работы с зерном
                                     {% elif category.name == "Новинки" %}
-                                        Новые разработки и инновационные решения от ОАО "ГЗЛиН"
+                                        Новые разработки и инновационные решения от ОАО "ГЗЛиН" для современного сельского хозяйства
                                     {% elif category.name == "Прочие товары, работы и услуги" %}
-                                        Техническое обслуживание, ремонт, консультации и дополнительные услуги
+                                        Техническое обслуживание, ремонт, консультации и дополнительные услуги для клиентов
                                     {% elif category.name == "Режущие системы жаток" %}
-                                        Ножи жатвенные, сегменты режущие, пальцы режущего аппарата и противорезы
+                                        Ножи жатвенные, сегменты режущие, пальцы режущего аппарата и противорезы для жаток
                                     {% elif category.name == "Самоходные носилки" %}
                                         Самоходные носилки и тележки различной грузоподъемности для перевозки грузов
                                     {% else %}
-                                        Качественная продукция от ОАО "ГЗЛиН"
+                                        Качественная продукция от ОАО "ГЗЛиН" для эффективной работы в сельском хозяйстве
                                     {% endif %}
                                 {% endif %}
                             </div>
+                        </div>
+                        
+                        <div style="
+                            display: flex; 
+                            justify-content: space-between; 
+                            align-items: center;
+                            border-top: 1px solid #f0f0f0;
+                            padding-top: 1.5rem;
+                            margin-top: auto;
+                        ">
+                            <div style="
+                                background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                                color: white;
+                                padding: 0.8rem 1.5rem;
+                                border-radius: 25px;
+                                font-size: 1rem;
+                                font-weight: 600;
+                                letter-spacing: 0.5px;
+                                box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+                                transition: all 0.3s ease;
+                            ">
+                                {{ category.total_products }} товар{{ category.total_products|pluralize:"ов,ов,ов" }}
+                            </div>
                             
-                            <div class="category-meta" style="display: flex; justify-content: space-between; align-items: center;">
-                                <div class="product-count" style="background: var(--light-gray); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; color: var(--secondary-gray);">
-                                    {{ category.total_products }} товар{{ category.total_products|pluralize:"ов,ов,ов" }}
-                                </div>
-                                
-                                <div class="category-arrow" style="color: var(--primary-red); font-size: 1.2rem;">
-                                    →
-                                </div>
+                            <div style="
+                                color: #cb413b; 
+                                font-size: 1.8rem; 
+                                font-weight: bold;
+                                transition: transform 0.3s ease;
+                            " class="category-arrow">
+                                →
                             </div>
                         </div>
                     </div>
                 </div>
             </a>
-            {% empty %}
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                <h3 style="margin-bottom: 1rem;">Категории не найдены</h3>
-                <p>Возможно данные еще не загружены в базу. Выполните команду загрузки данных.</p>
-                <div style="margin-top: 2rem;">
-                    <a href="{% url 'core:home' %}" class="btn btn-primary">На главную</a>
-                </div>
-                
-                <!-- Инструкция для администратора -->
-                <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; text-align: left;">
-                    <strong>Для администратора:</strong><br>
-                    Выполните команду: <code>python manage.py load_initial_data</code>
-                </div>
+        {% empty %}
+            <div style="
+                grid-column: 1 / -1; 
+                text-align: center; 
+                padding: 4rem; 
+                color: #6c757d;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            ">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                <h3 style="margin-bottom: 1rem; color: #cb413b;">Категории не найдены</h3>
+                <p>Возможно данные еще не загружены в базу данных.</p>
+                <p>Выполните команду: <code>python manage.py load_initial_data</code></p>
             </div>
-            {% endfor %}
-        </div>
+        {% endfor %}
+    </div>
 
-        <!-- Популярные товары -->
-        {% if featured_products %}
-        <section style="margin-top: 4rem;">
-            <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: var(--dark-gray);">
-                Популярные товары
-            </h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
-                {% for product in featured_products %}
-                <div class="product-card" onclick="location.href='{{ product.get_absolute_url }}'" 
-                     style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; transition: all 0.3s ease;">
-                    <div class="product-image" style="height: 200px; background: var(--light-gray); position: relative;">
+    <!-- Рекомендуемые товары -->
+    {% if featured_products %}
+    <div style="margin-top: 5rem;">
+        <h2 style="
+            color: #cb413b; 
+            font-size: 2rem; 
+            font-weight: 700; 
+            margin-bottom: 2rem; 
+            text-align: center;
+        ">
+            Рекомендуемые товары
+        </h2>
+        <div style="
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 2rem;
+        ">
+            {% for product in featured_products %}
+                <div style="
+                    background: white;
+                    border-radius: 15px;
+                    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    border: 1px solid #f0f0f0;
+                "
+                onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(203, 65, 59, 0.2)';"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 5px 25px rgba(0,0,0,0.1)';">
+                    
+                    <div style="
+                        height: 200px;
+                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 3rem;
+                        color: #cb413b;
+                    ">
                         {% if product.image %}
                             <img src="{{ product.image.url }}" alt="{{ product.name }}" 
                                  style="width: 100%; height: 100%; object-fit: cover;">
                         {% else %}
-                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--secondary-gray); font-size: 3rem;">
-                                📦
-                            </div>
+                            {% if 'жатка' in product.name|lower %}🌾
+                            {% elif 'комбайн' in product.name|lower %}🚜
+                            {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}🔩
+                            {% elif 'бункер' in product.name|lower %}📦
+                            {% else %}🏭
+                            {% endif %}
                         {% endif %}
                     </div>
+                    
                     <div style="padding: 1.5rem;">
-                        <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem;">
+                        <h4 style="
+                            font-size: 1.2rem; 
+                            font-weight: 600; 
+                            color: #343a40; 
+                            margin-bottom: 0.8rem;
+                            line-height: 1.3;
+                        ">
                             {{ product.name }}
-                        </h3>
-                        <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">
-                            Артикул: {{ product.article }}
-                        </p>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-red);">
-                                {% if product.price %}{{ product.price|floatformat:0 }} BYN{% else %}По запросу{% endif %}
+                        </h4>
+                        
+                        {% if product.short_description %}
+                            <p style="
+                                color: #6c757d; 
+                                font-size: 0.95rem; 
+                                margin-bottom: 1.5rem;
+                                line-height: 1.4;
+                            ">
+                                {{ product.short_description|truncatewords:15 }}
+                            </p>
+                        {% endif %}
+                        
+                        <div style="
+                            display: flex; 
+                            justify-content: space-between; 
+                            align-items: center;
+                            border-top: 1px solid #f0f0f0;
+                            padding-top: 1rem;
+                        ">
+                            <span style="
+                                font-weight: 700; 
+                                font-size: 1.3rem; 
+                                color: #cb413b;
+                            ">
+                                {{ product.price }} р.
                             </span>
-                            <span style="font-size: 0.9rem; color: var(--secondary-gray);">
-                                {{ product.category.name }}
-                            </span>
+                            
+                            <button onclick="addToCart({{ product.id }})" style="
+                                background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                                color: white;
+                                border: none;
+                                padding: 0.8rem 1.5rem;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                font-size: 0.9rem;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                            "
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(203, 65, 59, 0.4)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(203, 65, 59, 0.3)';">
+                                🛒 В корзину
+                            </button>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </section>
-        {% endif %}
+            {% endfor %}
+        </div>
     </div>
+    {% endif %}
 </div>
 
+<!-- CSRF токен для AJAX запросов -->
+{% csrf_token %}
+
 <style>
-:root {
-    --primary-red: #cb413b;
-    --secondary-gray: #808080;
-    --dark-gray: #333333;
-    --light-gray: #f5f5f5;
-    --radius: 10px;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --transition: all 0.3s ease;
+/* Анимации для эмодзи при наведении */
+.emoji-container:hover {
+    transform: scale(1.15) rotate(5deg) !important;
 }
 
-.category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+.category-arrow:hover {
+    transform: translateX(8px) !important;
 }
 
-.product-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.btn {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    text-decoration: none;
-    font-weight: 500;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
-}
-
-.btn-primary {
-    background: var(--primary-red);
-    color: white;
-}
-
-.btn-primary:hover {
-    background: #b73730;
-    transform: translateY(-2px);
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .container > div:first-of-type {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+        gap: 2rem !important;
+    }
 }
 
 @media (max-width: 768px) {
-    .categories-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+    .container > div:first-of-type {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+        gap: 1.5rem !important;
     }
     
-    .page-header h1 {
+    .container > div:first-of-type > a > div {
+        height: 480px !important;
+    }
+    
+    .container > div:first-of-type > a > div > div:first-child {
+        height: 200px !important;
+    }
+    
+    .container > div:first-of-type > a > div > div:first-child > div {
+        font-size: 5rem !important;
+    }
+    
+    .container h1 {
         font-size: 2rem !important;
     }
+    
+    .container h3 {
+        font-size: 1.4rem !important;
+    }
 }
+
+@media (max-width: 480px) {
+    .container > div:first-of-type {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        margin: 2rem 0 !important;
+    }
+    
+    .container > div:first-of-type > a > div {
+        height: 420px !important;
+    }
+    
+    .container > div:first-of-type > a > div > div:first-child {
+        height: 160px !important;
+    }
+    
+    .container > div:first-of-type > a > div > div:first-child > div {
+        font-size: 4rem !important;
+    }
+}
+
+/* Анимации загрузки */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.container > div:first-of-type > a {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.container > div:first-of-type > a:nth-child(1) { animation-delay: 0.1s; }
+.container > div:first-of-type > a:nth-child(2) { animation-delay: 0.2s; }
+.container > div:first-of-type > a:nth-child(3) { animation-delay: 0.3s; }
+.container > div:first-of-type > a:nth-child(4) { animation-delay: 0.4s; }
+.container > div:first-of-type > a:nth-child(5) { animation-delay: 0.5s; }
+.container > div:first-of-type > a:nth-child(6) { animation-delay: 0.6s; }
 </style>
+
+<script>
+// Функция добавления товара в корзину
+function addToCart(productId, quantity = 1) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Показываем индикатор загрузки на кнопке
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Добавление...';
+    button.disabled = true;
+    
+    fetch('/cart/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+        },
+        body: `product_id=${productId}&quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Обновляем счетчик корзины
+            updateCartCount();
+            
+            // Показываем уведомление
+            showNotification('Товар добавлен в корзину!', 'success');
+            
+            // Меняем кнопку временно
+            button.innerHTML = '✅ Добавлено';
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 1500);
+        } else {
+            showNotification('Ошибка при добавлении товара', 'error');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Произошла ошибка', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+// Обновление счетчика корзины
+function updateCartCount() {
+    fetch('/cart/count/')
+        .then(response => response.json())
+        .then(data => {
+            const cartCountElement = document.querySelector('.cart-count');
+            if (cartCountElement) {
+                cartCountElement.textContent = data.count;
+                
+                // Анимация обновления
+                cartCountElement.style.transform = 'scale(1.3)';
+                cartCountElement.style.background = '#28a745';
+                setTimeout(() => {
+                    cartCountElement.style.transform = 'scale(1)';
+                    cartCountElement.style.background = 'white';
+                }, 300);
+            }
+        })
+        .catch(error => console.error('Ошибка обновления корзины:', error));
+}
+
+// Показ уведомлений
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>${type === 'success' ? '✅' : '❌'}</span>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' : 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        animation: slideIn 0.3s ease;
+        font-weight: 600;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// CSS для анимаций уведомлений
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(notificationStyle);
+
+// Обновляем счетчик при загрузке страницы
+document.addEventListener('DOMContentLoaded', updateCartCount);
+</script>
 {% endblock %}

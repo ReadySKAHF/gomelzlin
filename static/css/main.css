@@ -260,38 +260,34 @@ a:hover {
 /* === УВЕДОМЛЕНИЯ === */
 .notification {
     position: fixed;
-    top: 90px;
+    top: 20px;
     right: 20px;
     padding: 1rem 1.5rem;
-    border-radius: var(--radius);
-    color: var(--white);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    z-index: 9999;
-    min-width: 300px;
-    animation: notificationSlideIn 0.3s ease-out;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: notificationSlideIn 0.3s ease;
+}
+
+.notification-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.notification-error {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
 }
 
 @keyframes notificationSlideIn {
     from {
-        opacity: 0;
         transform: translateX(100%);
+        opacity: 0;
     }
     to {
-        opacity: 1;
         transform: translateX(0);
+        opacity: 1;
     }
-}
-
-.notification-success {
-    background: #28a745;
-}
-
-.notification-error {
-    background: #dc3545;
-}
-
-.notification-info {
-    background: #17a2b8;
 }
 
 .notification-warning {
@@ -349,28 +345,31 @@ a:hover {
 
 /* === ХЛЕБНЫЕ КРОШКИ === */
 .breadcrumb {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 0;
-    margin: 0;
-    list-style: none;
     background: none;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
 }
 
-.breadcrumb-item {
-    display: flex;
-    align-items: center;
+.breadcrumb-item a {
+    color: var(--primary-red, #cb413b);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: #a0342e;
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: var(--secondary-gray, #6c757d);
 }
 
 .breadcrumb-item + .breadcrumb-item::before {
     content: "›";
+    color: var(--secondary-gray, #6c757d);
     margin: 0 0.5rem;
-    color: var(--secondary-gray);
-    font-weight: bold;
-}
-
-.breadcrumb-item.active {
-    color: var(--secondary-gray);
 }
 
 /* === BADGE === */
@@ -681,87 +680,322 @@ img.lazy.loaded {
     opacity: 1;
 }
 
-/* Фиксированный размер для карточек категорий */
+/* Основная сетка категорий */
 .categories-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2.5rem;
     margin: 3rem 0;
+    padding: 0 1rem;
 }
 
+/* Карточки категорий */
 .category-card {
     background: white;
-    border-radius: 15px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid #e9ecef;
-    position: relative;
-    height: 400px; /* Фиксированная высота */
+    box-shadow: 0 8px 32px rgba(203, 65, 59, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #f0f0f0;
+    height: 480px; /* Увеличенная высота */
     display: flex;
     flex-direction: column;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(203, 65, 59, 0.05) 0%, rgba(203, 65, 59, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
 }
 
 .category-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 40px rgba(203, 65, 59, 0.2);
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 20px 50px rgba(203, 65, 59, 0.25);
+    border-color: rgba(203, 65, 59, 0.3);
 }
 
+.category-card:hover::before {
+    opacity: 1;
+}
+
+.category-card:hover .category-content {
+    z-index: 2;
+    position: relative;
+}
+
+/* Изображения категорий */
 .category-image {
-    height: 180px; /* Фиксированная высота изображения */
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    height: 220px; /* Увеличенная высота */
+    background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 4rem;
-    color: #cb413b;
     position: relative;
     flex-shrink: 0;
+    overflow: hidden;
 }
 
+.category-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.category-card:hover .category-image img {
+    transform: scale(1.1);
+}
+
+/* Эмодзи как изображения */
+.category-image .emoji-icon {
+    font-size: 5.5rem;
+    color: white;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transform: translateY(-5px);
+    transition: all 0.4s ease;
+}
+
+.category-card:hover .category-image .emoji-icon {
+    transform: translateY(-5px) scale(1.15) rotate(5deg);
+}
+
+/* Градиентный оверлей */
+.category-image::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    z-index: 1;
+}
+
+/* Содержимое карточки */
 .category-content {
-    padding: 1.5rem;
+    padding: 2.5rem 2rem; /* Увеличенные отступы */
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    background: white;
+    position: relative;
 }
 
-.category-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--primary-red);
-    margin-bottom: 0.5rem;
+/* Заголовок категории */
+.category-title, .category-card h3 {
+    font-size: 1.5rem !important; /* Увеличенный размер */
+    font-weight: 700;
+    color: var(--primary-red, #cb413b);
+    margin-bottom: 1.2rem;
     line-height: 1.3;
+    transition: color 0.3s ease;
 }
 
+.category-card:hover .category-title,
+.category-card:hover h3 {
+    color: #a0342e;
+}
+
+/* Описание категории */
 .category-description {
-    color: var(--secondary-gray);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
+    color: var(--secondary-gray, #6c757d);
+    font-size: 1.05rem; /* Увеличенный размер */
+    margin-bottom: 1.5rem;
     flex-grow: 1;
+    line-height: 1.6;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    line-clamp: 4;
     -webkit-box-orient: vertical;
-    line-clamp: 3; /* Стандартное свойство для совместимости */
     overflow: hidden;
 }
 
+/* Метаданные категории */
 .category-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
 }
 
+/* Счетчик товаров */
 .product-count {
-    background: var(--primary-red);
+    background: linear-gradient(135deg, var(--primary-red, #cb413b) 0%, #a0342e 100%);
     color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+    transition: all 0.3s ease;
 }
+
+.category-card:hover .product-count {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(203, 65, 59, 0.4);
+}
+
+/* Стрелка */
+.category-arrow {
+    color: var(--primary-red, #cb413b);
+    font-size: 1.5rem;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover .category-arrow {
+    transform: translateX(5px);
+}
+
+@media (max-width: 1200px) {
+    .categories-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+    }
+    
+    .category-card {
+        height: 450px;
+    }
+}
+
+@media (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        padding: 0 0.5rem;
+    }
+    
+    .category-card {
+        height: 420px;
+    }
+    
+    .category-image {
+        height: 180px;
+    }
+    
+    .category-content {
+        padding: 2rem 1.5rem;
+    }
+    
+    .category-title, .category-card h3 {
+        font-size: 1.3rem !important;
+    }
+    
+    .category-description {
+        font-size: 1rem;
+    }
+    
+    .category-image .emoji-icon {
+        font-size: 4.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .category-card {
+        height: 380px;
+    }
+    
+    .category-image {
+        height: 160px;
+    }
+    
+    .category-content {
+        padding: 1.5rem;
+    }
+    
+    .category-title, .category-card h3 {
+        font-size: 1.2rem !important;
+        margin-bottom: 1rem;
+    }
+    
+    .category-description {
+        font-size: 0.95rem;
+        line-clamp: 3;
+    }
+    
+    .product-count {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .category-image .emoji-icon {
+        font-size: 4rem;
+    }
+}
+
+.category-card {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: categoryFadeIn 0.6s ease forwards;
+}
+
+@keyframes categoryFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.btn-add-to-cart {
+    background: linear-gradient(135deg, var(--primary-red, #cb413b) 0%, #a0342e 100%);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-add-to-cart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(203, 65, 59, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-add-to-cart:active {
+    transform: translateY(0);
+}
+
+/* Задержки для карточек */
+.category-card:nth-child(1) { animation-delay: 0.1s; }
+.category-card:nth-child(2) { animation-delay: 0.2s; }
+.category-card:nth-child(3) { animation-delay: 0.3s; }
+.category-card:nth-child(4) { animation-delay: 0.4s; }
+.category-card:nth-child(5) { animation-delay: 0.5s; }
+.category-card:nth-child(6) { animation-delay: 0.6s; }
+.category-card:nth-child(7) { animation-delay: 0.7s; }
+.category-card:nth-child(8) { animation-delay: 0.8s; }
+.category-card:nth-child(9) { animation-delay: 0.9s; }
+.category-card:nth-child(10) { animation-delay: 1.0s; }
 
 /* Стили для корзины в хедере */
 .cart-link {

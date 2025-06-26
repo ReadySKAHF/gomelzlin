@@ -101,14 +101,19 @@ class Category(AbstractBaseModel, SeoModel):
     
     def get_absolute_url(self):
         """Возвращает URL категории"""
-        if not self.slug:
+        try:
+            from django.urls import reverse
+            if self.slug:
+                return reverse('catalog:category_detail', kwargs={'slug': self.slug})
+            else:
+                return '#'
+        except Exception as e:
+            print(f"Ошибка в get_absolute_url для категории {self.name}: {e}")
             return '#'
-        return reverse('catalog:category_detail', kwargs={'slug': self.slug})
+
     
     def get_products_count(self):
         """Возвращает количество товаров в категории"""
-        from .models import Product  # Избегаем циклического импорта
-        
         count = self.products.filter(is_active=True, is_published=True).count()
         
         # Добавляем товары из подкатегорий
@@ -119,15 +124,19 @@ class Category(AbstractBaseModel, SeoModel):
     
     def get_all_products(self):
         """Возвращает все товары категории включая подкатегории"""
-        from .models import Product  # Избегаем циклического импорта
-        
         # Если есть подкатегории, возвращаем товары из подкатегорий
         if self.children.filter(is_active=True).exists():
             product_ids = []
+            # Товары в самой категории
+            product_ids.extend(
+                self.products.filter(is_active=True, is_published=True).values_list('id', flat=True)
+            )
+            # Товары из подкатегорий
             for child in self.children.filter(is_active=True):
                 product_ids.extend(
                     child.products.filter(is_active=True, is_published=True).values_list('id', flat=True)
                 )
+            from .models import Product
             return Product.objects.filter(id__in=product_ids)
         else:
             # Если подкатегорий нет, возвращаем товары самой категории
@@ -146,6 +155,7 @@ class Category(AbstractBaseModel, SeoModel):
             current = current.parent
         
         return breadcrumbs
+
     
     @property
     def has_children(self):
