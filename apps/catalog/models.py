@@ -6,80 +6,161 @@ from django.utils.text import slugify
 from apps.core.models import AbstractBaseModel, SeoModel
 
 
+class CategoryManager(models.Manager):
+    """Менеджер для модели Category"""
+    
+    def active(self):
+        """Возвращает только активные категории"""
+        return self.filter(is_active=True)
+    
+    def main_categories(self):
+        """Возвращает основные категории (без родителя)"""
+        return self.filter(parent__isnull=True, is_active=True)
+    
+    def featured(self):
+        """Возвращает рекомендуемые категории"""
+        return self.filter(is_featured=True, is_active=True)
+
 class Category(AbstractBaseModel, SeoModel):
     """
     Модель категории товаров
     """
-    name = models.CharField(
-        _('Название'),
-        max_length=100
-    )
+    name = models.CharField(_('Название'), max_length=255)
     slug = models.SlugField(
-        _('URL'),
-        max_length=100,
+        _('URL'), 
+        max_length=100, 
         unique=True,
         help_text=_('Уникальный URL для категории')
     )
-    description = models.TextField(
-        _('Описание'),
-        blank=True
-    )
-    parent = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='children',
-        verbose_name=_('Родительская категория')
-    )
+    description = models.TextField(_('Описание'), blank=True)
+    
+    # Изображение категории
     image = models.ImageField(
         _('Изображение'),
         upload_to='categories/',
         blank=True,
+        null=True,
+        help_text=_('Изображение категории для каталога')
+    )
+    
+    # Иерархия категорий
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        related_name='children',
+        verbose_name=_('Родительская категория'),
+        blank=True,
         null=True
     )
+    
+    # Настройки отображения
     sort_order = models.PositiveIntegerField(
         _('Порядок сортировки'),
-        default=0
+        default=0,
+        help_text=_('Чем меньше число, тем выше в списке')
     )
+    
     is_featured = models.BooleanField(
         _('Рекомендуемая'),
         default=False,
         help_text=_('Отображать на главной странице')
     )
     
+    # Менеджер
+    objects = CategoryManager()
+    
     class Meta:
         verbose_name = _('Категория')
         verbose_name_plural = _('Категории')
         ordering = ['sort_order', 'name']
+        indexes = [
+            models.Index(fields=['parent', 'is_active']),
+            models.Index(fields=['is_featured', 'is_active']),
+            models.Index(fields=['sort_order']),
+        ]
     
     def __str__(self):
+        if self.parent:
+            return f"{self.parent.name} → {self.name}"
         return self.name
     
     def save(self, *args, **kwargs):
-        if not self.slug and self.name:
-            # Создаем slug из названия
-            base_slug = slugify(self.name)
-        
-            # Проверяем уникальность
+        # Автогенерация slug, если не задан
+        if not self.slug:
+            base_slug = slugify(self.name) if self.name else 'category'
             slug = base_slug
             counter = 1
+            
             while Category.objects.filter(slug=slug).exclude(pk=self.pk).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
-        
+            
             self.slug = slug
-        elif not self.slug:
-            # Если нет ни slug'а, ни названия, создаем временный slug
-            self.slug = f"category-{self.pk or 'new'}"
-    
+        
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
-    # Проверяем, что slug не пустой
+        """Возвращает URL категории"""
         if not self.slug:
-            return '#'  # Возвращаем заглушку
+            return '#'
         return reverse('catalog:category_detail', kwargs={'slug': self.slug})
+    
+    def get_products_count(self):
+        """Возвращает количество товаров в категории"""
+        from .models import Product  # Избегаем циклического импорта
+        
+        count = self.products.filter(is_active=True, is_published=True).count()
+        
+        # Добавляем товары из подкатегорий
+        for child in self.children.filter(is_active=True):
+            count += child.products.filter(is_active=True, is_published=True).count()
+        
+        return count
+    
+    def get_all_products(self):
+        """Возвращает все товары категории включая подкатегории"""
+        from .models import Product  # Избегаем циклического импорта
+        
+        # Если есть подкатегории, возвращаем товары из подкатегорий
+        if self.children.filter(is_active=True).exists():
+            product_ids = []
+            for child in self.children.filter(is_active=True):
+                product_ids.extend(
+                    child.products.filter(is_active=True, is_published=True).values_list('id', flat=True)
+                )
+            return Product.objects.filter(id__in=product_ids)
+        else:
+            # Если подкатегорий нет, возвращаем товары самой категории
+            return self.products.filter(is_active=True, is_published=True)
+    
+    def get_breadcrumbs(self):
+        """Возвращает хлебные крошки"""
+        breadcrumbs = []
+        current = self
+        
+        while current:
+            breadcrumbs.insert(0, {
+                'name': current.name,
+                'url': current.get_absolute_url()
+            })
+            current = current.parent
+        
+        return breadcrumbs
+    
+    @property
+    def has_children(self):
+        """Проверяет наличие подкатегорий"""
+        return self.children.filter(is_active=True).exists()
+    
+    @property
+    def level(self):
+        """Возвращает уровень вложенности категории"""
+        level = 0
+        current = self.parent
+        while current:
+            level += 1
+            current = current.parent
+        return level
 
 class ProductManager(models.Manager):
     """Менеджер для модели Product"""

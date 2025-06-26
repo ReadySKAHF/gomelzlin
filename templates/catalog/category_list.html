@@ -1,267 +1,262 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 3rem 0;">
+<div class="category-page">
     <!-- Хлебные крошки -->
-    <div style="margin-bottom: 2rem; color: var(--secondary-gray);">
-        <a href="{% url 'core:home' %}" style="color: var(--primary-red);">Главная</a> / 
-        <a href="{% url 'catalog:product_list' %}" style="color: var(--primary-red);">Каталог</a> / 
-        {% if category.parent %}
-            <a href="{{ category.parent.get_absolute_url }}" style="color: var(--primary-red);">{{ category.parent.name }}</a> / 
-        {% endif %}
-        <span>{{ category.name }}</span>
+    <nav class="breadcrumb" style="padding: 1rem 0; margin-bottom: 2rem;">
+        <div class="container">
+            <a href="{% url 'core:home' %}" style="color: var(--secondary-gray); text-decoration: none;">Главная</a>
+            <span style="margin: 0 0.5rem; color: var(--secondary-gray);">→</span>
+            <a href="{% url 'catalog:product_list' %}" style="color: var(--secondary-gray); text-decoration: none;">Каталог</a>
+            <span style="margin: 0 0.5rem; color: var(--secondary-gray);">→</span>
+            <span style="color: var(--dark-gray); font-weight: 500;">{{ category.name }}</span>
+        </div>
+    </nav>
+
+    <!-- Заголовок категории -->
+    <div class="page-header" style="text-align: center; margin-bottom: 3rem;">
+        <div class="container">
+            <h1 style="font-size: 2.5rem; color: var(--dark-gray); margin-bottom: 1rem;">
+                {{ category.name }}
+            </h1>
+            {% if category.description %}
+            <p style="font-size: 1.1rem; color: var(--secondary-gray); max-width: 600px; margin: 0 auto;">
+                {{ category.description }}
+            </p>
+            {% endif %}
+        </div>
     </div>
-    
-    <h1>{{ category.name }}</h1>
-    {% if category.description %}
-        <p style="color: var(--secondary-gray); margin-bottom: 2rem;">{{ category.description }}</p>
-    {% endif %}
-    
-    {% if show_subcategories %}
-        <!-- Показываем подкатегории -->
-        <h2 style="margin-bottom: 2rem;">Подкатегории</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-            {% for subcategory in subcategories %}
-            <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s; cursor: pointer;"
-                 onclick="window.location.href='{{ subcategory.get_absolute_url }}'">
-                <img src="{{ subcategory.image }}" alt="{{ subcategory.name }}" 
-                     style="width: 100%; height: 200px; object-fit: cover;">
-                <div style="padding: 1.5rem;">
-                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">{{ subcategory.name }}</h3>
-                    <p style="color: var(--secondary-gray); margin-bottom: 1rem;">{{ subcategory.product_count }} товаров</p>
-                    {% if subcategory.description %}
-                        <p>{{ subcategory.description|truncatewords:20 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-            {% empty %}
-            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                <p>Подкатегории не найдены</p>
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <!-- Показываем товары -->
-        
-        <!-- Фильтры и сортировка -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <select style="padding: 0.5rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                    <option>Все товары</option>
-                    <option>В наличии</option>
-                    <option>Под заказ</option>
-                </select>
-                <select style="padding: 0.5rem; border: 2px solid var(--light-gray); border-radius: 5px;">
-                    <option>Сортировка по умолчанию</option>
-                    <option>По цене (возрастание)</option>
-                    <option>По цене (убывание)</option>
-                    <option>По названию</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-                <button class="btn btn-outline btn-sm" onclick="toggleView('grid')" id="gridBtn">⊞ Плитка</button>
-                <button class="btn btn-outline btn-sm" onclick="toggleView('list')" id="listBtn">☰ Список</button>
-            </div>
-        </div>
-        
-        {% if products %}
-            <!-- Сетка товаров -->
-            <div id="productGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem;">
-                {% for product in products %}
-                <div class="product-card" style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s; cursor: pointer;" 
-                     onclick="window.location.href='{{ product.get_absolute_url }}'">
-                     
-                    {% if product.images.exists %}
-                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 200px; object-fit: cover;">
-                    {% else %}
-                        <div style="width: 100%; height: 200px; background: var(--light-gray); display: flex; align-items: center; justify-content: center; color: var(--secondary-gray);">
-                            Фото товара
-                        </div>
-                    {% endif %}
-                    
-                    <div style="padding: 1.5rem;">
-                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem; font-size: 1.1rem;">{{ product.name }}</h3>
-                        {% if product.article %}
-                            <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
-                        {% endif %}
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                            <div>
-                                <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
-                                    {{ product.price }} BYN
-                                    {% if product.unit != 'pcs' %} / {{ product.get_unit_display }}{% endif %}
+
+    <div class="container">
+        {% if show_subcategories %}
+            <!-- Отображение подкатегорий -->
+            <h2 style="font-size: 1.8rem; color: var(--dark-gray); margin-bottom: 2rem; text-align: center;">
+                Подкатегории
+            </h2>
+            
+            <div class="subcategories-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+                {% for subcategory in subcategories %}
+                <a href="{{ subcategory.absolute_url }}" class="subcategory-card" style="text-decoration: none; color: inherit; display: block;">
+                    <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; transition: all 0.3s ease; height: 100%;">
+                        <div class="subcategory-content">
+                            <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 1rem;">
+                                {{ subcategory.name }}
+                            </h3>
+                            
+                            {% if subcategory.description %}
+                            <p style="color: var(--secondary-gray); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.4;">
+                                {{ subcategory.description|truncatewords:20 }}
+                            </p>
+                            {% endif %}
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="product-count" style="background: var(--light-gray); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.9rem; color: var(--secondary-gray);">
+                                    {{ subcategory.product_count }} товар{{ subcategory.product_count|pluralize:"ов,ов,ов" }}
                                 </div>
-                                {% if product.old_price and product.old_price > product.price %}
-                                    <div style="font-size: 0.9rem; color: var(--secondary-gray); text-decoration: line-through;">{{ product.old_price }} BYN</div>
+                                
+                                <div class="subcategory-arrow" style="color: var(--primary-red); font-size: 1.3rem;">
+                                    →
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+
+        {% else %}
+            <!-- Отображение товаров -->
+            {% if products %}
+                <!-- Переключатель типа отображения -->
+                <div class="view-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+                    <div class="results-info">
+                        <span style="color: var(--secondary-gray);">Найдено {{ products|length }} товар{{ products|length|pluralize:"ов,ов,ов" }}</span>
+                    </div>
+                    
+                    <div class="view-buttons">
+                        <a href="?view=grid" class="view-btn {% if view_type == 'grid' %}active{% endif %}" style="padding: 0.5rem 1rem; margin-left: 0.5rem; border-radius: 5px; text-decoration: none; {% if view_type == 'grid' %}background: var(--primary-red); color: white;{% else %}background: var(--light-gray); color: var(--dark-gray);{% endif %}">
+                            📦 Плитка
+                        </a>
+                        <a href="?view=list" class="view-btn {% if view_type == 'list' %}active{% endif %}" style="padding: 0.5rem 1rem; margin-left: 0.5rem; border-radius: 5px; text-decoration: none; {% if view_type == 'list' %}background: var(--primary-red); color: white;{% else %}background: var(--light-gray); color: var(--dark-gray);{% endif %}">
+                            📄 Список
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Товары в виде плитки -->
+                {% if view_type == 'grid' %}
+                <div class="products-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                    {% for product in products %}
+                    <div class="product-card" onclick="location.href='{{ product.get_absolute_url }}'" 
+                         style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; transition: all 0.3s ease;">
+                        <div class="product-image" style="height: 200px; background: var(--light-gray); position: relative;">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--secondary-gray); font-size: 3rem;">
+                                    📦
+                                </div>
+                            {% endif %}
+                            
+                            {% if product.is_new %}
+                            <span style="position: absolute; top: 10px; right: 10px; background: #28a745; color: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.8rem;">
+                                Новинка
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div style="padding: 1.5rem;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem; line-height: 1.3;">
+                                {{ product.name }}
+                            </h3>
+                            
+                            <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">
+                                Артикул: {{ product.article }}
+                            </p>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-red);">
+                                    {% if product.price %}{{ product.price|floatformat:0 }} BYN{% else %}По запросу{% endif %}
+                                </span>
+                                
+                                {% if product.stock_quantity %}
+                                <span style="font-size: 0.85rem; color: #28a745;">
+                                    В наличии: {{ product.stock_quantity }}
+                                </span>
                                 {% endif %}
                             </div>
-                            {% if user.is_authenticated %}
-                                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart({{ product.id }})">В корзину</button>
+                            
+                            <button class="btn btn-primary" style="width: 100%; padding: 0.75rem; background: var(--primary-red); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">
+                                Заказать
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <!-- Товары в виде списка -->
+                <div class="products-list">
+                    {% for product in products %}
+                    <div class="product-row" onclick="location.href='{{ product.get_absolute_url }}'" 
+                         style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease; display: grid; grid-template-columns: 120px 1fr auto auto; gap: 1.5rem; align-items: center;">
+                        
+                        <!-- Изображение -->
+                        <div class="product-image" style="width: 120px; height: 80px; background: var(--light-gray); border-radius: 5px; overflow: hidden;">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            {% else %}
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--secondary-gray); font-size: 2rem;">
+                                    📦
+                                </div>
                             {% endif %}
                         </div>
                         
-                        <!-- Статус наличия -->
-                        <div style="margin-top: 0.5rem;">
-                            {% if product.is_in_stock %}
-                                <span style="color: #28a745; font-size: 0.9rem;">✓ В наличии</span>
-                                {% if product.stock_quantity <= product.min_stock_level %}
-                                    <span style="color: #ffc107; font-size: 0.8rem;">(осталось мало)</span>
-                                {% endif %}
-                            {% else %}
-                                <span style="color: #dc3545; font-size: 0.9rem;">✗ Нет в наличии</span>
+                        <!-- Информация о товаре -->
+                        <div class="product-info">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem;">
+                                {{ product.name }}
+                            </h3>
+                            <p style="color: var(--secondary-gray); font-size: 0.9rem;">
+                                Артикул: {{ product.article }}
+                            </p>
+                        </div>
+                        
+                        <!-- Цена -->
+                        <div class="product-price" style="text-align: right;">
+                            <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-red);">
+                                {% if product.price %}{{ product.price|floatformat:0 }} BYN{% else %}По запросу{% endif %}
+                            </span>
+                            {% if product.stock_quantity %}
+                            <div style="font-size: 0.85rem; color: #28a745; margin-top: 0.25rem;">
+                                В наличии: {{ product.stock_quantity }}
+                            </div>
                             {% endif %}
                         </div>
+                        
+                        <!-- Кнопка -->
+                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; background: var(--primary-red); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">
+                            Заказать
+                        </button>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Список товаров -->
-            <div id="productList" style="display: none;">
-                {% for product in products %}
-                <div class="product-item" style="display: flex; gap: 1.5rem; padding: 1.5rem; border-bottom: 1px solid var(--light-gray); align-items: center; cursor: pointer;" 
-                     onclick="window.location.href='{{ product.get_absolute_url }}'">
-                     
-                    {% if product.images.exists %}
-                        <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
-                    {% else %}
-                        <div style="width: 100px; height: 100px; background: var(--light-gray); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray); font-size: 0.8rem;">
-                            Фото
-                        </div>
-                    {% endif %}
-                    
-                    <div style="flex: 1;">
-                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">{{ product.name }}</h3>
-                        {% if product.article %}
-                            <p style="color: var(--secondary-gray); margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
+                {% endif %}
+
+                <!-- Пагинация -->
+                {% if paginator.num_pages > 1 %}
+                <div class="pagination" style="display: flex; justify-content: center; margin-top: 3rem;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if products.has_previous %}
+                        <a href="?page={{ products.previous_page_number }}&view={{ view_type }}" style="padding: 0.5rem 1rem; background: white; border: 1px solid #ddd; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">‹ Предыдущая</a>
                         {% endif %}
-                        {% if product.short_description %}
-                            <p style="color: var(--dark-gray);">{{ product.short_description|truncatewords:20 }}</p>
+                        
+                        <span style="padding: 0.5rem 1rem; background: var(--primary-red); color: white; border-radius: 5px;">
+                            {{ products.number }} из {{ paginator.num_pages }}
+                        </span>
+                        
+                        {% if products.has_next %}
+                        <a href="?page={{ products.next_page_number }}&view={{ view_type }}" style="padding: 0.5rem 1rem; background: white; border: 1px solid #ddd; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Следующая ›</a>
                         {% endif %}
                     </div>
-                    
-                    <div style="text-align: right;">
-                        <div style="font-size: 1.3rem; font-weight: bold; color: var(--primary-red); margin-bottom: 0.5rem;">
-                            {{ product.price }} BYN
-                        </div>
-                        {% if product.old_price and product.old_price > product.price %}
-                            <div style="font-size: 0.9rem; color: var(--secondary-gray); text-decoration: line-through; margin-bottom: 0.5rem;">{{ product.old_price }} BYN</div>
-                        {% endif %}
-                        <div style="font-size: 0.9rem; color: {% if product.is_in_stock %}#28a745{% else %}#dc3545{% endif %};">
-                            {% if product.is_in_stock %}В наличии{% else %}Нет в наличии{% endif %}
-                        </div>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <!-- Нет товаров в категории -->
+                <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
+                    <h3 style="margin-bottom: 1rem;">Товары не найдены</h3>
+                    <p>В данной категории пока нет товаров.</p>
+                    <div style="margin-top: 2rem;">
+                        <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Вернуться к каталогу</a>
                     </div>
-                    
-                    {% if user.is_authenticated %}
-                        <button class="btn btn-primary" onclick="event.stopPropagation(); addToCart({{ product.id }})">В корзину</button>
-                    {% endif %}
                 </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Пагинация -->
-            {% if products.has_other_pages %}
-            <div style="display: flex; justify-content: center; margin-top: 3rem;">
-                <div style="display: flex; gap: 0.5rem;">
-                    {% if products.has_previous %}
-                        <a href="?page=1" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Первая</a>
-                        <a href="?page={{ products.previous_page_number }}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Назад</a>
-                    {% endif %}
-                    
-                    <span style="padding: 0.5rem 1rem; border: 1px solid var(--primary-red); background: var(--primary-red); color: white; border-radius: 5px;">
-                        {{ products.number }} из {{ products.paginator.num_pages }}
-                    </span>
-                    
-                    {% if products.has_next %}
-                        <a href="?page={{ products.next_page_number }}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Далее</a>
-                        <a href="?page={{ products.paginator.num_pages }}" style="padding: 0.5rem 1rem; border: 1px solid var(--light-gray); background: white; border-radius: 5px; text-decoration: none; color: var(--dark-gray);">Последняя</a>
-                    {% endif %}
-                </div>
-            </div>
             {% endif %}
-            
-        {% else %}
-            <!-- Нет товаров -->
-            <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
-                <h3>В данной категории пока нет товаров</h3>
-                <p>Товары появятся в ближайшее время</p>
-            </div>
         {% endif %}
-    {% endif %}
+    </div>
 </div>
 
-<script>
-function toggleView(viewType) {
-    const gridView = document.getElementById('productGrid');
-    const listView = document.getElementById('productList');
-    const gridBtn = document.getElementById('gridBtn');
-    const listBtn = document.getElementById('listBtn');
-    
-    if (viewType === 'grid') {
-        gridView.style.display = 'grid';
-        listView.style.display = 'none';
-        gridBtn.classList.add('btn-primary');
-        gridBtn.classList.remove('btn-outline');
-        listBtn.classList.add('btn-outline');
-        listBtn.classList.remove('btn-primary');
-    } else {
-        gridView.style.display = 'none';
-        listView.style.display = 'block';
-        listBtn.classList.add('btn-primary');
-        listBtn.classList.remove('btn-outline');
-        gridBtn.classList.add('btn-outline');
-        gridBtn.classList.remove('btn-primary');
-    }
-}
-
-function addToCart(productId) {
-    {% if not user.is_authenticated %}
-        alert('Для добавления товаров в корзину необходимо войти в систему');
-        window.location.href = '{% url "accounts:login" %}';
-        return;
-    {% endif %}
-    
-    fetch('{% url "orders:add_to_cart" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: `product_id=${productId}&quantity=1`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Товар добавлен в корзину');
-        } else {
-            alert(data.message || 'Ошибка при добавлении товара');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Произошла ошибка');
-    });
-}
-
-// Инициализация вида сетки
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('gridBtn').classList.add('btn-primary');
-    document.getElementById('gridBtn').classList.remove('btn-outline');
-});
-</script>
-
 <style>
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+:root {
+    --primary-red: #cb413b;
+    --secondary-gray: #808080;
+    --dark-gray: #333333;
+    --light-gray: #f5f5f5;
+    --radius: 10px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
 }
 
-.btn-sm {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.875rem;
+.subcategory-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.product-card:hover, .product-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn:hover {
+    background: #b73730;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .product-row {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        text-align: center;
+    }
+    
+    .subcategories-grid, .products-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
 </style>
 {% endblock %}

@@ -1,3 +1,4 @@
+# gomelzlin/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -16,14 +17,15 @@ urlpatterns = [
     
     # Catalog
     path('catalog/', include('apps.catalog.urls')),
+    
+    # Redirect для совместимости
     path('products/', RedirectView.as_view(url='/catalog/', permanent=True)),
-    # path('products/', include('apps.catalog.urls')),
     
-    # Orders and Cart
-    path('cart/', include('apps.orders.urls')),
+    # Cart (корзина)
+    path('cart/', include(('apps.orders.urls', 'orders'), namespace='cart')),
     
-    # Orders and Cart
-    path('', include('apps.orders.urls')),
+    # Orders (заказы)
+    path('orders/', include(('apps.orders.urls', 'orders'), namespace='orders')),
     
     # Company information
     path('company/', include('apps.company.urls')),
@@ -33,8 +35,6 @@ urlpatterns = [
     
     # Admin panel
     path('admin-panel/', include('apps.admin_panel.urls')),
-
-    path('catalog/', include('apps.catalog.urls')),
 ]
 
 # Add media files in development

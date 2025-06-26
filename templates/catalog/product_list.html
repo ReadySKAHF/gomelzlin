@@ -1,321 +1,227 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Продукция - ОАО "ГЗЛиН"{% endblock %}
+{% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 2rem 0;">
+<div class="catalog-page">
     <!-- Хлебные крошки -->
-    <div style="margin-bottom: 2rem; color: var(--secondary-gray);">
-        <a href="{% url 'core:home' %}" style="color: var(--primary-red);">Главная</a> / 
-        <span>Каталог продукции</span>
-    </div>
-
-    <h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: var(--dark-gray);">Каталог продукции</h1>
-    
-    <!-- Поиск -->
-    <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 3rem;">
-        <form method="GET" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-            <input type="text" name="search" placeholder="Поиск по названию или артикулу..." 
-                   value="{{ request.GET.search }}"
-                   style="flex: 1; min-width: 250px; padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius); font-size: 1rem;">
-            
-            <select name="category" style="padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius); font-size: 1rem;">
-                <option value="">Все категории</option>
-                {% for category in all_categories %}
-                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
-                    {{ category.name }}
-                </option>
-                {% endfor %}
-            </select>
-            
-            <button type="submit" class="btn btn-primary">
-                🔍 Поиск
-            </button>
-            
-            {% if request.GET.search or request.GET.category %}
-            <a href="{% url 'catalog:product_list' %}" class="btn btn-outline">
-                Сбросить
-            </a>
-            {% endif %}
-        </form>
-    </div>
-
-    <!-- Основные категории -->
-    <div class="categories-grid">
-        {% for category in categories_with_counts %}
-        <a href="{{ category.absolute_url }}" style="text-decoration: none; color: inherit;">
-            <div class="category-card">
-                <div class="category-image">
-                    {% if category.name == "Зерноуборочная техника" %}🌾
-                    {% elif category.name == "Кормоуборочная техника" %}🚜
-                    {% elif category.name == "Картофелеуборочная техника" %}🥔
-                    {% elif category.name == "Метизная продукция" %}🔩
-                    {% elif category.name == "Бункеры-перегрузчики" %}📦
-                    {% elif category.name == "Новинки" %}⭐
-                    {% elif category.name == "Прочая техника" %}⚙️
-                    {% elif category.name == "Прочие товары, работы и услуги" %}📋
-                    {% elif category.name == "Режущие системы жаток" %}⚔️
-                    {% elif category.name == "Самоходные носилки" %}🚲
-                    {% else %}🏭
-                    {% endif %}
-                </div>
-                <div class="category-content">
-                    <div class="category-title">{{ category.name }}</div>
-                    <div class="category-description">
-                        {% if category.description %}
-                            {{ category.description|truncatewords:15 }}
-                        {% else %}
-                            {% if category.name == "Зерноуборочная техника" %}
-                                Жатки валковые навесные и прицепные, жатки для зерновых культур, подсолнечника, сои, комплекты для уборки кукурузы и подборщики зерновые
-                            {% elif category.name == "Кормоуборочная техника" %}
-                                Жатки для грубостебельных культур и трав, кормоуборочные комбайны, косилки, подборщики и самоходные комбайны
-                            {% elif category.name == "Картофелеуборочная техника" %}
-                                Картофелеуборочные комбайны и копатели для эффективной уборки картофеля различной производительности
-                            {% elif category.name == "Метизная продукция" %}
-                                Болты, винты, гайки, заклепки, оси, шайбы пружинные и шпильки различных размеров и стандартов
-                            {% elif category.name == "Бункеры-перегрузчики" %}
-                                Прицепные и стационарные бункеры различной вместимости для перегрузки и хранения зерна
-                            {% elif category.name == "Новинки" %}
-                                Современные технологические решения, интеллектуальные жатки и роботизированные системы
-                            {% elif category.name == "Прочая техника" %}
-                                Транспортеры, элеваторы, сепараторы и другое вспомогательное оборудование
-                            {% elif category.name == "Прочие товары, работы и услуги" %}
-                                Техническое обслуживание, ремонт, консультации и обучение операторов сельхозтехники
-                            {% elif category.name == "Режущие системы жаток" %}
-                                Ножи жатвенные, сегменты режущие, пальцы режущего аппарата и противорезы
-                            {% elif category.name == "Самоходные носилки" %}
-                                Самоходные носилки и тележки различной грузоподъемности для перевозки грузов
-                            {% else %}
-                                Качественная продукция от ОАО "ГЗЛиН"
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                    <div class="category-meta">
-                        <div class="product-count">{{ category.total_products }} товаров</div>
-                    </div>
-                </div>
-            </div>
-        </a>
-        {% empty %}
-        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
-            <h3>Категории не найдены</h3>
-            <p>Попробуйте изменить параметры поиска или свяжитесь с нами для получения информации о продукции.</p>
-            <div style="margin-top: 2rem;">
-                <a href="{% url 'core:home' %}" class="btn btn-primary">На главную</a>
-                <a href="#contacts" class="btn btn-outline">Связаться с нами</a>
-            </div>
+    <nav class="breadcrumb" style="padding: 1rem 0; margin-bottom: 2rem;">
+        <div class="container">
+            <a href="{% url 'core:home' %}" style="color: var(--secondary-gray); text-decoration: none;">Главная</a>
+            <span style="margin: 0 0.5rem; color: var(--secondary-gray);">→</span>
+            <span style="color: var(--dark-gray); font-weight: 500;">Каталог товаров</span>
         </div>
-        {% endfor %}
+    </nav>
+
+    <!-- Заголовок страницы -->
+    <div class="page-header" style="text-align: center; margin-bottom: 3rem;">
+        <div class="container">
+            <h1 style="font-size: 2.5rem; color: var(--dark-gray); margin-bottom: 1rem;">
+                Каталог продукции ОАО "ГЗЛиН"
+            </h1>
+            <p style="font-size: 1.1rem; color: var(--secondary-gray); max-width: 600px; margin: 0 auto;">
+                Широкий ассортимент сельскохозяйственной техники, метизной продукции и оборудования
+            </p>
+        </div>
     </div>
 
-    <!-- Популярные товары -->
-    {% if featured_products %}
-    <section style="margin-top: 4rem;">
-        <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: var(--dark-gray);">
-            Популярные товары
-        </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
-            {% for product in featured_products %}
-            <div class="product-card" onclick="location.href='{{ product.get_absolute_url }}'">
-                <div class="product-image">
-                    {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" 
-                             style="width: 100%; height: 200px; object-fit: cover;">
-                    {% else %}
-                        <div style="display: flex; align-items: center; justify-content: center; height: 200px; background: var(--light-gray); color: var(--secondary-gray); font-size: 3rem;">
-                            📦
-                        </div>
-                    {% endif %}
-                </div>
-                <div style="padding: 1.5rem;">
-                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem; font-size: 1.1rem;">{{ product.name }}</h3>
-                    {% if product.article %}
-                        <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
-                    {% endif %}
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                        <div>
-                            <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
-                                {{ product.price }} BYN
-                                {% if product.unit != 'pcs' %} / {{ product.get_unit_display }}{% endif %}
-                            </div>
-                            {% if product.old_price and product.old_price > product.price %}
-                                <div style="font-size: 0.9rem; color: var(--secondary-gray); text-decoration: line-through;">
-                                    {{ product.old_price }} BYN
-                                </div>
-                            {% endif %}
-                        </div>
-                        {% if user.is_authenticated %}
-                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }})">
-                                В корзину
-                            </button>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Статус наличия -->
-                    <div style="margin-top: 0.5rem;">
-                        {% if product.is_in_stock %}
-                            <span style="color: #28a745; font-size: 0.9rem;">✓ В наличии</span>
-                            {% if product.stock_quantity <= product.min_stock_level %}
-                                <span style="color: #ffc107; font-size: 0.8rem;">(осталось мало)</span>
-                            {% endif %}
+    <!-- Сетка категорий -->
+    <div class="container">
+        <div class="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+            {% for category in categories %}
+            <a href="{{ category.absolute_url }}" class="category-card" style="text-decoration: none; color: inherit; display: block;">
+                <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: all 0.3s ease; height: 100%;">
+                    <!-- Изображение категории -->
+                    <div class="category-image" style="height: 200px; background: linear-gradient(135deg, var(--primary-red), #e74c3c); position: relative; overflow: hidden;">
+                        {% if category.image %}
+                            <img src="{{ category.image }}" alt="{{ category.name }}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
                         {% else %}
-                            <span style="color: #dc3545; font-size: 0.9rem;">✗ Нет в наличии</span>
+                            <!-- Иконки-заглушки для категорий -->
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 4rem; color: white;">
+                                {% if category.name == "Зерноуборочная техника" %}🌾
+                                {% elif category.name == "Кормоуборочная техника" %}🚜
+                                {% elif category.name == "Картофелеуборочная техника" %}🥔
+                                {% elif category.name == "Метизная продукция" %}🔩
+                                {% elif category.name == "Бункеры-перегрузчики" %}📦
+                                {% elif category.name == "Новинки" %}⭐
+                                {% elif category.name == "Прочая техника" %}⚙️
+                                {% elif category.name == "Прочие товары, работы и услуги" %}🛠️
+                                {% elif category.name == "Режущие системы жаток" %}🔪
+                                {% elif category.name == "Самоходные носилки" %}🚛
+                                {% else %}🏭
+                                {% endif %}
+                            </div>
                         {% endif %}
+                        
+                        <!-- Overlay для улучшения читаемости -->
+                        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); height: 50px;"></div>
                     </div>
+
+                    <!-- Содержимое карточки -->
+                    <div style="padding: 1.5rem;">
+                        <div class="category-content">
+                            <h3 style="font-size: 1.3rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem; line-height: 1.3;">
+                                {{ category.name }}
+                            </h3>
+                            
+                            <div class="category-description" style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.4;">
+                                {% if category.description %}
+                                    {{ category.description|truncatewords:15 }}
+                                {% else %}
+                                    <!-- Автоматические описания -->
+                                    {% if category.name == "Зерноуборочная техника" %}
+                                        Жатки валковые, транспортные, для зерновых культур, подборщики и комплекты оборудования
+                                    {% elif category.name == "Кормоуборочная техника" %}
+                                        Жатки для трав и грубостебельных культур, кормоуборочные комбайны, косилки и подборщики
+                                    {% elif category.name == "Картофелеуборочная техника" %}
+                                        Специализированное оборудование для уборки картофеля различных модификаций
+                                    {% elif category.name == "Метизная продукция" %}
+                                        Болты, винты, гайки, заклепки, оси, шайбы пружинные и шпильки
+                                    {% elif category.name == "Прочая техника" %}
+                                        Дополнительное сельскохозяйственное оборудование и вспомогательная техника
+                                    {% elif category.name == "Бункеры-перегрузчики" %}
+                                        Бункеры различной вместимости и перегрузочное оборудование для зерна
+                                    {% elif category.name == "Новинки" %}
+                                        Новые разработки и инновационные решения от ОАО "ГЗЛиН"
+                                    {% elif category.name == "Прочие товары, работы и услуги" %}
+                                        Техническое обслуживание, ремонт, консультации и дополнительные услуги
+                                    {% elif category.name == "Режущие системы жаток" %}
+                                        Ножи жатвенные, сегменты режущие, пальцы режущего аппарата и противорезы
+                                    {% elif category.name == "Самоходные носилки" %}
+                                        Самоходные носилки и тележки различной грузоподъемности для перевозки грузов
+                                    {% else %}
+                                        Качественная продукция от ОАО "ГЗЛиН"
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="category-meta" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="product-count" style="background: var(--light-gray); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; color: var(--secondary-gray);">
+                                    {{ category.total_products }} товар{{ category.total_products|pluralize:"ов,ов,ов" }}
+                                </div>
+                                
+                                <div class="category-arrow" style="color: var(--primary-red); font-size: 1.2rem;">
+                                    →
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
+                <h3 style="margin-bottom: 1rem;">Категории не найдены</h3>
+                <p>Возможно данные еще не загружены в базу. Выполните команду загрузки данных.</p>
+                <div style="margin-top: 2rem;">
+                    <a href="{% url 'core:home' %}" class="btn btn-primary">На главную</a>
+                </div>
+                
+                <!-- Инструкция для администратора -->
+                <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; text-align: left;">
+                    <strong>Для администратора:</strong><br>
+                    Выполните команду: <code>python manage.py load_initial_data</code>
                 </div>
             </div>
             {% endfor %}
         </div>
-    </section>
-    {% endif %}
 
-    <!-- Информация о заказе -->
-    <section style="background: var(--light-gray); padding: 3rem; border-radius: var(--radius); margin-top: 4rem; text-align: center;">
-        <h2 style="color: var(--primary-red); margin-bottom: 1rem;">Как сделать заказ?</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
-            <div>
-                <div style="font-size: 2rem; color: var(--primary-red); margin-bottom: 0.5rem;">1️⃣</div>
-                <h3>Выберите товары</h3>
-                <p>Найдите нужную продукцию в каталоге и добавьте в корзину</p>
+        <!-- Популярные товары -->
+        {% if featured_products %}
+        <section style="margin-top: 4rem;">
+            <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: var(--dark-gray);">
+                Популярные товары
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                {% for product in featured_products %}
+                <div class="product-card" onclick="location.href='{{ product.get_absolute_url }}'" 
+                     style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; transition: all 0.3s ease;">
+                    <div class="product-image" style="height: 200px; background: var(--light-gray); position: relative;">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--secondary-gray); font-size: 3rem;">
+                                📦
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem;">
+                            {{ product.name }}
+                        </h3>
+                        <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">
+                            Артикул: {{ product.article }}
+                        </p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-red);">
+                                {% if product.price %}{{ product.price|floatformat:0 }} BYN{% else %}По запросу{% endif %}
+                            </span>
+                            <span style="font-size: 0.9rem; color: var(--secondary-gray);">
+                                {{ product.category.name }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            <div>
-                <div style="font-size: 2rem; color: var(--primary-red); margin-bottom: 0.5rem;">2️⃣</div>
-                <h3>Оформите заказ</h3>
-                <p>Заполните форму заказа с контактными данными</p>
-            </div>
-            <div>
-                <div style="font-size: 2rem; color: var(--primary-red); margin-bottom: 0.5rem;">3️⃣</div>
-                <h3>Получите товар</h3>
-                <p>Наш менеджер свяжется с вами для подтверждения и доставки</p>
-            </div>
-        </div>
-        <div style="margin-top: 2rem;">
-            <a href="tel:+375232478215" class="btn btn-primary">Позвонить нам</a>
-            <a href="mailto:info@gzlin.by" class="btn btn-outline">Написать email</a>
-        </div>
-    </section>
+        </section>
+        {% endif %}
+    </div>
 </div>
 
 <style>
-.product-card {
-    background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    transition: var(--transition);
-    cursor: pointer;
+:root {
+    --primary-red: #cb413b;
+    --secondary-gray: #808080;
+    --dark-gray: #333333;
+    --light-gray: #f5f5f5;
+    --radius: 10px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary-red);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #b73730;
+    transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {
     .categories-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
     }
     
-    .search-form {
-        flex-direction: column;
-    }
-    
-    .search-form input,
-    .search-form select {
-        width: 100%;
+    .page-header h1 {
+        font-size: 2rem !important;
     }
 }
 </style>
-
-<script>
-// Функция добавления товара в корзину
-function addToCart(productId, productName, productPrice) {
-    fetch('{% url "orders:add_to_cart" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: `product_id=${productId}&quantity=1`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Обновляем счетчик корзины
-            updateCartCount(data.cart_count);
-            
-            // Показываем уведомление
-            showNotification(`${productName} добавлен в корзину`, 'success');
-        } else {
-            showNotification(data.message || 'Ошибка при добавлении товара', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Произошла ошибка при добавлении товара', 'error');
-    });
-}
-
-// Функция обновления счетчика корзины
-function updateCartCount(count) {
-    const cartCountElement = document.getElementById('cartCount');
-    if (cartCountElement) {
-        cartCountElement.textContent = count;
-    }
-}
-
-// Функция показа уведомлений
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 1rem 2rem;
-        border-radius: var(--radius);
-        color: white;
-        z-index: 1000;
-        animation: slideIn 0.3s ease;
-        max-width: 300px;
-    `;
-    
-    if (type === 'success') {
-        notification.style.background = '#28a745';
-    } else if (type === 'error') {
-        notification.style.background = '#dc3545';
-    } else {
-        notification.style.background = 'var(--primary-red)';
-    }
-    
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.remove();
-    }, 3000);
-}
-
-// Добавляем стили для анимации
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(style);
-</script>
 {% endblock %}
