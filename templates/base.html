@@ -1,31 +1,35 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ОАО "ГЗЛиН" - Современные решения{% endblock %}</title>
+    <title>ОАО "ГЗЛиН" - Гомельский завод литья и нормалей</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
             --primary-red: #cb413b;
+            --primary-red-dark: #a73530;
             --secondary-gray: #808080;
+            --light-gray: #f8f9fa;
+            --dark-gray: #343a40;
             --white: #ffffff;
-            --light-gray: #f5f5f5;
-            --dark-gray: #333;
-            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow: 0 4px 20px rgba(203, 65, 59, 0.1);
+            --shadow-hover: 0 8px 30px rgba(203, 65, 59, 0.2);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-family);
             line-height: 1.6;
             color: var(--dark-gray);
-            background: var(--white);
+            background-color: var(--white);
         }
 
         .container {
@@ -35,174 +39,297 @@
         }
 
         /* Header */
-        header {
-            background: var(--white);
-            box-shadow: var(--shadow);
-            position: fixed;
-            width: 100%;
+        .header {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--primary-red-dark) 100%);
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 0;
         }
 
         .logo {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: var(--primary-red);
             text-decoration: none;
+            color: white;
         }
 
-        nav ul {
+        .nav {
             display: flex;
-            list-style: none;
             gap: 2rem;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--dark-gray);
-            font-weight: 500;
-            transition: color 0.3s;
-            position: relative;
-        }
-
-        nav a:hover, nav a.active {
-            color: var(--primary-red);
-        }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary-red);
-            transition: width 0.3s;
-        }
-
-        nav a:hover::after, nav a.active::after {
-            width: 100%;
-        }
-
-        .user-actions {
-            display: flex;
-            gap: 1rem;
             align-items: center;
         }
 
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .nav a {
+            color: white;
             text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
+
+        .nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .cart-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: white;
+            transition: var(--transition);
+        }
+
+        .cart-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .cart-count {
+            background: white;
+            color: var(--primary-red);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(203, 65, 59, 0.9), rgba(203, 65, 59, 0.9)), 
+                        url('https://images.unsplash.com/photo-1574193323276-1b9418dc59c8?w=1200&h=600&fit=crop') center/cover;
+            color: white;
+            padding: 6rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0.95;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+            margin: 0.5rem;
         }
 
         .btn-primary {
-            background: var(--primary-red);
-            color: white;
+            background: white;
+            color: var(--primary-red);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .btn-primary:hover {
-            background: #a53530;
             transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
 
         .btn-outline {
-            border: 2px solid var(--primary-red);
-            color: var(--primary-red);
             background: transparent;
+            color: white;
+            border: 2px solid white;
         }
 
         .btn-outline:hover {
-            background: var(--primary-red);
-            color: white;
-        }
-
-        /* Mobile menu */
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--primary-red);
-            cursor: pointer;
-        }
-
-        /* Main content */
-        main {
-            margin-top: 80px;
-            min-height: calc(100vh - 80px);
-        }
-
-        /* Grid layouts */
-        .grid {
-            display: grid;
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-
-        /* Cards */
-        .card {
             background: white;
-            border-radius: 10px;
+            color: var(--primary-red);
+        }
+
+        /* Statistics */
+        .stats {
+            background: var(--light-gray);
+            padding: 3rem 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
+            transition: var(--transition);
         }
 
-        .card:hover {
+        .stat-item:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            box-shadow: var(--shadow-hover);
         }
 
-        .card img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        .card-content {
-            padding: 1.5rem;
-        }
-
-        .card-title {
-            font-size: 1.2rem;
+        .stat-number {
+            font-size: 2.5rem;
             font-weight: bold;
+            color: var(--primary-red);
             margin-bottom: 0.5rem;
+        }
+
+        /* Categories */
+        .categories-section {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
             color: var(--dark-gray);
         }
 
-        .card-subtitle {
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            border: 1px solid #e9ecef;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .category-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .category-image {
+            height: 180px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: var(--primary-red);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .category-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .category-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-red);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .category-description {
             color: var(--secondary-gray);
             font-size: 0.9rem;
             margin-bottom: 1rem;
+            flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .category-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .product-count {
+            background: var(--primary-red);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* About Section */
+        .about-section {
+            background: var(--light-gray);
+            padding: 4rem 0;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-content h2 {
+            color: var(--primary-red);
+            margin-bottom: 1rem;
+        }
+
+        .about-image {
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
         }
 
         /* Footer */
-        footer {
+        .footer {
             background: var(--dark-gray);
             color: white;
-            padding: 2rem 0 1rem;
-            margin-top: 3rem;
+            padding: 3rem 0 1rem;
         }
 
-        .footer-content {
+        .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
@@ -214,154 +341,494 @@
             margin-bottom: 1rem;
         }
 
-        .footer-section a {
-            color: white;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 0.5rem;
-            transition: color 0.3s;
+        .footer-section ul {
+            list-style: none;
         }
 
-        .footer-section a:hover {
-            color: var(--primary-red);
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: #ccc;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-section ul li a:hover {
+            color: white;
         }
 
         .footer-bottom {
-            text-align: center;
+            border-top: 1px solid #555;
             padding-top: 1rem;
-            border-top: 1px solid var(--secondary-gray);
-            color: var(--secondary-gray);
-        }
-
-        /* Badge */
-        .badge {
-            background: var(--primary-red);
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 0.8rem;
-            margin-left: 5px;
-        }
-
-        /* Success/Error messages */
-        .message {
-            padding: 1rem;
-            border-radius: 5px;
-            margin: 1rem 0;
             text-align: center;
+            color: #ccc;
         }
 
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
         }
 
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--secondary-gray);
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            nav ul {
-                display: none;
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
             }
 
-            .mobile-menu-btn {
-                display: block;
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
             }
 
-            .grid-3 {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .about-grid {
                 grid-template-columns: 1fr;
             }
 
-            .grid-4 {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .header-content {
-                flex-wrap: wrap;
-            }
-
-            .user-actions {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-                margin-top: 1rem;
+            .categories-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
-    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header>
+    <!-- Header -->
+    <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="{% url 'core:home' %}" class="logo">ГЗЛиН</a>
-                <nav>
-                    <ul>
-                        <li><a href="{% url 'core:home' %}" class="nav-link">Главная</a></li>
-                        <li><a href="{% url 'company:about' %}" class="nav-link">О компании</a></li>
-                        <li><a href="{% url 'catalog:product_list' %}" class="nav-link">Продукция</a></li>
-                        <li><a href="{% url 'dealers:dealer_list' %}" class="nav-link">Дилеры</a></li>
-                        <li><a href="{% url 'core:contacts' %}" class="nav-link">Контакты</a></li>
-                    </ul>
-                </nav>
-                <div class="user-actions">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline">{{ user.get_short_name|default:user.email }}</a>
-                    {% else %}
-                        <a href="{% url 'accounts:login' %}" class="btn btn-outline">Войти</a>
-                    {% endif %}
-                    <a href="{% url 'orders:cart' %}" class="btn btn-primary">
-                        Корзина <span class="badge" id="cartCount">{{ cart.items_count|default:0 }}</span>
+                <a href="#" class="logo">ОАО "ГЗЛиН"</a>
+                <nav class="nav">
+                    <a href="#about">О компании</a>
+                    <a href="#products">Продукция</a>
+                    <a href="#dealers">Дилерские центры</a>
+                    <a href="#contacts">Контакты</a>
+                    <a href="#login" onclick="openModal('loginModal')">Личный кабинет</a>
+                    <a href="#cart" class="cart-link" onclick="openModal('cartModal')">
+                        🛒 Корзина
+                        <span class="cart-count" id="cartCount">0</span>
                     </a>
-                </div>
-                <button class="mobile-menu-btn">☰</button>
+                </nav>
             </div>
         </div>
     </header>
 
-    <main>
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-        
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer>
+    <!-- Hero Section -->
+    <section class="hero">
         <div class="container">
-            <div class="footer-content">
+            <h1>Гомельский завод литья и нормалей</h1>
+            <p>Ведущий производитель сельскохозяйственной техники в Республике Беларусь. Качество, надежность и инновации для вашего бизнеса.</p>
+            <a href="#products" class="btn btn-primary">Посмотреть продукцию</a>
+            <a href="#about" class="btn btn-outline">О компании</a>
+        </div>
+    </section>
+
+    <!-- Statistics -->
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">70+</div>
+                    <div>лет опыта</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">500+</div>
+                    <div>наименований продукции</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">15</div>
+                    <div>дилерских центров</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div>качество продукции</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section id="products" class="categories-section">
+        <div class="container">
+            <h2 class="section-title">Наша продукция</h2>
+            <div class="categories-grid">
+                <!-- Зерноуборочная техника -->
+                <div class="category-card" onclick="showCategory('zernouborochnaya')">
+                    <div class="category-image">🌾</div>
+                    <div class="category-content">
+                        <div class="category-title">Зерноуборочная техника</div>
+                        <div class="category-description">Жатки валковые, для зерновых культур, подсолнечника, сои, комплекты для уборки кукурузы и подборщики зерновые</div>
+                        <div class="category-meta">
+                            <div class="product-count">45+ товаров</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кормоуборочная техника -->
+                <div class="category-card" onclick="showCategory('kormoуборочная')">
+                    <div class="category-image">🚜</div>
+                    <div class="category-content">
+                        <div class="category-title">Кормоуборочная техника</div>
+                        <div class="category-description">Жатки для грубостебельных культур и трав, кормоуборочные комбайны, косилки и подборщики</div>
+                        <div class="category-meta">
+                            <div class="product-count">32+ товара</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Картофелеуборочная техника -->
+                <div class="category-card" onclick="showCategory('kartofel')">
+                    <div class="category-image">🥔</div>
+                    <div class="category-content">
+                        <div class="category-title">Картофелеуборочная техника</div>
+                        <div class="category-description">Комбайны и копатели для эффективной уборки картофеля различной производительности</div>
+                        <div class="category-meta">
+                            <div class="product-count">12+ товаров</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Метизная продукция -->
+                <div class="category-card" onclick="showCategory('metiz')">
+                    <div class="category-image">🔩</div>
+                    <div class="category-content">
+                        <div class="category-title">Метизная продукция</div>
+                        <div class="category-description">Болты, винты, гайки, заклепки, оси, шайбы пружинные и шпильки различных размеров и типов</div>
+                        <div class="category-meta">
+                            <div class="product-count">150+ товаров</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Бункеры-перегрузчики -->
+                <div class="category-card" onclick="showCategory('bunkery')">
+                    <div class="category-image">📦</div>
+                    <div class="category-content">
+                        <div class="category-title">Бункеры-перегрузчики</div>
+                        <div class="category-description">Прицепные и стационарные бункеры различной вместимости для перегрузки и хранения зерна</div>
+                        <div class="category-meta">
+                            <div class="product-count">8+ товаров</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Новинки -->
+                <div class="category-card" onclick="showCategory('novinki')">
+                    <div class="category-image">⭐</div>
+                    <div class="category-content">
+                        <div class="category-title">Новинки</div>
+                        <div class="category-description">Современные технологические решения: интеллектуальные жатки, роботизированные комбайны и системы точного земледелия</div>
+                        <div class="category-meta">
+                            <div class="product-count">6+ товаров</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-content">
+                    <h2>О компании</h2>
+                    <p>ОАО "Гомельский завод литья и нормалей" - ведущее предприятие Республики Беларусь по производству сельскохозяйственной техники и метизных изделий.</p>
+                    <p>Более 70 лет мы обеспечиваем аграрный сектор качественной и надежной техникой. Наша продукция соответствует международным стандартам качества и успешно эксплуатируется не только в Беларуси, но и в странах СНГ.</p>
+                    <div style="margin-top: 2rem;">
+                        <h3 style="color: var(--primary-red);">🌱 ЗАЩИТА ОКРУЖАЮЩЕЙ СРЕДЫ</h3>
+                        <p>Постоянный мониторинг выбросов и соблюдение экологических стандартов.</p>
+                        
+                        <h3 style="color: var(--primary-red);">🛡️ БЕЗОПАСНОСТЬ СОТРУДНИКОВ</h3>
+                        <p>Создание безопасных условий труда и обеспечение современными средствами защиты.</p>
+                        
+                        <h3 style="color: var(--primary-red);">📚 ОБРАЗОВАТЕЛЬНЫЕ ПРОЕКТЫ</h3>
+                        <p>Сотрудничество с учебными заведениями и поддержка молодых специалистов.</p>
+                    </div>
+                </div>
+                <div>
+                    <img src="https://images.unsplash.com/photo-1565008576765-4748b9de65df?w=500&h=300&fit=crop" alt="Завод ГЗЛиН" class="about-image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contacts Section -->
+    <section id="contacts" style="padding: 4rem 0;">
+        <div class="container">
+            <h2 class="section-title">Контакты</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+                <div>
+                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Основной офис</h3>
+                    <p><strong>Адрес:</strong> г. Гомель, пр. Космонавтов, 5</p>
+                    <p><strong>Телефон:</strong> +375 (232) 47-82-15</p>
+                    <p><strong>Email:</strong> info@gzlin.by</p>
+                    <p><strong>Время работы:</strong> Пн-Пт: 8:00-17:00</p>
+                </div>
+                <div style="background: var(--light-gray); padding: 2rem; border-radius: var(--radius); text-align: center;">
+                    <h4 style="color: var(--primary-red); margin-bottom: 1rem;">Схема проезда</h4>
+                    <div style="background: #ddd; height: 200px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: var(--secondary-gray);">
+                        Здесь будет Яндекс.Карта
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
                 <div class="footer-section">
-                    <h3>ОАО "ГЗЛиН"</h3>
-                    <p>Ведущий производитель литейных изделий и нормалей в Республике Беларусь с 1965 года.</p>
+                    <h3>О компании</h3>
+                    <ul>
+                        <li><a href="#about">Руководство</a></li>
+                        <li><a href="#about">Партнёры</a></li>
+                        <li><a href="#about">Реквизиты</a></li>
+                        <li><a href="#about">Кадровая политика</a></li>
+                        <li><a href="#about">Социальная политика</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Продукция</h3>
+                    <ul>
+                        <li><a href="#products">Зерноуборочная техника</a></li>
+                        <li><a href="#products">Кормоуборочная техника</a></li>
+                        <li><a href="#products">Картофелеуборочная техника</a></li>
+                        <li><a href="#products">Метизная продукция</a></li>
+                        <li><a href="#products">Новинки</a></li>
+                    </ul>
                 </div>
                 <div class="footer-section">
                     <h3>Контакты</h3>
-                    <a href="tel:+375232123456">+375 232 12-34-56</a>
-                    <a href="mailto:info@gomelzlin.by">info@gomelzlin.by</a>
-                    <p>г. Гомель, ул. Промышленная, 15</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Полезные ссылки</h3>
-                    <a href="{% url 'company:about' %}">О компании</a>
-                    <a href="{% url 'catalog:product_list' %}">Продукция</a>
-                    <a href="{% url 'dealers:dealer_list' %}">Дилерские центры</a>
-                    <a href="{% url 'core:contacts' %}">Контакты</a>
+                    <ul>
+                        <li>г. Гомель, пр. Космонавтов, 5</li>
+                        <li>+375 (232) 47-82-15</li>
+                        <li>info@gzlin.by</li>
+                        <li><a href="#dealers">Дилерские центры</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 ОАО "Гомельский завод литейных изделий и нормалей". Все права защищены.</p>
+                <p>&copy; 2025 ОАО "Гомельский завод литья и нормалей". Все права защищены.</p>
             </div>
         </div>
     </footer>
 
-    <script src="{% static 'js/cart.js' %}"></script>
-    {% block extra_js %}{% endblock %}
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('loginModal')">&times;</span>
+            <h2 style="color: var(--primary-red); margin-bottom: 1rem;">Вход в личный кабинет</h2>
+            <form>
+                <div style="margin-bottom: 1rem;">
+                    <label>Email:</label>
+                    <input type="email" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label>Пароль:</label>
+                    <input type="password" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 5px;">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Войти</button>
+            </form>
+            <p style="margin-top: 1rem; text-align: center;">
+                Нет аккаунта? <a href="#" style="color: var(--primary-red);">Зарегистрироваться</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('cartModal')">&times;</span>
+            <h2 style="color: var(--primary-red); margin-bottom: 1rem;">Корзина</h2>
+            <div id="cartItems">
+                <p style="text-align: center; color: var(--secondary-gray); padding: 2rem;">
+                    Корзина пуста<br>
+                    <small>Добавьте товары для оформления заказа</small>
+                </p>
+            </div>
+            <div style="border-top: 1px solid #eee; padding-top: 1rem; margin-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                    <span>Итого:</span>
+                    <span id="cartTotal">0 BYN</span>
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    Оформить заказ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cart functionality
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        function updateCartCount() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function updateCartTotal() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('cartTotal').textContent = total.toFixed(2) + ' BYN';
+        }
+
+        function addToCart(productId, name, price) {
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: productId,
+                    name: name,
+                    price: price,
+                    quantity: 1
+                });
+            }
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            updateCartTotal();
+            
+            // Show notification
+            showNotification(`${name} добавлен в корзину`);
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            updateCartTotal();
+            renderCartItems();
+        }
+
+        function renderCartItems() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <p style="text-align: center; color: var(--secondary-gray); padding: 2rem;">
+                        Корзина пуста<br>
+                        <small>Добавьте товары для оформления заказа</small>
+                    </p>
+                `;
+                return;
+            }
+
+            cartItemsContainer.innerHTML = cart.map(item => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid #eee;">
+                    <div>
+                        <div style="font-weight: bold;">${item.name}</div>
+                        <div style="color: var(--secondary-gray);">${item.price} BYN x ${item.quantity}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-weight: bold;">${(item.price * item.quantity).toFixed(2)} BYN</span>
+                        <button onclick="removeFromCart(${item.id})" style="background: none; border: none; color: var(--primary-red); cursor: pointer;">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showCategory(category) {
+            // В реальном проекте здесь будет переход на страницу категории
+            showNotification(`Открывается категория: ${category}`);
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--primary-red);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                z-index: 1001;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Modal functionality
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            if (modalId === 'cartModal') {
+                renderCartItems();
+                updateCartTotal();
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+
+        // Initialize
+        updateCartCount();
+        updateCartTotal();
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>

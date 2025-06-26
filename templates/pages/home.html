@@ -1,77 +1,251 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}ОАО "ГЗЛиН" - Главная{% endblock %}
+{% block title %}ОАО "Гомельский завод литья и нормалей"{% endblock %}
 
 {% block content %}
-<div style="background: linear-gradient(135deg, var(--primary-red), #e55550); color: white; padding: 4rem 0; text-align: center;">
+<!-- Hero Section -->
+<div style="background: linear-gradient(rgba(203, 65, 59, 0.9), rgba(203, 65, 59, 0.9)), 
+            url('https://images.unsplash.com/photo-1574193323276-1b9418dc59c8?w=1200&h=600&fit=crop') center/cover; 
+            color: white; padding: 6rem 0; text-align: center;">
     <div class="container">
-        <h1 style="font-size: 3rem; margin-bottom: 1rem;">ОАО "Гомельский завод литейных изделий и нормалей"</h1>
-        <p style="font-size: 1.2rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            Современные решения в области литейного производства и металлообработки. Качество, надежность и инновации с 1965 года.
+        <h1 style="font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+            Гомельский завод литья и нормалей
+        </h1>
+        <p style="font-size: 1.3rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto; opacity: 0.95;">
+            Ведущий производитель сельскохозяйственной техники в Республике Беларусь. 
+            Качество, надежность и инновации для вашего бизнеса.
         </p>
-        <a href="{% url 'company:about' %}" class="btn btn-outline" style="color: white; border-color: white;">Узнать больше</a>
+        <a href="{% url 'catalog:product_list' %}" class="btn btn-primary" style="margin: 0.5rem;">Посмотреть продукцию</a>
+        <a href="#about" class="btn btn-outline" style="margin: 0.5rem;">О компании</a>
     </div>
 </div>
 
-<div class="container" style="padding: 3rem 0;">
-    <h2 style="text-align: center; margin-bottom: 2rem;">Наши преимущества</h2>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🏭</div>
-            <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Современное производство</h3>
-            <p>Высокотехнологичное оборудование и передовые технологии литейного производства</p>
-        </div>
-        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🔬</div>
-            <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Контроль качества</h3>
-            <p>Строгий контроль качества на всех этапах производства и сертификация продукции</p>
-        </div>
-        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🚚</div>
-            <h3 style="color: var(--primary-red); margin-bottom: 1rem;">Быстрая доставка</h3>
-            <p>Развитая дилерская сеть и логистическая система по всей Беларуси</p>
-        </div>
-    </div>
-</div>
-
+<!-- Statistics Section -->
 <div style="background: var(--light-gray); padding: 3rem 0;">
     <div class="container">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Популярные категории</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-            <a href="{% url 'catalog:product_list' %}" style="text-decoration: none; color: inherit;">
-                <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s;">
-                    <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=200&fit=crop" 
-                         alt="Фитинги" style="width: 100%; height: 200px; object-fit: cover;">
-                    <div style="padding: 1.5rem;">
-                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Фитинги</h3>
-                        <p style="color: var(--secondary-gray); margin-bottom: 1rem;">156 товаров</p>
-                        <p>Широкий ассортимент фитингов для трубопроводов различного назначения</p>
-                    </div>
-                </div>
-            </a>
-            <a href="{% url 'catalog:product_list' %}" style="text-decoration: none; color: inherit;">
-                <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s;">
-                    <img src="https://images.unsplash.com/photo-1562577309-2592ab84b1bc?w=300&h=200&fit=crop" 
-                         alt="Арматура" style="width: 100%; height: 200px; object-fit: cover;">
-                    <div style="padding: 1.5rem;">
-                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Трубопроводная арматура</h3>
-                        <p style="color: var(--secondary-gray); margin-bottom: 1rem;">89 товаров</p>
-                        <p>Краны, вентили, задвижки и другая запорная арматура</p>
-                    </div>
-                </div>
-            </a>
-            <a href="{% url 'catalog:product_list' %}" style="text-decoration: none; color: inherit;">
-                <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); overflow: hidden; transition: transform 0.3s;">
-                    <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop" 
-                         alt="Литейные изделия" style="width: 100%; height: 200px; object-fit: cover;">
-                    <div style="padding: 1.5rem;">
-                        <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Литейные изделия</h3>
-                        <p style="color: var(--secondary-gray); margin-bottom: 1rem;">234 товара</p>
-                        <p>Отливки из различных сплавов по индивидуальным заказам</p>
-                    </div>
-                </div>
-            </a>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center;">
+            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); transition: var(--transition);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-red); margin-bottom: 0.5rem;">70+</div>
+                <div>лет опыта</div>
+            </div>
+            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); transition: var(--transition);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-red); margin-bottom: 0.5rem;">500+</div>
+                <div>наименований продукции</div>
+            </div>
+            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); transition: var(--transition);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-red); margin-bottom: 0.5rem;">15</div>
+                <div>дилерских центров</div>
+            </div>
+            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); transition: var(--transition);">
+                <div style="font-size: 2.5rem; font-weight: bold; color: var(--primary-red); margin-bottom: 0.5rem;">100%</div>
+                <div>качество продукции</div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Categories Section -->
+<div style="padding: 4rem 0;">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: var(--dark-gray);">Популярные категории</h2>
+        <div class="categories-grid">
+            {% for category in featured_categories %}
+            <a href="{{ category.get_absolute_url }}" style="text-decoration: none; color: inherit;">
+                <div class="category-card">
+                    <div class="category-image">
+                        {% if category.name == "Зерноуборочная техника" %}🌾
+                        {% elif category.name == "Кормоуборочная техника" %}🚜
+                        {% elif category.name == "Картофелеуборочная техника" %}🥔
+                        {% elif category.name == "Метизная продукция" %}🔩
+                        {% elif category.name == "Бункеры-перегрузчики" %}📦
+                        {% elif category.name == "Новинки" %}⭐
+                        {% elif category.name == "Прочая техника" %}⚙️
+                        {% else %}🏭
+                        {% endif %}
+                    </div>
+                    <div class="category-content">
+                        <div class="category-title">{{ category.name }}</div>
+                        <div class="category-description">
+                            {% if category.description %}
+                                {{ category.description|truncatewords:15 }}
+                            {% else %}
+                                {% if category.name == "Зерноуборочная техника" %}
+                                    Жатки валковые, для зерновых культур, подсолнечника, сои, комплекты для уборки кукурузы и подборщики зерновые
+                                {% elif category.name == "Кормоуборочная техника" %}
+                                    Жатки для грубостебельных культур и трав, кормоуборочные комбайны, косилки и подборщики
+                                {% elif category.name == "Картофелеуборочная техника" %}
+                                    Комбайны и копатели для эффективной уборки картофеля различной производительности
+                                {% elif category.name == "Метизная продукция" %}
+                                    Болты, винты, гайки, заклепки, оси, шайбы пружинные и шпильки различных размеров и типов
+                                {% elif category.name == "Бункеры-перегрузчики" %}
+                                    Прицепные и стационарные бункеры различной вместимости для перегрузки и хранения зерна
+                                {% elif category.name == "Новинки" %}
+                                    Современные технологические решения и инновационные разработки компании
+                                {% else %}
+                                    Качественная продукция от ОАО "ГЗЛиН"
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="category-meta">
+                            <div class="product-count">{{ category.product_count }}+ товаров</div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% empty %}
+            <!-- Fallback если категории не загружены -->
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
+                <p>Категории загружаются...</p>
+                <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Перейти к каталогу</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- About Section -->
+<section id="about" style="background: var(--light-gray); padding: 4rem 0;">
+    <div class="container">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+            <div>
+                <h2 style="color: var(--primary-red); margin-bottom: 1rem;">О компании</h2>
+                <p>ОАО "Гомельский завод литья и нормалей" - ведущее предприятие Республики Беларусь по производству сельскохозяйственной техники и метизных изделий.</p>
+                <p>Более 70 лет мы обеспечиваем аграрный сектор качественной и надежной техникой. Наша продукция соответствует международным стандартам качества и успешно эксплуатируется не только в Беларуси, но и в странах СНГ.</p>
+                
+                <div style="margin-top: 2rem;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="color: var(--primary-red);">🌱 ЗАЩИТА ОКРУЖАЮЩЕЙ СРЕДЫ</h3>
+                        <p>Постоянный мониторинг выбросов и соблюдение экологических стандартов.</p>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="color: var(--primary-red);">🛡️ ОБЕСПЕЧЕНИЕ БЕЗОПАСНОСТИ СОТРУДНИКОВ</h3>
+                        <p>Создание безопасных условий труда, регулярные инструктажи по технике безопасности, обеспечение современными средствами защиты.</p>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--primary-red);">📚 ОБРАЗОВАТЕЛЬНЫЕ ПРОЕКТЫ ОАО "ГЗЛиН"</h3>
+                <p>Сотрудничество с учебными заведениями, организация производственной практики для студентов, поддержка молодых специалистов.</p>
+
+                <div style="margin-top: 2rem;">
+                    <a href="{% url 'core:about' %}" class="btn btn-primary">Подробнее о компании</a>
+                </div>
+            </div>
+            <div>
+                <img src="https://images.unsplash.com/photo-1565008576765-4748b9de65df?w=500&h=300&fit=crop" alt="Завод ГЗЛиН" 
+                     style="border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; height: 300px; object-fit: cover;">
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2rem;">
+                    <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=300&h=200&fit=crop" alt="Экология" 
+                         style="border-radius: 10px; width: 100%; height: 120px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop" alt="Безопасность" 
+                         style="border-radius: 10px; width: 100%; height: 120px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=300&h=200&fit=crop" alt="Образование" 
+                         style="border-radius: 10px; width: 100%; height: 120px; object-fit: cover;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- News Section -->
+<section style="padding: 4rem 0;">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: var(--dark-gray);">Новости компании</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition);">
+                <img src="https://images.unsplash.com/photo-1625048815564-14ac8b56e65d?w=400&h=200&fit=crop" alt="Новости" 
+                     style="width: 100%; height: 200px; object-fit: cover;">
+                <div style="padding: 1.5rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Новая линейка жаток 2025</h3>
+                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">15 января 2025</p>
+                    <p>Представлена новая серия жаток с улучшенными характеристиками производительности и надежности.</p>
+                    <a href="#" style="color: var(--primary-red); font-weight: 600;">Читать далее →</a>
+                </div>
+            </div>
+            
+            <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition);">
+                <img src="https://images.unsplash.com/photo-1560472355-a9a8904389dd?w=400&h=200&fit=crop" alt="Новости" 
+                     style="width: 100%; height: 200px; object-fit: cover;">
+                <div style="padding: 1.5rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Открытие нового дилерского центра</h3>
+                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">10 января 2025</p>
+                    <p>В Витебске открылся новый дилерский центр ОАО "ГЗЛиН" для обслуживания северных регионов страны.</p>
+                    <a href="#" style="color: var(--primary-red); font-weight: 600;">Читать далее →</a>
+                </div>
+            </div>
+
+            <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition);">
+                <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=200&fit=crop" alt="Новости" 
+                     style="width: 100%; height: 200px; object-fit: cover;">
+                <div style="padding: 1.5rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Модернизация производства</h3>
+                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">5 января 2025</p>
+                    <p>Завершена модернизация литейного производства с установкой современного оборудования.</p>
+                    <a href="#" style="color: var(--primary-red); font-weight: 600;">Читать далее →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Специфичные стили для главной страницы */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: white;
+    color: var(--primary-red);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    text-decoration: none;
+    color: var(--primary-red);
+}
+
+.btn-outline {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-outline:hover {
+    background: white;
+    color: var(--primary-red);
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem !important;
+    }
+    
+    .hero p {
+        font-size: 1.1rem !important;
+    }
+    
+    .about-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .categories-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
 {% endblock %}

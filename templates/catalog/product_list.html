@@ -5,406 +5,317 @@
 
 {% block content %}
 <div class="container" style="padding: 2rem 0;">
-    <h1>Продукция</h1>
+    <!-- Хлебные крошки -->
+    <div style="margin-bottom: 2rem; color: var(--secondary-gray);">
+        <a href="{% url 'core:home' %}" style="color: var(--primary-red);">Главная</a> / 
+        <span>Каталог продукции</span>
+    </div>
+
+    <h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: var(--dark-gray);">Каталог продукции</h1>
     
-    <div class="product-nav">
-        <button class="category-btn active" onclick="showProductCategory('categories')">Категории</button>
-        <button class="category-btn" onclick="showProductCategory('fittings')">Фитинги</button>
-        <button class="category-btn" onclick="showProductCategory('valves')">Арматура</button>
-        <button class="category-btn" onclick="showProductCategory('castings')">Отливки</button>
+    <!-- Поиск -->
+    <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 3rem;">
+        <form method="GET" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <input type="text" name="search" placeholder="Поиск по названию или артикулу..." 
+                   value="{{ request.GET.search }}"
+                   style="flex: 1; min-width: 250px; padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius); font-size: 1rem;">
+            
+            <select name="category" style="padding: 0.75rem; border: 1px solid #ddd; border-radius: var(--radius); font-size: 1rem;">
+                <option value="">Все категории</option>
+                {% for category in all_categories %}
+                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn btn-primary">
+                🔍 Поиск
+            </button>
+            
+            {% if request.GET.search or request.GET.category %}
+            <a href="{% url 'catalog:product_list' %}" class="btn btn-outline">
+                Сбросить
+            </a>
+            {% endif %}
+        </form>
     </div>
 
-    <div id="product-categories" class="product-section active">
-        <div class="grid grid-3">
-            <div class="card" onclick="showProductCategory('fittings')">
-                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=200&fit=crop" alt="Фитинги">
-                <div class="card-content">
-                    <div class="card-title">Фитинги</div>
-                    <div class="card-subtitle">156 товаров</div>
-                    <p>Широкий ассортимент фитингов для трубопроводов различного назначения</p>
+    <!-- Основные категории -->
+    <div class="categories-grid">
+        {% for category in categories_with_counts %}
+        <a href="{{ category.absolute_url }}" style="text-decoration: none; color: inherit;">
+            <div class="category-card">
+                <div class="category-image">
+                    {% if category.name == "Зерноуборочная техника" %}🌾
+                    {% elif category.name == "Кормоуборочная техника" %}🚜
+                    {% elif category.name == "Картофелеуборочная техника" %}🥔
+                    {% elif category.name == "Метизная продукция" %}🔩
+                    {% elif category.name == "Бункеры-перегрузчики" %}📦
+                    {% elif category.name == "Новинки" %}⭐
+                    {% elif category.name == "Прочая техника" %}⚙️
+                    {% elif category.name == "Прочие товары, работы и услуги" %}📋
+                    {% elif category.name == "Режущие системы жаток" %}⚔️
+                    {% elif category.name == "Самоходные носилки" %}🚲
+                    {% else %}🏭
+                    {% endif %}
+                </div>
+                <div class="category-content">
+                    <div class="category-title">{{ category.name }}</div>
+                    <div class="category-description">
+                        {% if category.description %}
+                            {{ category.description|truncatewords:15 }}
+                        {% else %}
+                            {% if category.name == "Зерноуборочная техника" %}
+                                Жатки валковые навесные и прицепные, жатки для зерновых культур, подсолнечника, сои, комплекты для уборки кукурузы и подборщики зерновые
+                            {% elif category.name == "Кормоуборочная техника" %}
+                                Жатки для грубостебельных культур и трав, кормоуборочные комбайны, косилки, подборщики и самоходные комбайны
+                            {% elif category.name == "Картофелеуборочная техника" %}
+                                Картофелеуборочные комбайны и копатели для эффективной уборки картофеля различной производительности
+                            {% elif category.name == "Метизная продукция" %}
+                                Болты, винты, гайки, заклепки, оси, шайбы пружинные и шпильки различных размеров и стандартов
+                            {% elif category.name == "Бункеры-перегрузчики" %}
+                                Прицепные и стационарные бункеры различной вместимости для перегрузки и хранения зерна
+                            {% elif category.name == "Новинки" %}
+                                Современные технологические решения, интеллектуальные жатки и роботизированные системы
+                            {% elif category.name == "Прочая техника" %}
+                                Транспортеры, элеваторы, сепараторы и другое вспомогательное оборудование
+                            {% elif category.name == "Прочие товары, работы и услуги" %}
+                                Техническое обслуживание, ремонт, консультации и обучение операторов сельхозтехники
+                            {% elif category.name == "Режущие системы жаток" %}
+                                Ножи жатвенные, сегменты режущие, пальцы режущего аппарата и противорезы
+                            {% elif category.name == "Самоходные носилки" %}
+                                Самоходные носилки и тележки различной грузоподъемности для перевозки грузов
+                            {% else %}
+                                Качественная продукция от ОАО "ГЗЛиН"
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="category-meta">
+                        <div class="product-count">{{ category.total_products }} товаров</div>
+                    </div>
                 </div>
             </div>
-            <div class="card" onclick="showProductCategory('valves')">
-                <img src="https://images.unsplash.com/photo-1562577309-2592ab84b1bc?w=300&h=200&fit=crop" alt="Трубопроводная арматура">
-                <div class="card-content">
-                    <div class="card-title">Трубопроводная арматура</div>
-                    <div class="card-subtitle">89 товаров</div>
-                    <p>Краны, вентили, задвижки и другая запорная арматура</p>
-                </div>
-            </div>
-            <div class="card" onclick="showProductCategory('castings')">
-                <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop" alt="Литейные изделия">
-                <div class="card-content">
-                    <div class="card-title">Литейные изделия</div>
-                    <div class="card-subtitle">234 товара</div>
-                    <p>Отливки из различных сплавов по индивидуальным заказам</p>
-                </div>
+        </a>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--secondary-gray);">
+            <h3>Категории не найдены</h3>
+            <p>Попробуйте изменить параметры поиска или свяжитесь с нами для получения информации о продукции.</p>
+            <div style="margin-top: 2rem;">
+                <a href="{% url 'core:home' %}" class="btn btn-primary">На главную</a>
+                <a href="#contacts" class="btn btn-outline">Связаться с нами</a>
             </div>
         </div>
+        {% endfor %}
     </div>
 
-    <div id="product-fittings" class="product-section">
-        <div class="view-toggle">
-            <button class="view-btn active" onclick="toggleView('grid')">⊞</button>
-            <button class="view-btn" onclick="toggleView('list')">☰</button>
+    <!-- Популярные товары -->
+    {% if featured_products %}
+    <section style="margin-top: 4rem;">
+        <h2 style="text-align: center; font-size: 2rem; margin-bottom: 2rem; color: var(--dark-gray);">
+            Популярные товары
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+            {% for product in featured_products %}
+            <div class="product-card" onclick="location.href='{{ product.get_absolute_url }}'">
+                <div class="product-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                             style="width: 100%; height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div style="display: flex; align-items: center; justify-content: center; height: 200px; background: var(--light-gray); color: var(--secondary-gray); font-size: 3rem;">
+                            📦
+                        </div>
+                    {% endif %}
+                </div>
+                <div style="padding: 1.5rem;">
+                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem; font-size: 1.1rem;">{{ product.name }}</h3>
+                    {% if product.article %}
+                        <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Артикул: {{ product.article }}</p>
+                    {% endif %}
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                        <div>
+                            <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
+                                {{ product.price }} BYN
+                                {% if product.unit != 'pcs' %} / {{ product.get_unit_display }}{% endif %}
+                            </div>
+                            {% if product.old_price and product.old_price > product.price %}
+                                <div style="font-size: 0.9rem; color: var(--secondary-gray); text-decoration: line-through;">
+                                    {{ product.old_price }} BYN
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if user.is_authenticated %}
+                            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }})">
+                                В корзину
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Статус наличия -->
+                    <div style="margin-top: 0.5rem;">
+                        {% if product.is_in_stock %}
+                            <span style="color: #28a745; font-size: 0.9rem;">✓ В наличии</span>
+                            {% if product.stock_quantity <= product.min_stock_level %}
+                                <span style="color: #ffc107; font-size: 0.8rem;">(осталось мало)</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color: #dc3545; font-size: 0.9rem;">✗ Нет в наличии</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        
-        <div id="grid-view" class="grid grid-4">
-            <div class="card" onclick="showProduct('fitting-1')">
-                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=200&h=150&fit=crop" alt="Уголок 90°">
-                <div class="card-content">
-                    <div class="card-title">Уголок 90° Ду 50</div>
-                    <div class="card-subtitle">Артикул: УГ-50-90</div>
-                    <p>Цена: 25.50 BYN</p>
-                    <button class="btn btn-primary add-to-cart-btn" 
-                            data-product-id="1" 
-                            onclick="event.stopPropagation()" 
-                            style="width: 100%; margin-top: 0.5rem;">
-                        Заказать
-                    </button>
-                </div>
-            </div>
-            <div class="card" onclick="showProduct('fitting-2')">
-                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=200&h=150&fit=crop" alt="Тройник">
-                <div class="card-content">
-                    <div class="card-title">Тройник Ду 50</div>
-                    <div class="card-subtitle">Артикул: ТР-50</div>
-                    <p>Цена: 32.80 BYN</p>
-                    <button class="btn btn-primary add-to-cart-btn" 
-                            data-product-id="2" 
-                            onclick="event.stopPropagation()" 
-                            style="width: 100%; margin-top: 0.5rem;">
-                        Заказать
-                    </button>
-                </div>
-            </div>
-            <div class="card" onclick="showProduct('fitting-3')">
-                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=200&h=150&fit=crop" alt="Переходник">
-                <div class="card-content">
-                    <div class="card-title">Переходник Ду 50/32</div>
-                    <div class="card-subtitle">Артикул: ПР-50-32</div>
-                    <p>Цена: 18.20 BYN</p>
-                    <button class="btn btn-primary add-to-cart-btn" 
-                            data-product-id="3" 
-                            onclick="event.stopPropagation()" 
-                            style="width: 100%; margin-top: 0.5rem;">
-                        Заказать
-                    </button>
-                </div>
-            </div>
-        </div>
+    </section>
+    {% endif %}
 
-        <div id="list-view" class="product-list">
-            <div class="product-item" onclick="showProduct('fitting-1')">
-                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=80&h=80&fit=crop" alt="Уголок 90°">
-                <div>
-                    <div class="card-title">Уголок 90° Ду 50</div>
-                    <div class="card-subtitle">Артикул: УГ-50-90</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: bold;">25.50 BYN</div>
-                    <div style="font-size: 0.9rem; color: var(--secondary-gray);">В наличии</div>
-                </div>
+    <!-- Информация о заказе -->
+    <section style="background: var(--light-gray); padding: 3rem; border-radius: var(--radius); margin-top: 4rem; text-align: center;">
+        <h2 style="color: var(--primary-red); margin-bottom: 1rem;">Как сделать заказ?</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+            <div>
+                <div style="font-size: 2rem; color: var(--primary-red); margin-bottom: 0.5rem;">1️⃣</div>
+                <h3>Выберите товары</h3>
+                <p>Найдите нужную продукцию в каталоге и добавьте в корзину</p>
             </div>
-            <div class="product-item" onclick="showProduct('fitting-2')">
-                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=80&h=80&fit=crop" alt="Тройник">
-                <div>
-                    <div class="card-title">Тройник Ду 50</div>
-                    <div class="card-subtitle">Артикул: ТР-50</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: bold;">32.80 BYN</div>
-                    <div style="font-size: 0.9rem; color: var(--secondary-gray);">В наличии</div>
-                </div>
+            <div>
+                <div style="font-size: 2rem; color: var(--primary-red); margin-bottom: 0.5rem;">2️⃣</div>
+                <h3>Оформите заказ</h3>
+                <p>Заполните форму заказа с контактными данными</p>
+            </div>
+            <div>
+                <div style="font-size: 2rem; color: var(--primary-red); margin-bottom: 0.5rem;">3️⃣</div>
+                <h3>Получите товар</h3>
+                <p>Наш менеджер свяжется с вами для подтверждения и доставки</p>
             </div>
         </div>
-    </div>
-
-    <div id="product-valves" class="product-section">
-        <div class="grid grid-3">
-            <div class="card">
-                <img src="https://images.unsplash.com/photo-1562577309-2592ab84b1bc?w=300&h=200&fit=crop" alt="Кран шаровой">
-                <div class="card-content">
-                    <div class="card-title">Кран шаровой Ду 50</div>
-                    <div class="card-subtitle">Артикул: КШ-50</div>
-                    <p>Цена: 78.50 BYN</p>
-                    <button class="btn btn-primary add-to-cart-btn" 
-                            data-product-id="4" 
-                            style="width: 100%; margin-top: 0.5rem;">
-                        Заказать
-                    </button>
-                </div>
-            </div>
+        <div style="margin-top: 2rem;">
+            <a href="tel:+375232478215" class="btn btn-primary">Позвонить нам</a>
+            <a href="mailto:info@gzlin.by" class="btn btn-outline">Написать email</a>
         </div>
-    </div>
-
-    <div id="product-castings" class="product-section">
-        <div class="grid grid-3">
-            <div class="card">
-                <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=300&h=200&fit=crop" alt="Отливка">
-                <div class="card-content">
-                    <div class="card-title">Отливка по чертежу</div>
-                    <div class="card-subtitle">Индивидуальный заказ</div>
-                    <p>Цена: По запросу</p>
-                    <button class="btn btn-outline" style="width: 100%; margin-top: 0.5rem;">
-                        Запросить цену
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Product Modal -->
-<div id="productModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="productTitle">Товар</h2>
-            <button class="close-btn" onclick="closeModal('productModal')">&times;</button>
-        </div>
-        <div id="productContent">
-            <div id="productDetails"></div>
-        </div>
-    </div>
+    </section>
 </div>
 
 <style>
-/* Product section styles */
-.product-nav {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-}
-
-.category-btn {
-    padding: 0.7rem 1.5rem;
-    background: var(--light-gray);
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.category-btn.active, .category-btn:hover {
-    background: var(--primary-red);
-    color: white;
-}
-
-.product-section {
-    display: none;
-    animation: fadeIn 0.5s ease-in;
-}
-
-.product-section.active {
-    display: block;
-}
-
-/* View toggle */
-.view-toggle {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.view-btn {
-    padding: 0.5rem;
-    background: var(--light-gray);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.view-btn.active {
-    background: var(--primary-red);
-    color: white;
-}
-
-/* List view */
-.product-list {
-    display: none;
-}
-
-.product-list.active {
-    display: block;
-}
-
-.product-item {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--light-gray);
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.product-item:hover {
-    background-color: var(--light-gray);
-}
-
-.product-item img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-content {
+.product-card {
     background: white;
-    border-radius: 10px;
-    padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
     cursor: pointer;
-    color: var(--secondary-gray);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {
-    .product-nav {
+    .categories-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-form {
         flex-direction: column;
+    }
+    
+    .search-form input,
+    .search-form select {
+        width: 100%;
     }
 }
 </style>
 
 <script>
-// Product section
-function showProductCategory(categoryName) {
-    // Hide all product sections
-    document.querySelectorAll('.product-section').forEach(section => {
-        section.classList.remove('active');
+// Функция добавления товара в корзину
+function addToCart(productId, productName, productPrice) {
+    fetch('{% url "orders:add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `product_id=${productId}&quantity=1`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Обновляем счетчик корзины
+            updateCartCount(data.cart_count);
+            
+            // Показываем уведомление
+            showNotification(`${productName} добавлен в корзину`, 'success');
+        } else {
+            showNotification(data.message || 'Ошибка при добавлении товара', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Произошла ошибка при добавлении товара', 'error');
     });
-    
-    // Show target section
-    document.getElementById('product-' + categoryName).classList.add('active');
-    
-    // Update buttons
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    event.target.classList.add('active');
 }
 
-function toggleView(viewType) {
-    const gridView = document.getElementById('grid-view');
-    const listView = document.getElementById('list-view');
-    const viewBtns = document.querySelectorAll('.view-btn');
-    
-    if (viewType === 'grid') {
-        gridView.style.display = 'grid';
-        listView.classList.remove('active');
-        viewBtns[0].classList.add('active');
-        viewBtns[1].classList.remove('active');
-    } else {
-        gridView.style.display = 'none';
-        listView.classList.add('active');
-        viewBtns[0].classList.remove('active');
-        viewBtns[1].classList.add('active');
+// Функция обновления счетчика корзины
+function updateCartCount(count) {
+    const cartCountElement = document.getElementById('cartCount');
+    if (cartCountElement) {
+        cartCountElement.textContent = count;
     }
 }
 
-// Product details
-function showProduct(productId) {
-    const products = {
-        'fitting-1': {
-            name: 'Уголок 90° Ду 50',
-            article: 'УГ-50-90',
-            price: 25.50,
-            description: 'Чугунный уголок 90° с условным диаметром 50 мм. Предназначен для изменения направления трубопровода на 90 градусов.',
-            specifications: 'Материал: Чугун СЧ20\nДавление: до 1.6 МПа\nТемпература: до 200°C\nВес: 2.3 кг',
-            image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=300&fit=crop'
-        },
-        'fitting-2': {
-            name: 'Тройник Ду 50',
-            article: 'ТР-50',
-            price: 32.80,
-            description: 'Чугунный тройник с условным диаметром 50 мм. Используется для создания ответвлений в трубопроводных системах.',
-            specifications: 'Материал: Чугун СЧ20\nДавление: до 1.6 МПа\nТемпература: до 200°C\nВес: 3.1 кг',
-            image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=300&h=300&fit=crop'
-        }
-    };
-
-    const product = products[productId];
-    if (!product) return;
-
-    document.getElementById('productTitle').textContent = product.name;
-    document.getElementById('productDetails').innerHTML = `
-        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 2rem; margin-bottom: 2rem;">
-            <img src="${product.image}" alt="${product.name}" style="width: 100%; border-radius: 10px;">
-            <div>
-                <p><strong>Артикул:</strong> ${product.article}</p>
-                <p><strong>Цена:</strong> ${product.price} BYN</p>
-                <p style="margin: 1rem 0;">${product.description}</p>
-                <pre style="background: var(--light-gray); padding: 1rem; border-radius: 5px; white-space: pre-wrap;">${product.specifications}</pre>
-            </div>
-        </div>
-        <button class="btn btn-primary add-to-cart-btn" data-product-id="${productId}" style="width: 100%;">
-            Добавить в корзину
-        </button>
+// Функция показа уведомлений
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 2rem;
+        border-radius: var(--radius);
+        color: white;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+        max-width: 300px;
     `;
-
-    openModal('productModal');
+    
+    if (type === 'success') {
+        notification.style.background = '#28a745';
+    } else if (type === 'error') {
+        notification.style.background = '#dc3545';
+    } else {
+        notification.style.background = 'var(--primary-red)';
+    }
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
-// Modal functionality
-function openModal(modalId) {
-    document.getElementById(modalId).classList.add('active');
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    // Close modals when clicking outside
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.classList.remove('active');
-            }
-        });
-    });
-
-    // Initialize product section
-    document.querySelectorAll('.product-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    document.getElementById('product-categories').classList.add('active');
-});
+// Добавляем стили для анимации
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}

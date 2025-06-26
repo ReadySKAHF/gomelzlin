@@ -3,36 +3,12 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.contrib import messages
 from django.db.models import Q, Count, F
 from django.db import models
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from .models import Category, Product
-
-# Импортируем формы только если они существуют
-try:
-    from .forms import ProductSearchForm, QuickSearchForm, ProductFilterForm
-except ImportError:
-    # Создаем заглушки если форм нет
-    class ProductSearchForm:
-        def __init__(self, *args, **kwargs):
-            pass
-        def is_valid(self):
-            return False
-        def cleaned_data(self):
-            return {}
-    
-    class QuickSearchForm:
-        def __init__(self, *args, **kwargs):
-            pass
-    
-    class ProductFilterForm:
-        def __init__(self, *args, **kwargs):
-            pass
-        def is_valid(self):
-            return False
-        def cleaned_data(self):
-            return {}
 
 
 class ProductListView(TemplateView):
@@ -47,7 +23,7 @@ class ProductListView(TemplateView):
         categories = Category.objects.filter(
             parent__isnull=True,
             is_active=True
-        ).prefetch_related('children', 'products')
+        ).prefetch_related('children', 'products').order_by('sort_order', 'name')
         
         categories_with_counts = []
         for category in categories:
@@ -62,157 +38,126 @@ class ProductListView(TemplateView):
                 # Безопасное получение URL
                 absolute_url = category.get_absolute_url()
             except:
-                # Если не удается создать URL, пропускаем категорию
-                continue
+                # Если не удается создать URL, используем заглушку
+                absolute_url = '#'
             
             categories_with_counts.append({
                 'id': category.id,
                 'name': category.name,
                 'description': category.description,
                 'slug': category.slug,
-                'product_count': total_products,
-                'image': category.image.url if category.image else None,
+                'absolute_url': absolute_url,
+                'total_products': total_products,
                 'is_featured': category.is_featured,
-                'get_absolute_url': absolute_url
+                'sort_order': category.sort_order
             })
         
-        context['categories'] = categories_with_counts
+        context['categories_with_counts'] = categories_with_counts
         
-        # Остальной код остается без изменений...
-        # Рекомендуемые товары
-        try:
-            featured_products = Product.objects.filter(
-                is_active=True,
-                is_published=True,
-                is_featured=True
-            ).select_related('category')[:8]
-            context['featured_products'] = featured_products
-        except:
-            context['featured_products'] = []
+        # Получаем все категории для фильтра поиска
+        context['all_categories'] = Category.objects.filter(
+            is_active=True
+        ).order_by('name')
         
-        # Новинки
-        try:
-            new_products = Product.objects.filter(
-                is_active=True,
-                is_published=True
-            ).select_related('category').order_by('-created_at')[:6]
-            context['new_products'] = new_products
-        except:
-            context['new_products'] = []
-        
-        # Форма быстрого поиска
-        context['quick_search_form'] = QuickSearchForm()
+        # Получаем популярные товары
+        context['featured_products'] = Product.objects.filter(
+            is_active=True,
+            is_published=True,
+            is_featured=True
+        ).select_related('category')[:6]
         
         return context
     
     def count_products_in_category(self, category):
         """Подсчитывает количество товаров в категории и всех её подкатегориях"""
-        try:
-            count = category.products.filter(is_active=True, is_published=True).count()
-            
-            # Добавляем товары из подкатегорий
-            for child in category.children.filter(is_active=True):
-                count += self.count_products_in_category(child)
-            
-            return count
-        except:
-            return 0
+        count = category.products.filter(is_active=True, is_published=True).count()
+        
+        # Добавляем товары из подкатегорий
+        for child in category.children.filter(is_active=True):
+            count += self.count_products_in_category(child)
+        
+        return count
 
 
 class CategoryDetailView(TemplateView):
-    """Детальная страница категории с фильтрацией"""
-    template_name = 'catalog/category_detail.html'
+    """Детальная страница категории с подкатегориями или товарами"""
+    template_name = 'catalog/category_list.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        slug = kwargs.get('slug')
         
-        # Получаем категорию
-        category = get_object_or_404(Category, slug=slug, is_active=True)
+        # Получаем категорию по slug
+        category = get_object_or_404(
+            Category.objects.prefetch_related('children', 'products'),
+            slug=kwargs['slug'],
+            is_active=True
+        )
+        
         context['category'] = category
         context['title'] = category.name
         
-        # Если у категории есть подкатегории, показываем их
-        if category.children.filter(is_active=True).exists():
-            subcategories = category.children.filter(is_active=True)
-            subcategories_with_counts = []
+        # Определяем, показывать подкатегории или товары
+        has_subcategories = category.children.filter(is_active=True).exists()
+        
+        if has_subcategories:
+            # Показываем подкатегории
+            context['show_subcategories'] = True
+            subcategories = []
             
-            for subcategory in subcategories:
-                try:
-                    product_count = subcategory.products.filter(
-                        is_active=True, 
-                        is_published=True
-                    ).count()
-                except:
-                    product_count = 0
-                    
-                subcategories_with_counts.append({
+            for subcategory in category.children.filter(is_active=True).order_by('sort_order', 'name'):
+                product_count = subcategory.products.filter(is_active=True, is_published=True).count()
+                subcategories.append({
                     'id': subcategory.id,
                     'name': subcategory.name,
                     'description': subcategory.description,
                     'slug': subcategory.slug,
+                    'image': subcategory.image if subcategory.image else None,
                     'product_count': product_count,
-                    'image': subcategory.image.url if subcategory.image else None,
-                    'get_absolute_url': subcategory.get_absolute_url()
+                    'get_absolute_url': subcategory.get_absolute_url() if subcategory.slug else '#'
                 })
             
-            context['subcategories'] = subcategories_with_counts
-            context['show_subcategories'] = True
+            context['subcategories'] = subcategories
         else:
-            # Показываем товары категории с фильтрацией
-            filter_form = ProductFilterForm(self.request.GET)
-            try:
-                products_queryset = category.products.filter(
-                    is_active=True, 
-                    is_published=True
-                )
-            except:
-                products_queryset = Product.objects.none()
+            # Показываем товары
+            context['show_subcategories'] = False
             
-            # Применяем фильтры
-            if filter_form.is_valid():
-                price_from = filter_form.cleaned_data.get('price_from')
-                if price_from:
-                    products_queryset = products_queryset.filter(price__gte=price_from)
-                
-                price_to = filter_form.cleaned_data.get('price_to')
-                if price_to:
-                    products_queryset = products_queryset.filter(price__lte=price_to)
-                
-                in_stock = filter_form.cleaned_data.get('in_stock')
-                if in_stock:
-                    products_queryset = products_queryset.filter(stock_quantity__gt=0)
-                
-                sort = filter_form.cleaned_data.get('sort')
-                if sort:
-                    products_queryset = products_queryset.order_by(sort)
-                else:
-                    products_queryset = products_queryset.order_by('name')
-            else:
-                products_queryset = products_queryset.order_by('name')
+            # Получаем товары с фильтрацией и пагинацией
+            products = category.products.filter(
+                is_active=True,
+                is_published=True
+            ).select_related('category').order_by('name')
+            
+            # Поиск по товарам в категории
+            search_query = self.request.GET.get('search', '').strip()
+            if search_query:
+                products = products.filter(
+                    Q(name__icontains=search_query) |
+                    Q(article__icontains=search_query) |
+                    Q(description__icontains=search_query)
+                )
+            
+            # Сортировка товаров
+            sort_by = self.request.GET.get('sort', 'name')
+            if sort_by == 'price_asc':
+                products = products.order_by('price')
+            elif sort_by == 'price_desc':
+                products = products.order_by('-price')
+            elif sort_by == 'name_desc':
+                products = products.order_by('-name')
+            else:  # name_asc или по умолчанию
+                products = products.order_by('name')
             
             # Пагинация
-            paginator = Paginator(products_queryset, 12)
+            paginator = Paginator(products, 12)  # 12 товаров на страницу
             page_number = self.request.GET.get('page')
-            products = paginator.get_page(page_number)
+            page_obj = paginator.get_page(page_number)
             
-            context['products'] = products
-            context['filter_form'] = filter_form
-            context['show_subcategories'] = False
-            context['total_products'] = products_queryset.count()
-        
-        # Хлебные крошки
-        breadcrumbs = []
-        if category.parent:
-            breadcrumbs.append({
-                'name': category.parent.name,
-                'url': category.parent.get_absolute_url()
-            })
-        breadcrumbs.append({
-            'name': category.name,
-            'url': None  # Текущая страница
-        })
-        context['breadcrumbs'] = breadcrumbs
+            context['products'] = page_obj
+            context['search_query'] = search_query
+            context['current_sort'] = sort_by
+            
+            # Параметры отображения (плитки или список)
+            context['view_mode'] = self.request.GET.get('view', 'grid')  # grid или list
         
         return context
 
@@ -222,196 +167,219 @@ class ProductDetailView(DetailView):
     model = Product
     template_name = 'catalog/product_detail.html'
     context_object_name = 'product'
-    slug_field = 'slug'
-    slug_url_kwarg = 'slug'
     
     def get_queryset(self):
-        return Product.objects.filter(is_active=True, is_published=True)
+        return Product.objects.filter(
+            is_active=True,
+            is_published=True
+        ).select_related('category')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        product = self.get_object()
-        context['title'] = product.name
+        context['title'] = self.object.name
         
-        # Увеличиваем счетчик просмотров
-        try:
-            Product.objects.filter(id=product.id).update(
-                views_count=F('views_count') + 1
-            )
-        except:
-            pass
+        # Похожие товары из той же категории
+        related_products = Product.objects.filter(
+            category=self.object.category,
+            is_active=True,
+            is_published=True
+        ).exclude(
+            id=self.object.id
+        ).select_related('category')[:4]
         
-        # Получаем похожие товары из той же категории
-        try:
-            related_products = Product.objects.filter(
-                category=product.category,
-                is_active=True,
-                is_published=True
-            ).exclude(id=product.id)[:4]
-            context['related_products'] = related_products
-        except:
-            context['related_products'] = []
+        context['related_products'] = related_products
         
         return context
 
 
 class ProductSearchView(ListView):
-    """Расширенный поиск товаров"""
+    """Поиск товаров"""
     model = Product
-    template_name = 'catalog/product_search.html'
+    template_name = 'catalog/search_results.html'
     context_object_name = 'products'
     paginate_by = 12
     
     def get_queryset(self):
-        form = ProductSearchForm(self.request.GET)
-        queryset = Product.objects.filter(is_active=True, is_published=True)
+        queryset = Product.objects.filter(
+            is_active=True,
+            is_published=True
+        ).select_related('category')
         
-        if form.is_valid():
-            # Поиск по тексту
-            query = form.cleaned_data.get('q')
-            if query:
-                queryset = queryset.filter(
-                    Q(name__icontains=query) |
-                    Q(description__icontains=query) |
-                    Q(short_description__icontains=query) |
-                    Q(article__icontains=query)
-                )
-            
-            # Фильтр по категории
-            category = form.cleaned_data.get('category')
-            if category:
+        # Поисковый запрос
+        search_query = self.request.GET.get('search', '').strip()
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query) |
+                Q(article__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(category__name__icontains=search_query)
+            )
+        
+        # Фильтр по категории
+        category_id = self.request.GET.get('category')
+        if category_id:
+            try:
+                category = Category.objects.get(id=category_id, is_active=True)
                 # Включаем товары из подкатегорий
                 category_ids = [category.id]
-                try:
-                    category_ids.extend(
-                        category.children.filter(is_active=True).values_list('id', flat=True)
-                    )
-                except:
-                    pass
-                queryset = queryset.filter(category_id__in=category_ids)
-            
-            # Фильтр по подкатегории
-            subcategory = form.cleaned_data.get('subcategory')
-            if subcategory:
-                queryset = queryset.filter(category=subcategory)
-            
-            # Фильтр по цене
-            price_from = form.cleaned_data.get('price_from')
-            if price_from:
-                queryset = queryset.filter(price__gte=price_from)
-            
-            price_to = form.cleaned_data.get('price_to')
-            if price_to:
-                queryset = queryset.filter(price__lte=price_to)
-            
-            # Фильтр наличия на складе
-            in_stock = form.cleaned_data.get('in_stock')
-            if in_stock:
-                queryset = queryset.filter(stock_quantity__gt=0)
-            
-            # Фильтр рекомендуемых
-            featured = form.cleaned_data.get('featured')
-            if featured:
-                queryset = queryset.filter(is_featured=True)
-            
-            # Сортировка
-            sort = form.cleaned_data.get('sort')
-            if sort:
-                queryset = queryset.order_by(sort)
-            else:
-                queryset = queryset.order_by('name')
+                category_ids.extend(
+                    category.children.filter(is_active=True).values_list('id', flat=True)
+                )
+                queryset = queryset.filter(category__id__in=category_ids)
+            except (Category.DoesNotExist, ValueError):
+                pass
         
-        return queryset.select_related('category')
+        # Фильтр по цене
+        min_price = self.request.GET.get('min_price')
+        max_price = self.request.GET.get('max_price')
+        
+        if min_price:
+            try:
+                queryset = queryset.filter(price__gte=float(min_price))
+            except ValueError:
+                pass
+        
+        if max_price:
+            try:
+                queryset = queryset.filter(price__lte=float(max_price))
+            except ValueError:
+                pass
+        
+        # Сортировка
+        sort_by = self.request.GET.get('sort', 'name')
+        if sort_by == 'price_asc':
+            queryset = queryset.order_by('price')
+        elif sort_by == 'price_desc':
+            queryset = queryset.order_by('-price')
+        elif sort_by == 'name_desc':
+            queryset = queryset.order_by('-name')
+        else:
+            queryset = queryset.order_by('name')
+        
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Поиск товаров'
-        context['search_form'] = ProductSearchForm(self.request.GET)
-        context['total_found'] = self.get_queryset().count()
+        
+        search_query = self.request.GET.get('search', '').strip()
+        context['search_query'] = search_query
+        context['title'] = f'Поиск: {search_query}' if search_query else 'Поиск товаров'
+        
+        # Параметры для формы поиска
+        context['selected_category'] = self.request.GET.get('category', '')
+        context['min_price'] = self.request.GET.get('min_price', '')
+        context['max_price'] = self.request.GET.get('max_price', '')
+        context['current_sort'] = self.request.GET.get('sort', 'name')
+        context['view_mode'] = self.request.GET.get('view', 'grid')
+        
+        # Все категории для фильтра
+        context['all_categories'] = Category.objects.filter(
+            is_active=True
+        ).order_by('name')
         
         # Статистика поиска
-        query = self.request.GET.get('q', '')
-        if query:
-            context['search_query'] = query
+        total_results = context['paginator'].count if context.get('paginator') else 0
+        context['total_results'] = total_results
         
         return context
 
 
-def ajax_subcategories(request):
-    """AJAX для получения подкатегорий"""
-    category_id = request.GET.get('category_id')
-    subcategories = []
-    
-    if category_id:
-        try:
-            category = Category.objects.get(id=category_id, is_active=True)
-            subcategories = list(
-                category.children.filter(is_active=True)
-                .values('id', 'name')
-                .order_by('name')
-            )
-        except Category.DoesNotExist:
-            pass
-    
-    return JsonResponse({'subcategories': subcategories})
+# Дополнительные view-функции для AJAX-запросов
+
+def category_products_ajax(request, category_id):
+    """AJAX-получение товаров категории"""
+    try:
+        category = Category.objects.get(id=category_id, is_active=True)
+        products = category.products.filter(
+            is_active=True,
+            is_published=True
+        ).values('id', 'name', 'price', 'article')[:10]
+        
+        return JsonResponse({
+            'success': True,
+            'products': list(products),
+            'category_name': category.name
+        })
+    except Category.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Категория не найдена'
+        })
 
 
-def ajax_search_suggestions(request):
-    """AJAX для автокомплита поиска"""
+def quick_search_ajax(request):
+    """Быстрый поиск для автокомплита"""
     query = request.GET.get('q', '').strip()
-    suggestions = []
     
-    if len(query) >= 2:
-        try:
-            # Поиск по названиям товаров
-            products = Product.objects.filter(
-                Q(name__icontains=query) | Q(article__icontains=query),
-                is_active=True,
-                is_published=True
-            )[:10]
-            
-            suggestions = [
-                {
-                    'label': product.name,
-                    'value': product.name,
-                    'url': product.get_absolute_url(),
-                    'category': product.category.name,
-                    'price': str(product.price)
-                }
-                for product in products
-            ]
-        except:
-            pass
+    if len(query) < 2:
+        return JsonResponse({'results': []})
     
-    return JsonResponse({'suggestions': suggestions})
-
-
-def quick_search_view(request):
-    """Быстрый поиск для AJAX запросов"""
-    form = QuickSearchForm(request.GET)
-    results = []
+    # Поиск товаров
+    products = Product.objects.filter(
+        Q(name__icontains=query) | Q(article__icontains=query),
+        is_active=True,
+        is_published=True
+    ).values('id', 'name', 'article', 'price')[:10]
     
-    if form.is_valid() and form.cleaned_data.get('q'):
-        query = form.cleaned_data['q']
-        try:
-            products = Product.objects.filter(
-                Q(name__icontains=query) |
-                Q(article__icontains=query),
-                is_active=True,
-                is_published=True
-            ).select_related('category')[:5]
-            
-            results = [
-                {
-                    'name': product.name,
-                    'url': product.get_absolute_url(),
-                    'category': product.category.name,
-                    'price': str(product.price),
-                    'article': product.article
-                }
-                for product in products
-            ]
-        except:
-            pass
+    # Поиск категорий
+    categories = Category.objects.filter(
+        name__icontains=query,
+        is_active=True
+    ).values('id', 'name', 'slug')[:5]
+    
+    results = {
+        'products': list(products),
+        'categories': list(categories)
+    }
     
     return JsonResponse({'results': results})
+
+
+# Представления для главной страницы
+
+class HomeView(TemplateView):
+    """Главная страница с категориями"""
+    template_name = 'pages/home.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Популярные категории для главной страницы
+        featured_categories = []
+        categories = Category.objects.filter(
+            parent__isnull=True,
+            is_active=True,
+            is_featured=True
+        ).order_by('sort_order', 'name')[:6]  # Показываем только 6 основных
+        
+        for category in categories:
+            if category.slug:  # Только категории с валидным slug
+                product_count = self.count_products_in_category(category)
+                featured_categories.append({
+                    'id': category.id,
+                    'name': category.name,
+                    'description': category.description,
+                    'get_absolute_url': category.get_absolute_url(),
+                    'product_count': product_count
+                })
+        
+        context['featured_categories'] = featured_categories
+        
+        # Популярные товары
+        context['featured_products'] = Product.objects.filter(
+            is_active=True,
+            is_published=True,
+            is_featured=True
+        ).select_related('category')[:4]
+        
+        return context
+    
+    def count_products_in_category(self, category):
+        """Подсчитывает количество товаров в категории и всех её подкатегориях"""
+        count = category.products.filter(is_active=True, is_published=True).count()
+        
+        # Добавляем товары из подкатегорий
+        for child in category.children.filter(is_active=True):
+            count += self.count_products_in_category(child)
+        
+        return count
