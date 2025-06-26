@@ -43,6 +43,7 @@ class ProductListView(TemplateView):
                 'absolute_url': category.get_absolute_url() if hasattr(category, 'get_absolute_url') else f'/catalog/category/{category.slug}/',
             })
         
+        # ИСПРАВЛЕНО: Завершаем присвоение categories
         context['categories'] = categories_with_counts
         
         # Получаем рекомендуемые товары
@@ -125,6 +126,10 @@ class CategoryDetailView(TemplateView):
                 })
             context['subcategories_with_counts'] = subcategories_with_counts
             
+            # Добавляем тип отображения (плитка/список)
+            view_type = self.request.GET.get('view', 'grid')
+            context['view_type'] = view_type
+            
         except Category.DoesNotExist:
             context['category'] = None
             context['error'] = 'Категория не найдена'
@@ -153,15 +158,22 @@ class ProductDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        product = self.get_object()
+        context['title'] = product.name
         
-        # Похожие товары из той же категории
-        related_products = Product.objects.filter(
-            category=self.object.category,
+        # Получаем похожие товары из той же категории
+        similar_products = Product.objects.filter(
+            category=product.category,
             is_active=True,
             is_published=True
-        ).exclude(id=self.object.id)[:4]
+        ).exclude(id=product.id).select_related('category')[:4]
         
-        context['related_products'] = related_products
+        context['similar_products'] = similar_products
+        
+        # Проверяем, есть ли изображения
+        if hasattr(product, 'images'):
+            context['product_images'] = product.images.filter(is_active=True).order_by('sort_order')
+        
         return context
 
 
@@ -170,48 +182,67 @@ class ProductSearchView(ListView):
     model = Product
     template_name = 'catalog/product_search.html'
     context_object_name = 'products'
-    paginate_by = 12
+    paginate_by = 20
     
     def get_queryset(self):
-        query = self.request.GET.get('q')
-        if query:
-            return Product.objects.filter(
-                Q(name__icontains=query) | 
-                Q(description__icontains=query) |
-                Q(article__icontains=query),
-                is_active=True,
-                is_published=True
-            ).select_related('category')
-        return Product.objects.none()
+        query = self.request.GET.get('q', '').strip()
+        
+        if not query:
+            return Product.objects.none()
+        
+        # Поиск по названию, описанию и артикулу
+        queryset = Product.objects.filter(
+            Q(name__icontains=query) |
+            Q(short_description__icontains=query) |
+            Q(description__icontains=query) |
+            Q(article__icontains=query),
+            is_active=True,
+            is_published=True
+        ).select_related('category').distinct()
+        
+        # Сортировка по релевантности
+        queryset = queryset.order_by('-is_featured', 'name')
+        
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['query'] = self.request.GET.get('q', '')
-        context['title'] = f'Поиск: {context["query"]}'
+        query = self.request.GET.get('q', '').strip()
+        context['query'] = query
+        context['title'] = f'Поиск: {query}' if query else 'Поиск товаров'
+        
+        # Добавляем тип отображения
+        view_type = self.request.GET.get('view', 'grid')
+        context['view_type'] = view_type
+        
         return context
 
 
 def quick_search_ajax(request):
-    """AJAX поиск для быстрого поиска"""
-    query = request.GET.get('q', '')
-    results = []
+    """AJAX поиск для автокомплита"""
+    query = request.GET.get('q', '').strip()
     
-    if len(query) >= 2:
-        products = Product.objects.filter(
-            Q(name__icontains=query) | Q(article__icontains=query),
-            is_active=True,
-            is_published=True
-        ).select_related('category')[:5]
-        
-        for product in products:
-            results.append({
-                'id': product.id,
-                'name': product.name,
-                'article': product.article,
-                'price': str(product.price),
-                'url': product.get_absolute_url(),
-                'image': product.image.url if product.image else None
-            })
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    products = Product.objects.filter(
+        Q(name__icontains=query) |
+        Q(article__icontains=query),
+        is_active=True,
+        is_published=True
+    ).select_related('category')[:10]
+    
+    results = []
+    for product in products:
+        results.append({
+            'id': product.id,
+            'name': product.name,
+            'article': product.article,
+            'price': str(product.price),
+            'category': product.category.name if product.category else '',
+            'url': product.get_absolute_url() if hasattr(product, 'get_absolute_url') else f'/catalog/product/{product.slug}/',
+            'image': product.image.url if hasattr(product, 'image') and product.image else None
+        })
     
     return JsonResponse({'results': results})
 

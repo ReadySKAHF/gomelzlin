@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -338,7 +339,7 @@ class Product(AbstractBaseModel, SeoModel):
     class Meta:
         verbose_name = _('Товар')
         verbose_name_plural = _('Товары')
-        ordering = ['-created_at']
+        ordering = ['-created_at', 'name']
         indexes = [
             models.Index(fields=['category', 'is_active', 'is_published']),
             models.Index(fields=['article']),
@@ -351,12 +352,63 @@ class Product(AbstractBaseModel, SeoModel):
         return f'{self.name} ({self.article})'
     
     def save(self, *args, **kwargs):
+        # Автогенерация slug, если не задан
         if not self.slug:
-            self.slug = slugify(f'{self.name}-{self.article}')
+            base_slug = slugify(self.name) if self.name else 'product'
+            slug = base_slug
+            counter = 1
+            
+            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            self.slug = slug
+        
+        # Автогенерация артикула, если не задан
+        if not self.article:
+            # Генерируем артикул на основе категории и ID
+            category_prefix = self.category.name[:3].upper() if self.category else 'PRD'
+            self.article = f"{category_prefix}-{timezone.now().strftime('%Y%m%d')}-{self.pk or 1}"
+        
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
-        return reverse('catalog:product_detail', kwargs={'slug': self.slug})
+        """Возвращает URL товара"""
+        try:
+            from django.urls import reverse
+            if self.slug:
+                return reverse('catalog:product_detail', kwargs={'slug': self.slug})
+            else:
+                return '#'
+        except Exception as e:
+            print(f"Ошибка в get_absolute_url для товара {self.name}: {e}")
+            return '#'
+    
+    def get_main_image(self):
+        """Возвращает главное изображение товара"""
+        if hasattr(self, 'images'):
+            main_image = self.images.filter(is_active=True).order_by('sort_order').first()
+            return main_image.image if main_image else None
+        return getattr(self, 'image', None)
+
+    def get_stock_status(self):
+        """Возвращает статус наличия товара"""
+        if self.stock_quantity <= 0:
+            return 'out_of_stock'
+        elif self.stock_quantity <= self.min_stock_level:
+            return 'low_stock'
+        else:
+            return 'in_stock'
+
+    def get_stock_status_display(self):
+        """Возвращает текстовое описание статуса наличия"""
+        status = self.get_stock_status()
+        status_map = {
+            'in_stock': 'В наличии',
+            'low_stock': 'Мало на складе',
+            'out_of_stock': 'Нет в наличии'
+        }
+        return status_map.get(status, 'Неизвестно')
     
     @property
     def is_in_stock(self):
@@ -366,7 +418,7 @@ class Product(AbstractBaseModel, SeoModel):
     @property
     def is_low_stock(self):
         """Проверяет низкий остаток товара"""
-        return self.stock_quantity <= self.min_stock_level
+        return 0 < self.stock_quantity <= self.min_stock_level
     
     @property
     def discount_percentage(self):
