@@ -1,12 +1,154 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView
 
+from django.shortcuts import render
+from django.views.generic import TemplateView
+
+from django.shortcuts import render
+from django.views.generic import TemplateView
+
 class AboutView(TemplateView):
     template_name = 'company/about.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'О компании'
+        # Добавляем данные партнёров
+        context['partners'] = [
+            {
+                'name': 'ОАО "БЕЛАЗ"',
+                'description': 'Ведущий производитель карьерной техники в мире',
+                'website': 'https://belaz.by',
+                'logo': 'images/partners/belaz.jpg'
+            },
+            {
+                'name': 'ОАО "МТЗ"',
+                'description': 'Минский тракторный завод - производитель сельхозтехники',
+                'website': 'https://mtz.by',
+                'logo': 'images/partners/mtz.jpg'
+            },
+            {
+                'name': 'ОАО "МАЗ"',
+                'description': 'Минский автомобильный завод',
+                'website': 'https://maz.by',
+                'logo': 'images/partners/maz.jpg'
+            }
+        ]
+        # Добавляем данные руководства для использования в шаблоне about.html
+        context['leaders'] = [
+            {
+                'name': 'Панфиленко Николай Николаевич',
+                'position': 'Директор общества',
+                'email': 'npanfilenko@gomelzlin.by',
+                'phone': '+375-232-59-61-31',
+                'photo': 'images/employees/panfilenko-nikolaj-nikolaevich.jpg'
+            },
+            {
+                'name': 'Черношей Сергей Григорьевич',
+                'position': 'Директор литейного производства',
+                'email': 'gchernoshei@gomelzlin.by',
+                'phone': '+375-232-14-63-47',
+                'photo': 'images/employees/chernoshej-sergej-grigorevich.jpg'
+            },
+            {
+                'name': 'Даниленко Евгений Леонидович',
+                'position': 'Заместитель директора по техническим вопросам',
+                'email': 'danilenko-el@gomelzlin.by',
+                'phone': '+375-232-59-67-00',
+                'photo': 'images/employees/danilenko-evgenij-leonidovich.jpg'
+            },
+            {
+                'name': 'Бойцов Леонид Леонидович',
+                'position': 'Заместитель директора по производству',
+                'email': 'llboycov@gomelzlin.by',
+                'phone': '+375-232-59-68-48',
+                'photo': 'images/employees/bojcov-leonid-leonidovich.jpg'
+            },
+            {
+                'name': 'Лозовой Андрей Николаевич',
+                'position': 'Заместитель директора по коммерческим вопросам',
+                'email': 'anlozovoy@gomelzlin.by',
+                'phone': '+375-232-85-72-01',
+                'photo': 'images/employees/lozovoj-andrej-nikolaevich.jpg'
+            },
+            {
+                'name': 'Тимошенко Андрей Михайлович',
+                'position': 'Заместитель директора по качеству',
+                'email': 'otk@gomelzlin.by',
+                'phone': '+375-232-59-60-83',
+                'photo': 'images/employees/timoshenko-andrej-mihajlovich.jpg'
+            },
+            {
+                'name': 'Станкевич Анатолий Иванович',
+                'position': 'Заместитель директора по идеологической работе и управлению персоналом',
+                'email': 'oir@gomelzlin.by',
+                'phone': '+375-232-59-61-79',
+                'photo': 'images/employees/stankevich-anatolij-ivanovich.jpg'
+            },
+            {
+                'name': 'Павлюкова Виктория Петровна',
+                'position': 'Начальник ОМТС',
+                'email': 'omts@gomelzlin.by',
+                'phone': '+375-232-59-62-33',
+                'photo': 'images/employees/pavlyukova-viktoriya-petrovna.jpg'
+            },
+            {
+                'name': 'Какора Надежда Адамовна',
+                'position': 'Главный экономист',
+                'email': 'kakora@gomelzlin.by',
+                'phone': '+375-232-59-68-77',
+                'photo': 'images/employees/kakora-nadezhda-adamovna.jpg'
+            },
+            {
+                'name': 'Камко Татьяна Михайловна',
+                'position': 'Главный бухгалтер',
+                'email': 'buh@gomelzlin.by',
+                'phone': '+375-232-59-69-64',
+                'photo': 'images/employees/kamko-tatsyana-mihajlovna.jpg'
+            },
+            {
+                'name': 'Мосензовенко Александр Викторович',
+                'position': 'Главный технолог',
+                'email': 'ogt@gomelzlin.by',
+                'phone': '+375-232-59-61-86',
+                'photo': 'images/employees/mosenzovenko-aleksandr-viktorovich.jpg'
+            },
+            {
+                'name': 'Гасымов Владислав Гисматович',
+                'position': 'Начальник отдела кадров',
+                'email': 'ok@gomelzlin.by',
+                'phone': '+375-232-59-67-97',
+                'photo': 'images/employees/gasymov-vladislav-gismatovich.jpg'
+            },
+            {
+                'name': 'Трашков Андрей Владимирович',
+                'position': 'Начальник отдела продаж',
+                'email': 'op@gomelzlin.by',
+                'phone': '+375-232-59-65-14',
+                'photo': 'images/employees/trashkov-andrej-vladimirovich.jpg'
+            },
+            {
+                'name': 'Швайба Екатерина Васильевна',
+                'position': 'Начальник центра маркетинговых коммуникаций',
+                'email': 'om@gomelzlin.by',
+                'phone': '+375-232-59-62-40',
+                'photo': 'images/employees/shvajba-ekaterina-vasilevna.jpg'
+            },
+            {
+                'name': 'Герасименко Юрий Валерьевич',
+                'position': 'Начальник транспортного управления',
+                'email': 'tto@gomelzlin.by',
+                'phone': '+375-232-59-60-80',
+                'photo': 'images/employees/gerasimenko-yurij-valerevich.jpg'
+            },
+            {
+                'name': 'Давыдова Тамара Николаевна',
+                'position': 'Начальник юридического отдела',
+                'email': 'tmdavidova@gomelzlin.by',
+                'phone': '+375-232-59-69-16',
+                'photo': 'images/employees/davydova-tamara-nikolaevna.jpg'
+            }
+        ]
         return context
 
 class LeadershipView(TemplateView):
@@ -17,25 +159,116 @@ class LeadershipView(TemplateView):
         context['title'] = 'Руководство'
         context['leaders'] = [
             {
-                'name': 'Иванов Иван Иванович',
-                'position': 'Генеральный директор',
-                'email': 'director@gomelzlin.by',
-                'phone': '+375 232 12-34-56',
-                'photo': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face'
+                'name': 'Панфиленко Николай Николаевич',
+                'position': 'Директор общества',
+                'email': 'npanfilenko@gomelzlin.by',
+                'phone': '+375-232-59-61-31',
+                'photo': 'images/employees/panfilenko-nikolaj-nikolaevich.jpg'
             },
             {
-                'name': 'Петрова Анна Сергеевна',
-                'position': 'Технический директор',
-                'email': 'tech@gomelzlin.by',
-                'phone': '+375 232 12-34-57',
-                'photo': 'https://images.unsplash.com/photo-1494790108755-2616b612b3e4?w=200&h=200&fit=crop&crop=face'
+                'name': 'Черношей Сергей Григорьевич',
+                'position': 'Директор литейного производства',
+                'email': 'gchernoshei@gomelzlin.by',
+                'phone': '+375-232-14-63-47',
+                'photo': 'images/employees/chernoshej-sergej-grigorevich.jpg'
             },
             {
-                'name': 'Сидоров Петр Алексеевич',
-                'position': 'Коммерческий директор',
-                'email': 'sales@gomelzlin.by',
-                'phone': '+375 232 12-34-58',
-                'photo': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face'
+                'name': 'Даниленко Евгений Леонидович',
+                'position': 'Заместитель директора по техническим вопросам',
+                'email': 'danilenko-el@gomelzlin.by',
+                'phone': '+375-232-59-67-00',
+                'photo': 'images/employees/danilenko-evgenij-leonidovich.jpg'
+            },
+            {
+                'name': 'Бойцов Леонид Леонидович',
+                'position': 'Заместитель директора по производству',
+                'email': 'llboycov@gomelzlin.by',
+                'phone': '+375-232-59-68-48',
+                'photo': 'images/employees/bojcov-leonid-leonidovich.jpg'
+            },
+            {
+                'name': 'Лозовой Андрей Николаевич',
+                'position': 'Заместитель директора по коммерческим вопросам',
+                'email': 'anlozovoy@gomelzlin.by',
+                'phone': '+375-232-85-72-01',
+                'photo': 'images/employees/lozovoj-andrej-nikolaevich.jpg'
+            },
+            {
+                'name': 'Тимошенко Андрей Михайлович',
+                'position': 'Заместитель директора по качеству',
+                'email': 'otk@gomelzlin.by',
+                'phone': '+375-232-59-60-83',
+                'photo': 'images/employees/timoshenko-andrej-mihajlovich.jpg'
+            },
+            {
+                'name': 'Станкевич Анатолий Иванович',
+                'position': 'Заместитель директора по идеологической работе и управлению персоналом',
+                'email': 'oir@gomelzlin.by',
+                'phone': '+375-232-59-61-79',
+                'photo': 'images/employees/stankevich-anatolij-ivanovich.jpg'
+            },
+            {
+                'name': 'Павлюкова Виктория Петровна',
+                'position': 'Начальник ОМТС',
+                'email': 'omts@gomelzlin.by',
+                'phone': '+375-232-59-62-33',
+                'photo': 'images/employees/pavlyukova-viktoriya-petrovna.jpg'
+            },
+            {
+                'name': 'Какора Надежда Адамовна',
+                'position': 'Главный экономист',
+                'email': 'kakora@gomelzlin.by',
+                'phone': '+375-232-59-68-77',
+                'photo': 'images/employees/kakora-nadezhda-adamovna.jpg'
+            },
+            {
+                'name': 'Камко Татьяна Михайловна',
+                'position': 'Главный бухгалтер',
+                'email': 'buh@gomelzlin.by',
+                'phone': '+375-232-59-69-64',
+                'photo': 'images/employees/kamko-tatsyana-mihajlovna.jpg'
+            },
+            {
+                'name': 'Мосензовенко Александр Викторович',
+                'position': 'Главный технолог',
+                'email': 'ogt@gomelzlin.by',
+                'phone': '+375-232-59-61-86',
+                'photo': 'images/employees/mosenzovenko-aleksandr-viktorovich.jpg'
+            },
+            {
+                'name': 'Гасымов Владислав Гисматович',
+                'position': 'Начальник отдела кадров',
+                'email': 'ok@gomelzlin.by',
+                'phone': '+375-232-59-67-97',
+                'photo': 'images/employees/gasymov-vladislav-gismatovich.jpg'
+            },
+            {
+                'name': 'Трашков Андрей Владимирович',
+                'position': 'Начальник отдела продаж',
+                'email': 'op@gomelzlin.by',
+                'phone': '+375-232-59-65-14',
+                'photo': 'images/employees/trashkov-andrej-vladimirovich.jpg'
+            },
+            {
+                'name': 'Швайба Екатерина Васильевна',
+                'position': 'Начальник центра маркетинговых коммуникаций',
+                'email': 'om@gomelzlin.by',
+                'phone': '+375-232-59-62-40',
+                'photo': 'images/employees/shvajba-ekaterina-vasilevna.jpg'
+            },
+            {
+                'name': 'Герасименко Юрий Валерьевич',
+                'position': 'Начальник транспортного управления',
+                'email': 'tto@gomelzlin.by',
+                'phone': '+375-232-59-60-80',
+                'photo': 'images/employees/gerasimenko-yurij-valerevich.jpg'
+            },
+            {
+                'name': 'Давыдова Тамара Николаевна',
+                'position': 'Начальник юридического отдела',
+                'email': 'tmdavidova@gomelzlin.by',
+                'phone': '+375-232-59-69-16',
+                'photo': 'images/employees/davydova-tamara-nikolaevna.jpg'
             }
         ]
         return context
@@ -49,53 +282,23 @@ class PartnersView(TemplateView):
         context['partners'] = [
             {
                 'name': 'ОАО "БЕЛАЗ"',
-                'description': 'Ведущий производитель карьерной техники',
+                'description': 'Ведущий производитель карьерной техники в мире',
                 'website': 'https://belaz.by',
-                'logo': 'https://via.placeholder.com/150x100?text=BELAZ'
+                'logo': 'images/partners/belaz.jpg'
             },
             {
                 'name': 'ОАО "МТЗ"',
-                'description': 'Минский тракторный завод',
+                'description': 'Минский тракторный завод - производитель сельхозтехники',
                 'website': 'https://mtz.by',
-                'logo': 'https://via.placeholder.com/150x100?text=MTZ'
+                'logo': 'images/partners/mtz.jpg'
             },
             {
                 'name': 'ОАО "МАЗ"',
                 'description': 'Минский автомобильный завод',
                 'website': 'https://maz.by',
-                'logo': 'https://via.placeholder.com/150x100?text=MAZ'
+                'logo': 'images/partners/maz.jpg'
             }
         ]
-        return context
-
-class RequisitesView(TemplateView):
-    """Страница реквизитов компании"""
-    template_name = 'company/requisites.html'
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Реквизиты'
-        context['requisites'] = {
-            'full_name': 'Открытое акционерное общество "Гомельский завод литейных изделий"',
-            'short_name': 'ОАО "ГЗЛиН"',
-            'unp': '400000000',
-            'okpo': '12345678',
-            'legal_address': '246000, Республика Беларусь, г. Гомель, ул. Промышленная, 15',
-            'postal_address': '246000, Республика Беларусь, г. Гомель, ул. Промышленная, 15',
-            'phone': '+375 (232) 12-34-56',
-            'fax': '+375 (232) 12-34-57',
-            'email': 'info@gomelzlin.by',
-            'website': 'www.gomelzlin.by',
-            'bank_details': {
-                'bank_name': 'ОАО "Белагропромбанк"',
-                'bank_code': '153001749',
-                'account_byn': 'BY12 1530 0000 0000 0000 1234',
-                'account_usd': 'BY12 1530 0000 0000 0000 5678',
-                'account_eur': 'BY12 1530 0000 0000 0000 9012'
-            },
-            'director': 'Иванов Иван Иванович',
-            'chief_accountant': 'Петрова Анна Сергеевна'
-        }
         return context
 
 class PoliciesView(TemplateView):

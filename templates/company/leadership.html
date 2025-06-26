@@ -1,22 +1,206 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Руководство - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
 <div class="container" style="padding: 3rem 0;">
-    <h1>Руководство</h1>
+    <h1 style="color: var(--primary-red); margin-bottom: 3rem; text-align: center;">Руководство ОАО "ГЗЛиН"</h1>
     
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 2rem;">
+    <div class="leadership-grid">
         {% for leader in leaders %}
-        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; text-align: center;">
-            <img src="{{ leader.photo }}" alt="{{ leader.name }}" 
-                 style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-red); margin-bottom: 1rem;">
-            <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">{{ leader.name }}</h3>
-            <p style="color: var(--secondary-gray); margin-bottom: 1rem;">{{ leader.position }}</p>
-            <p>📧 <a href="mailto:{{ leader.email }}">{{ leader.email }}</a></p>
-            <p>📞 <a href="tel:{{ leader.phone }}">{{ leader.phone }}</a></p>
-        </div>
+            <div class="card leader-card">
+                <img src="{% static leader.photo %}" alt="{{ leader.position }}" onerror="this.src='{% static 'images/default-avatar.svg' %}';">
+                <div class="card-content">
+                    <div class="card-title">{{ leader.name }}</div>
+                    <div class="card-subtitle">{{ leader.position }}</div>
+                    <div class="contact-info">
+                        <p>📧 <a href="mailto:{{ leader.email }}">{{ leader.email }}</a></p>
+                        <p>📞 <a href="tel:{{ leader.phone }}">{{ leader.phone }}</a></p>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
+                <h3>Информация о руководстве обновляется...</h3>
+                <p>Пожалуйста, зайдите позже</p>
+            </div>
         {% endfor %}
     </div>
 </div>
+
+<style>
+/* Leadership page styles */
+.leadership-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.leader-card {
+    text-align: center;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 2rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(203, 65, 59, 0.1);
+}
+
+.leader-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-color: var(--primary-red);
+}
+
+.leader-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    object-fit: cover;
+    border: 4px solid var(--primary-red);
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.leader-card:hover img {
+    transform: scale(1.05);
+}
+
+.leader-card .card-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--dark-gray);
+    margin-bottom: 0.8rem;
+    line-height: 1.3;
+}
+
+.leader-card .card-subtitle {
+    color: var(--primary-red);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+    font-weight: 500;
+    min-height: 2.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contact-info {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.2rem;
+    border-radius: 10px;
+    margin-top: 1rem;
+    border-left: 4px solid var(--primary-red);
+}
+
+.contact-info p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.contact-info a {
+    color: var(--primary-red);
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.contact-info a:hover {
+    color: #a0342e;
+    text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .leadership-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .leader-card {
+        padding: 1.5rem;
+    }
+    
+    .leader-card img {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .leader-card .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .leader-card .card-subtitle {
+        font-size: 0.9rem;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .leadership-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .leader-card {
+        padding: 1rem;
+    }
+    
+    .contact-info {
+        padding: 1rem;
+    }
+    
+    .contact-info p {
+        font-size: 0.9rem;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .contact-info a {
+        margin-left: 0;
+        margin-top: 0.2rem;
+    }
+}
+
+/* Animation for page load */
+.leader-card {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: slideInUp 0.6s ease forwards;
+}
+
+@keyframes slideInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger animation for cards */
+.leader-card:nth-child(1) { animation-delay: 0.1s; }
+.leader-card:nth-child(2) { animation-delay: 0.2s; }
+.leader-card:nth-child(3) { animation-delay: 0.3s; }
+.leader-card:nth-child(4) { animation-delay: 0.4s; }
+.leader-card:nth-child(5) { animation-delay: 0.5s; }
+.leader-card:nth-child(6) { animation-delay: 0.6s; }
+.leader-card:nth-child(7) { animation-delay: 0.7s; }
+.leader-card:nth-child(8) { animation-delay: 0.8s; }
+.leader-card:nth-child(9) { animation-delay: 0.9s; }
+.leader-card:nth-child(10) { animation-delay: 1.0s; }
+.leader-card:nth-child(11) { animation-delay: 1.1s; }
+.leader-card:nth-child(12) { animation-delay: 1.2s; }
+.leader-card:nth-child(13) { animation-delay: 1.3s; }
+.leader-card:nth-child(14) { animation-delay: 1.4s; }
+.leader-card:nth-child(15) { animation-delay: 1.5s; }
+.leader-card:nth-child(16) { animation-delay: 1.6s; }
+</style>
 {% endblock %}

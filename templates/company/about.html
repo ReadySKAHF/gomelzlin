@@ -39,71 +39,54 @@
 
     <div id="about-leadership" class="about-tab">
         <h2>Руководство</h2>
-        <div class="grid grid-3">
-            <div class="card leader-card">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="Генеральный директор">
-                <div class="card-content">
-                    <div class="card-title">Иванов Иван Иванович</div>
-                    <div class="card-subtitle">Генеральный директор</div>
-                    <p>📧 director@gomelzlin.by<br>📞 +375 232 12-34-56</p>
+        <div class="leadership-grid">
+            {% for leader in leaders %}
+                <div class="card leader-card">
+                    <img src="{% static leader.photo %}" alt="{{ leader.position }}" onerror="this.src='{% static 'images/default-avatar.svg' %}';">
+                    <div class="card-content">
+                        <div class="card-title">{{ leader.name }}</div>
+                        <div class="card-subtitle">{{ leader.position }}</div>
+                        <div class="contact-info">
+                            <p>📧 <a href="mailto:{{ leader.email }}">{{ leader.email }}</a></p>
+                            <p>📞 <a href="tel:{{ leader.phone }}">{{ leader.phone }}</a></p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="card leader-card">
-                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b3e4?w=200&h=200&fit=crop&crop=face" alt="Технический директор">
-                <div class="card-content">
-                    <div class="card-title">Петрова Анна Сергеевна</div>
-                    <div class="card-subtitle">Технический директор</div>
-                    <p>📧 tech@gomelzlin.by<br>📞 +375 232 12-34-57</p>
-                </div>
-            </div>
-            <div class="card leader-card">
-                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" alt="Коммерческий директор">
-                <div class="card-content">
-                    <div class="card-title">Сидоров Петр Алексеевич</div>
-                    <div class="card-subtitle">Коммерческий директор</div>
-                    <p>📧 sales@gomelzlin.by<br>📞 +375 232 12-34-58</p>
-                </div>
-            </div>
+            {% empty %}
+                <p>Информация о руководстве обновляется...</p>
+            {% endfor %}
         </div>
     </div>
 
     <div id="about-partners" class="about-tab">
-        <h2>Наши партнёры</h2>
-        <div class="grid grid-4">
-            <div class="card" onclick="window.open('https://belaz.by', '_blank')">
-                <div class="card-content">
-                    <div class="card-title">ОАО "БЕЛАЗ"</div>
-                    <p>Ведущий производитель карьерной техники</p>
+        <h2>Партнёры</h2>
+        <div class="partners-grid">
+            {% for partner in partners %}
+                <div class="card partner-card" onclick="window.open('{{ partner.website }}', '_blank')">
+                    <div class="partner-logo-container">
+                        <img src="{% static partner.logo %}" alt="{{ partner.name }}" onerror="this.src='{% static 'images/default-partner.svg' %}';">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">{{ partner.name }}</div>
+                        <div class="card-subtitle">{{ partner.description }}</div>
+                        <div class="contact-info">
+                            <p>🌐 <a href="{{ partner.website }}" target="_blank">{{ partner.website|slice:"8:" }}</a></p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="card" onclick="window.open('https://mtz.by', '_blank')">
-                <div class="card-content">
-                    <div class="card-title">ОАО "МТЗ"</div>
-                    <p>Минский тракторный завод</p>
-                </div>
-            </div>
-            <div class="card" onclick="window.open('https://maz.by', '_blank')">
-                <div class="card-content">
-                    <div class="card-title">ОАО "МАЗ"</div>
-                    <p>Минский автомобильный завод</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-content">
-                    <div class="card-title">ОАО "БМЗ"</div>
-                    <p>Белорусский металлургический завод</p>
-                </div>
-            </div>
+            {% empty %}
+                <p>Информация о партнёрах обновляется...</p>
+            {% endfor %}
         </div>
     </div>
 
     <div id="about-requisites" class="about-tab">
-        <h2>Реквизиты предприятия</h2>
-        <div style="background: var(--light-gray); padding: 2rem; border-radius: 10px;">
+        <h2>Реквизиты</h2>
+        <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem; max-width: 600px;">
+            <h3 style="color: var(--primary-red); margin-bottom: 1.5rem;">ОАО "ГЗЛиН"</h3>
             <p><strong>Полное наименование:</strong> Открытое акционерное общество "Гомельский завод литейных изделий и нормалей"</p>
             <p><strong>Сокращенное наименование:</strong> ОАО "ГЗЛиН"</p>
-            <p><strong>УНП:</strong> 400123456</p>
-            <p><strong>Юридический адрес:</strong> 246000, г. Гомель, ул. Промышленная, 15</p>
+            <p><strong>Юридический адрес:</strong> 246050, Республика Беларусь, г. Гомель, пр. Промышленная, 15</p>
             <p><strong>Р/с:</strong> BY12 ALFA 1234 5678 9012 3456 7890</p>
             <p><strong>Банк:</strong> ОАО "Альфа-Банк"</p>
             <p><strong>БИК:</strong> ALFABY2X</p>
@@ -190,23 +173,169 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Leadership cards */
+/* Leadership section */
+.leadership-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
 .leader-card {
     text-align: center;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.leader-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
 }
 
 .leader-card img {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
-    margin: 1rem auto;
+    margin: 0 auto 1rem;
     object-fit: cover;
     border: 3px solid var(--primary-red);
+    display: block;
 }
+
+.leader-card .card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--dark-gray);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.leader-card .card-subtitle {
+    color: var(--primary-red);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.contact-info {
+    text-align: left;
+    background: var(--light-gray);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.contact-info p {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+}
+
+.contact-info a {
+    color: var(--primary-red);
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+
+
 
 @media (max-width: 768px) {
     .product-nav {
         flex-direction: column;
+    }
+    
+    .leadership-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .leader-card {
+        padding: 1rem;
+        min-height: 320px;
+    }
+    
+    .leader-card img {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .leader-card .card-title {
+        font-size: 1rem;
+        min-height: 2.4rem;
+    }
+    
+    .leader-card .card-subtitle {
+        font-size: 0.85rem;
+        min-height: 3rem;
+    }
+    
+    .contact-info p {
+        font-size: 0.85rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .contact-info a {
+        margin-left: 0;
+        margin-top: 0.2rem;
+    }
+    
+    .partners-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .partner-card {
+        padding: 1rem;
+        min-height: 320px;
+    }
+    
+    .partner-logo-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .partner-card .card-title {
+        font-size: 1rem;
+        min-height: 2.4rem;
+    }
+    
+    .partner-card .card-subtitle {
+        font-size: 0.85rem;
+        min-height: 3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .leadership-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .partners-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .partner-card {
+        min-height: 300px;
+    }
+    
+    .partner-logo-container {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .leader-card {
+        min-height: 300px;
+    }
+    
+    .contact-info {
+        padding: 0.8rem;
     }
 }
 </style>
