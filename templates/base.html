@@ -12,7 +12,7 @@
     <!-- Основные CSS стили -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    
+    <link rel="stylesheet" href="{% static 'css/wishlist.css' %}">
     <!-- Дополнительные стили для страницы -->
     {% block extra_css %}{% endblock %}
     
@@ -548,7 +548,7 @@
 
     <!-- JavaScript -->
     <script src="{% static 'js/cart.js' %}"></script>
-    
+    <script src="{% static 'js/wishlist.js' %}"></script>
     <!-- CSRF token для AJAX запросов -->
     <script>
         window.csrfToken = '{{ csrf_token }}';
