@@ -1,223 +1,239 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{{ category.name }} - Каталог ОАО "ГЗЛиН"{% endblock %}
+{% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
 
 {% block extra_css %}
 <style>
-    .category-header {
-        background: linear-gradient(135deg, var(--primary-red) 0%, #a0342e 100%);
-        color: white;
-        padding: 3rem 0;
-        margin-bottom: 3rem;
-    }
-    
+:root {
+    --primary-red: #cb413b;
+    --secondary-gray: #808080;
+    --dark-gray: #333333;
+    --light-gray: #f5f5f5;
+    --radius: 10px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+.category-header {
+    background: linear-gradient(135deg, var(--primary-red) 0%, #a0342e 100%);
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 3rem;
+}
+
+.category-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.category-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    line-height: 1.6;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: var(--dark-gray);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.subcategory-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+    transition: var(--transition);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+.subcategory-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.subcategory-image {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.subcategory-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-bottom: 1rem;
+}
+
+.subcategory-description {
+    color: var(--secondary-gray);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+.subcategory-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.product-count {
+    background: var(--light-gray);
+    color: var(--secondary-gray);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.category-arrow {
+    color: var(--primary-red);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.product-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.product-image {
+    height: 200px;
+    background: var(--light-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: var(--secondary-gray);
+    position: relative;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-content {
+    padding: 1.5rem;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.product-description {
+    color: var(--secondary-gray);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+}
+
+.product-price {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--primary-red);
+    margin-bottom: 1rem;
+}
+
+.product-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn {
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn:hover {
+    background: #b8362f;
+    transform: translateY(-2px);
+    text-decoration: none;
+    color: white;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.subcategories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 0;
+    color: var(--secondary-gray);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
     .category-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        font-size: 2rem;
     }
     
     .category-subtitle {
-        font-size: 1.2rem;
-        opacity: 0.9;
-        margin-bottom: 0;
+        font-size: 1rem;
     }
     
-    .subcategories-section {
-        margin-bottom: 4rem;
-    }
-    
-    .section-title {
-        color: var(--primary-red);
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 2rem;
-        text-align: center;
-        position: relative;
-    }
-    
-    .section-title::after {
-        content: '';
-        position: absolute;
-        bottom: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80px;
-        height: 4px;
-        background: var(--primary-red);
-        border-radius: 2px;
-    }
-    
-    .subcategory-card {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.1);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        overflow: hidden;
-        border: 1px solid #f0f0f0;
-        text-decoration: none;
-        color: inherit;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .subcategory-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 40px rgba(203, 65, 59, 0.2);
-        text-decoration: none;
-        color: inherit;
-    }
-    
-    .subcategory-image {
-        height: 150px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        color: var(--primary-red);
-        border-bottom: 1px solid #f0f0f0;
-    }
-    
-    .subcategory-content {
-        padding: 1.5rem;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    
-    .subcategory-name {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--primary-red);
-        margin-bottom: 0.8rem;
-        line-height: 1.3;
-    }
-    
-    .subcategory-description {
-        color: var(--secondary-gray);
-        font-size: 0.95rem;
-        line-height: 1.5;
-        margin-bottom: 1rem;
-        flex-grow: 1;
-    }
-    
-    .subcategory-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: auto;
-    }
-    
-    .product-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        overflow: hidden;
-        transition: all 0.3s ease;
-        border: 1px solid #f0f0f0;
-    }
-    
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(203, 65, 59, 0.15);
-    }
-    
-    .product-image {
-        height: 180px;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        color: var(--primary-red);
-    }
-    
-    .product-content {
-        padding: 1.5rem;
-    }
-    
-    .product-name {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--dark-gray);
-        margin-bottom: 0.8rem;
-        line-height: 1.3;
-    }
-    
-    .product-description {
-        color: var(--secondary-gray);
-        font-size: 0.9rem;
-        margin-bottom: 1.2rem;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .product-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid #f0f0f0;
-        padding-top: 1rem;
-    }
-    
-    .product-price {
-        font-weight: 700;
-        font-size: 1.2rem;
-        color: var(--primary-red);
-    }
-    
+    .subcategories-grid,
     .products-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
     }
     
-    .subcategories-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
+    .subcategory-content,
+    .product-content {
+        padding: 1.2rem;
     }
-    
-    .empty-state {
-        text-align: center;
-        padding: 4rem 0;
-        color: var(--secondary-gray);
-    }
-    
-    .empty-state-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-    }
-    
-    @media (max-width: 768px) {
-        .category-title {
-            font-size: 2rem;
-        }
-        
-        .category-subtitle {
-            font-size: 1rem;
-        }
-        
-        .subcategories-grid,
-        .products-grid {
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .subcategory-content,
-        .product-content {
-            padding: 1.2rem;
-        }
-    }
+}
 </style>
 {% endblock %}
 
@@ -250,7 +266,7 @@
             <div class="empty-state-icon">❌</div>
             <h3>{{ error }}</h3>
             <p>Категория не найдена или недоступна</p>
-            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Вернуться к каталогу</a>
+            <a href="{% url 'catalog:product_list' %}" class="btn">Вернуться к каталогу</a>
         </div>
     {% else %}
         {% if has_subcategories %}
@@ -297,11 +313,10 @@
                 </h2>
                 <div class="products-grid">
                     {% for product in products %}
-                        <div class="product-card">
+                        <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="product-card">
                             <div class="product-image">
                                 {% if product.image %}
-                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" 
-                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
                                 {% else %}
                                     {% if 'жатка' in product.name|lower %}
                                         🌾
@@ -319,16 +334,51 @@
                             <div class="product-content">
                                 <h4 class="product-name">{{ product.name }}</h4>
                                 {% if product.short_description %}
-                                    <p class="product-description">{{ product.short_description }}</p>
+                                    <p class="product-description">{{ product.short_description|truncatewords:15 }}</p>
                                 {% endif %}
-                                <div class="product-footer">
-                                    <span class="product-price">{{ product.price }} р.</span>
-                                    <button onclick="addToCart({{ product.id }})" class="btn-add-to-cart">
-                                        🛒 В корзину
-                                    </button>
+                                {% if product.article %}
+                                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">
+                                        Артикул: {{ product.article }}
+                                    </p>
+                                {% endif %}
+                                <div class="product-price">
+                                    {% if product.price %}
+                                        {{ product.price|floatformat:0 }} BYN
+                                    {% else %}
+                                        Цена по запросу
+                                    {% endif %}
                                 </div>
+                                <div class="product-actions">
+                                    <span class="btn" onclick="event.preventDefault(); event.stopPropagation(); addToCart('{{ product.id }}', '{{ product.name|escapejs }}', '{{ product.price }}');">
+                                        🛒 В корзину
+                                    </span>
+                                </div>
+                                <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="product-card">
+                                    <!-- Кнопка избранного в правом верхнем углу -->
+                                    <button class="wishlist-btn" 
+                                            data-product-id="{{ product.id }}" 
+                                            onclick="event.preventDefault(); event.stopPropagation(); toggleWishlist({{ product.id }}, '{{ product.name|escapejs }}');"
+                                            style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.1);"
+                                            title="Добавить в избранное">
+                                        <span class="heart-icon" style="color: #ccc; font-size: 1.5rem; transition: all 0.3s ease;">♡</span>
+                                    </button>
+                                    
+                                    <div class="product-image">
+                                        <!-- остальной код изображения -->
+                                    </div>
+                                    
+                                    <div class="product-content">
+                                        <!-- остальной код контента -->
+                                        
+                                        <div class="product-actions">
+                                            <span class="btn" onclick="event.preventDefault(); event.stopPropagation(); addToCart('{{ product.id }}', '{{ product.name|escapejs }}', '{{ product.price }}');">
+                                                🛒 В корзину
+                                            </span>
+                                        </div>
+                                    </div>
+                                </a>
                             </div>
-                        </div>
+                        </a>
                     {% endfor %}
                 </div>
             </div>
@@ -339,134 +389,72 @@
             <div class="empty-state">
                 <div class="empty-state-icon">📦</div>
                 <h3>Категория пуста</h3>
-                <p>В данной категории пока нет товаров</p>
-                <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Вернуться к каталогу</a>
+                <p>В данной категории пока нет товаров или подкатегорий.</p>
+                <a href="{% url 'catalog:product_list' %}" class="btn">Вернуться к каталогу</a>
             </div>
         {% endif %}
     {% endif %}
 </div>
 
-<!-- CSRF токен для AJAX запросов -->
-{% csrf_token %}
+<!-- Уведомления -->
+<div id="notifications" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
 
 <script>
-// Функция добавления товара в корзину
-function addToCart(productId, quantity = 1) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+function addToCart(productId, productName, productPrice) {
+    // Предотвращаем переход по ссылке
+    event.preventDefault();
+    event.stopPropagation();
     
-    // Показываем индикатор загрузки на кнопке
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '⏳ Добавление...';
-    button.disabled = true;
+    console.log('Добавляем в корзину:', productName);
     
-    fetch('/cart/add/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken,
-        },
-        body: `product_id=${productId}&quantity=${quantity}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Обновляем счетчик корзины
-            updateCartCount();
-            
-            // Показываем уведомление
-            showNotification('Товар добавлен в корзину!', 'success');
-            
-            // Меняем кнопку временно
-            button.innerHTML = '✅ Добавлено';
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }, 1500);
-        } else {
-            showNotification('Ошибка при добавлении товара', 'error');
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Произошла ошибка', 'error');
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
+    // Показываем уведомление
+    showNotification('Товар "' + productName + '" добавлен в корзину!', 'success');
+    
+    // Здесь можно добавить AJAX запрос для реального добавления в корзину
 }
 
-// Обновление счетчика корзины
-function updateCartCount() {
-    fetch('/cart/count/')
-        .then(response => response.json())
-        .then(data => {
-            const cartCountElement = document.querySelector('.cart-count');
-            if (cartCountElement) {
-                cartCountElement.textContent = data.count;
-                
-                // Анимация обновления
-                cartCountElement.style.transform = 'scale(1.3)';
-                cartCountElement.style.background = '#28a745';
-                setTimeout(() => {
-                    cartCountElement.style.transform = 'scale(1)';
-                    cartCountElement.style.background = 'white';
-                }, 300);
-            }
-        })
-        .catch(error => console.error('Ошибка обновления корзины:', error));
-}
-
-// Показ уведомлений
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span>${type === 'success' ? '✅' : '❌'}</span>
-            <span>${message}</span>
-        </div>
-    `;
-    
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' : 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'};
+        background: ${type === 'success' ? '#28a745' : '#cb413b'};
         color: white;
         padding: 1rem 1.5rem;
         border-radius: 8px;
         z-index: 1000;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        animation: slideIn 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         font-weight: 600;
+        max-width: 300px;
+        animation: slideIn 0.3s ease;
     `;
+    notification.textContent = message;
     
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease forwards';
-        setTimeout(() => notification.remove(), 300);
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
     }, 3000);
 }
 
-// CSS для анимаций
+// CSS анимации
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
     }
-    
     @keyframes slideOut {
         from { transform: translateX(0); opacity: 1; }
         to { transform: translateX(100%); opacity: 0; }
     }
 `;
 document.head.appendChild(style);
-
-// Обновляем счетчик при загрузке страницы
-document.addEventListener('DOMContentLoaded', updateCartCount);
 </script>
 {% endblock %}

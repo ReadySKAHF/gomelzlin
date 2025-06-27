@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from .models import User, UserProfile, CompanyProfile
-
+from apps.orders.models import Wishlist, WishlistItem
 
 class LoginView(TemplateView):
     template_name = 'accounts/login.html'
@@ -135,6 +135,33 @@ class ProfileView(TemplateView):
                     unp=''
                 )
                 context['company_profile'] = self.request.user.company_profile
+        
+        # Добавляем информацию об избранных товарах
+        try:
+            wishlist = Wishlist.objects.get(
+                user=self.request.user,
+                name='Основной список'
+            )
+            wishlist_items = WishlistItem.objects.filter(
+                wishlist=wishlist
+            ).select_related('product', 'product__category').order_by('-added_at')
+            
+            context['wishlist_items'] = wishlist_items
+            context['wishlist_count'] = wishlist_items.count()
+            
+        except Wishlist.DoesNotExist:
+            context['wishlist_items'] = []
+            context['wishlist_count'] = 0
+        
+        # Получаем последние заказы пользователя для вкладки "Мои заказы"
+        try:
+            from apps.orders.models import Order
+            recent_orders = Order.objects.filter(
+                user=self.request.user
+            ).order_by('-created_at')[:5]
+            context['recent_orders'] = recent_orders
+        except:
+            context['recent_orders'] = []
         
         return context
     

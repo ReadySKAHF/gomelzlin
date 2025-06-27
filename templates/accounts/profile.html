@@ -152,15 +152,117 @@
             <!-- Избранное -->
             <div id="tab-wishlist" class="profile-content" style="display: none;">
                 <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem;">
-                    <h2 style="color: var(--primary-red); margin-bottom: 2rem;">Избранные товары</h2>
-                    
-                    <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">❤️</div>
-                        <p>Список избранных товаров пуст</p>
-                        <p style="font-size: 0.9rem;">Добавляйте товары в избранное, чтобы не потерять их</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 style="color: var(--primary-red);">
+                            Избранные товары
+                            {% if wishlist_count > 0 %}
+                                <span style="background: var(--primary-red); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-left: 1rem;">
+                                    {{ wishlist_count }}
+                                </span>
+                            {% endif %}
+                        </h2>
+                        {% if wishlist_items %}
+                        <button onclick="clearWishlist()" style="background: transparent; color: var(--secondary-gray); border: 1px solid var(--secondary-gray); padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
+                            Очистить все
+                        </button>
+                        {% endif %}
                     </div>
+                    
+                    {% if wishlist_items %}
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+                            {% for item in wishlist_items %}
+                            <div class="wishlist-item" data-product-id="{{ item.product.id }}" style="background: #f8f9fa; border-radius: 10px; overflow: hidden; transition: all 0.3s ease; position: relative;">
+                                <!-- Кнопка удаления -->
+                                <button onclick="removeFromWishlist({{ item.product.id }})" 
+                                        style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.3s ease;"
+                                        title="Удалить из избранного">
+                                    <span style="color: #dc3545; font-size: 1.2rem;">×</span>
+                                </button>
+                                
+                                <!-- Изображение товара -->
+                                <a href="{% url 'catalog:product_detail' slug=item.product.slug %}" style="text-decoration: none; color: inherit;">
+                                    <div style="height: 200px; background: var(--light-gray); position: relative; overflow: hidden;">
+                                        {% if item.product.image %}
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% else %}
+                                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--secondary-gray); font-size: 3rem;">
+                                                📦
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Информация о товаре -->
+                                    <div style="padding: 1.5rem;">
+                                        <div style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                            {{ item.product.category.name }}
+                                        </div>
+                                        
+                                        <h4 style="color: var(--dark-gray); font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.3;">
+                                            {{ item.product.name }}
+                                        </h4>
+                                        
+                                        {% if item.product.article %}
+                                        <div style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">
+                                            Артикул: {{ item.product.article }}
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-red);">
+                                                {% if item.product.price %}
+                                                    {{ item.product.price|floatformat:0 }} BYN
+                                                {% else %}
+                                                    По запросу
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {% if item.product.stock_quantity %}
+                                            <div style="font-size: 0.8rem; color: #28a745;">
+                                                В наличии: {{ item.product.stock_quantity }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div style="font-size: 0.8rem; color: var(--secondary-gray); margin-bottom: 1rem;">
+                                            Добавлено: {{ item.added_at|date:"d.m.Y" }}
+                                        </div>
+                                    </div>
+                                </a>
+                                
+                                <!-- Кнопки действий -->
+                                <div style="padding: 0 1.5rem 1.5rem;">
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button onclick="addToCart({{ item.product.id }}, '{{ item.product.name|escapejs }}', '{{ item.product.price }}')"
+                                                style="flex: 1; background: var(--primary-red); color: white; border: none; padding: 0.75rem; border-radius: 5px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                            🛒 В корзину
+                                        </button>
+                                        <a href="{% url 'catalog:product_detail' slug=item.product.slug %}" 
+                                        style="flex: 1; background: transparent; color: var(--primary-red); border: 2px solid var(--primary-red); padding: 0.75rem; border-radius: 5px; font-weight: 600; text-decoration: none; text-align: center; transition: all 0.3s ease;">
+                                            👁️ Подробнее
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
+                            <div style="font-size: 4rem; margin-bottom: 1rem;">💝</div>
+                            <h3 style="margin-bottom: 1rem;">Ваш список избранного пуст</h3>
+                            <p style="font-size: 0.9rem; margin-bottom: 2rem;">
+                                Добавляйте товары в избранное, чтобы не потерять их.<br>
+                                Нажимайте ❤️ на карточках товаров в каталоге.
+                            </p>
+                            <a href="{% url 'catalog:product_list' %}" 
+                            style="background: var(--primary-red); color: white; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
+                                🛍️ Перейти в каталог
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
+
             
             <!-- Адреса доставки -->
             <div id="tab-addresses" class="profile-content" style="display: none;">
@@ -346,5 +448,120 @@ function showTab(tabName) {
 function addNewAddress() {
     alert('Функция добавления адреса будет реализована позже');
 }
+</script>
+<script>
+// Функции для работы с избранным в профиле
+function removeFromWishlist(productId) {
+    if (!confirm('Удалить товар из избранного?')) {
+        return;
+    }
+    
+    fetch('/cart/wishlist/remove/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: 'product_id=' + productId
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Удаляем элемент из DOM
+            const item = document.querySelector(`[data-product-id="${productId}"]`);
+            if (item) {
+                item.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    item.remove();
+                    
+                    // Обновляем счетчик
+                    updateWishlistCount(data.wishlist_count);
+                    
+                    // Если список пуст, показываем заглушку
+                    if (data.wishlist_count === 0) {
+                        location.reload();
+                    }
+                }, 300);
+            }
+            
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Произошла ошибка при удалении товара', 'error');
+    });
+}
+
+function clearWishlist() {
+    if (!confirm('Очистить весь список избранного?')) {
+        return;
+    }
+    
+    const wishlistItems = document.querySelectorAll('.wishlist-item');
+    wishlistItems.forEach(item => {
+        const productId = item.getAttribute('data-product-id');
+        removeFromWishlist(productId);
+    });
+}
+
+function updateWishlistCount(count) {
+    // Обновляем счетчик в заголовке
+    const header = document.querySelector('#tab-wishlist h2');
+    if (header) {
+        const badge = header.querySelector('span');
+        if (count > 0) {
+            if (badge) {
+                badge.textContent = count;
+            } else {
+                header.innerHTML += `<span style="background: var(--primary-red); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-left: 1rem;">${count}</span>`;
+            }
+        } else {
+            if (badge) {
+                badge.remove();
+            }
+        }
+    }
+    
+    // Обновляем счетчик в меню профиля, если есть
+    const menuLink = document.querySelector('a[href="#wishlist"]');
+    if (menuLink) {
+        const menuBadge = menuLink.querySelector('.wishlist-count');
+        if (count > 0) {
+            if (menuBadge) {
+                menuBadge.textContent = count;
+            }
+        } else {
+            if (menuBadge) {
+                menuBadge.remove();
+            }
+        }
+    }
+}
+
+// CSS анимации
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to { opacity: 0; transform: scale(0.95); }
+    }
+    
+    .wishlist-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .wishlist-item button:hover {
+        transform: translateY(-2px);
+    }
+    
+    .wishlist-item a:hover {
+        transform: translateY(-2px);
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}

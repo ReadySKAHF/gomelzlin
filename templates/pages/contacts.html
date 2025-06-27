@@ -1,28 +1,310 @@
-{% extends 'base.html' %}Add commentMore actions
+{% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Контакты - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 3rem 0;">
-    <h1>Контакты</h1>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-top: 2rem;">
-        <div>
-            <h2>Основная информация</h2>
-            <div style="background: var(--light-gray); padding: 2rem; border-radius: 10px;">
-                <p><strong>Адрес:</strong> {{ company_info.address }}</p>
-                <p><strong>Телефон:</strong> <a href="tel:{{ company_info.phone }}">{{ company_info.phone }}</a></p>
-                <p><strong>Email:</strong> <a href="mailto:{{ company_info.email }}">{{ company_info.email }}</a></p>
-                <p><strong>Режим работы:</strong><br>{{ company_info.working_hours|linebreaks }}</p>
+<div class="contacts-page">
+    <!-- Заголовок -->
+    <div style="background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%); color: white; padding: 4rem 0; margin-bottom: 3rem; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Контакты</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto;">
+                Свяжитесь с нами любым удобным способом
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin-bottom: 3rem;">
+            
+            <!-- Основная информация -->
+            <div>
+                <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem;">📍 Основная информация</h2>
+                <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1);">
+                    
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0;">
+                        <h3 style="color: #cb413b; font-size: 1.1rem; margin-bottom: 0.5rem;">🏢 Полное наименование:</h3>
+                        <p style="color: #333; margin: 0; font-weight: 500;">
+                            Открытое акционерное общество<br>
+                            "Гомельский завод литейных изделий и нормалей"
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0;">
+                        <h3 style="color: #cb413b; font-size: 1.1rem; margin-bottom: 0.5rem;">📍 Юридический адрес:</h3>
+                        <p style="color: #333; margin: 0;">
+                            246050, Республика Беларусь,<br>
+                            г. Гомель, ул. Заводская, 1
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0;">
+                        <h3 style="color: #cb413b; font-size: 1.1rem; margin-bottom: 0.5rem;">📞 Телефоны:</h3>
+                        <p style="color: #333; margin: 0;">
+                            <strong>Приёмная:</strong> <a href="tel:+375232123456" style="color: #cb413b; text-decoration: none;">+375 (232) 12-34-56</a><br>
+                            <strong>Отдел продаж:</strong> <a href="tel:+375232123457" style="color: #cb413b; text-decoration: none;">+375 (232) 12-34-57</a><br>
+                            <strong>Факс:</strong> +375 (232) 12-34-58
+                        </p>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f0f0f0;">
+                        <h3 style="color: #cb413b; font-size: 1.1rem; margin-bottom: 0.5rem;">✉️ Email:</h3>
+                        <p style="color: #333; margin: 0;">
+                            <strong>Общие вопросы:</strong> <a href="mailto:info@gomelzlin.by" style="color: #cb413b; text-decoration: none;">info@gomelzlin.by</a><br>
+                            <strong>Отдел продаж:</strong> <a href="mailto:sales@gomelzlin.by" style="color: #cb413b; text-decoration: none;">sales@gomelzlin.by</a><br>
+                            <strong>Техподдержка:</strong> <a href="mailto:support@gomelzlin.by" style="color: #cb413b; text-decoration: none;">support@gomelzlin.by</a>
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 style="color: #cb413b; font-size: 1.1rem; margin-bottom: 0.5rem;">🕒 Режим работы:</h3>
+                        <p style="color: #333; margin: 0;">
+                            <strong>Понедельник - Пятница:</strong> 8:00 - 17:00<br>
+                            <strong>Обеденный перерыв:</strong> 12:00 - 13:00<br>
+                            <strong>Суббота, Воскресенье:</strong> выходные дни
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Кнопки быстрых действий -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                    <button onclick="callPhone()" style="background: #cb413b; color: white; border: none; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                        📞 Позвонить
+                    </button>
+                    <button onclick="sendEmail()" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 1rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                        ✉️ Написать
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Местоположение -->
+            <div>
+                <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem;">🗺️ Местоположение</h2>
+                
+                <!-- Карта (заглушка) -->
+                <div style="background: white; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 2rem;">
+                    <div id="company-map" style="width: 100%; height: 300px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; color: #666; font-size: 1rem; flex-direction: column;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+                        <div style="text-align: center;">
+                            <strong>Яндекс.Карта с местоположением завода</strong><br>
+                            <small>г. Гомель, ул. Заводская, 1</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Информация под картой -->
+                    <div style="padding: 1.5rem;">
+                        <h4 style="color: #333; margin-bottom: 1rem;">🚗 Как добраться:</h4>
+                        <ul style="color: #666; line-height: 1.6; margin: 0; padding-left: 1.5rem;">
+                            <li>На автомобиле: по ул. Заводской до дома №1</li>
+                            <li>Общественным транспортом: автобус №12, 24 до остановки "Завод ГЗЛиН"</li>
+                            <li>От ж/д вокзала: 15 минут на такси или автобусе</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Реквизиты -->
+                <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1);">
+                    <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 1.5rem;">📄 Банковские реквизиты</h3>
+                    
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; font-family: monospace; font-size: 0.9rem; line-height: 1.6;">
+                        <p style="margin: 0.5rem 0;"><strong>УНП:</strong> 400123456</p>
+                        <p style="margin: 0.5rem 0;"><strong>Р/с:</strong> BY12 ALFA 1234 5678 9012 3456 7890</p>
+                        <p style="margin: 0.5rem 0;"><strong>Банк:</strong> ОАО "Альфа-Банк"</p>
+                        <p style="margin: 0.5rem 0;"><strong>БИК:</strong> ALFABY2X</p>
+                        <p style="margin: 0.5rem 0;"><strong>Адрес банка:</strong> г. Минск, пр-т Дзержинского, 20</p>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div>
-            <h2>Местоположение</h2>
-            <div style="width: 100%; height: 400px; background: var(--light-gray); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--secondary-gray);">
-                🗺️ Здесь будет Яндекс карта с отметкой завода в Гомеле
+
+        <!-- Форма обратной связи -->
+        <div style="background: white; padding: 3rem; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); margin-bottom: 3rem;">
+            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem; text-align: center;">📝 Форма обратной связи</h2>
+            
+            <form onsubmit="submitContactForm(event)" style="max-width: 600px; margin: 0 auto;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="display: block; color: #333; font-weight: 600; margin-bottom: 0.5rem;">Имя *</label>
+                        <input type="text" required style="width: 100%; padding: 1rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;" placeholder="Ваше имя">
+                    </div>
+                    <div>
+                        <label style="display: block; color: #333; font-weight: 600; margin-bottom: 0.5rem;">Телефон *</label>
+                        <input type="tel" required style="width: 100%; padding: 1rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;" placeholder="+375 XX XXX-XX-XX">
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #333; font-weight: 600; margin-bottom: 0.5rem;">Email *</label>
+                    <input type="email" required style="width: 100%; padding: 1rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;" placeholder="your@email.com">
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #333; font-weight: 600; margin-bottom: 0.5rem;">Тема обращения</label>
+                    <select style="width: 100%; padding: 1rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease;">
+                        <option value="">Выберите тему</option>
+                        <option value="product">Вопрос о продукции</option>
+                        <option value="order">Оформление заказа</option>
+                        <option value="partnership">Сотрудничество</option>
+                        <option value="support">Техническая поддержка</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 2rem;">
+                    <label style="display: block; color: #333; font-weight: 600; margin-bottom: 0.5rem;">Сообщение *</label>
+                    <textarea required rows="4" style="width: 100%; padding: 1rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical; transition: border-color 0.3s ease;" placeholder="Напишите ваше сообщение..."></textarea>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button type="submit" style="background: #cb413b; color: white; border: none; padding: 1rem 3rem; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                        📧 Отправить сообщение
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Дополнительная информация -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            
+            <!-- Отделы -->
+            <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1);">
+                <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 1.5rem;">🏢 Отделы и службы</h3>
+                
+                <div style="space-y: 1rem;">
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0;">
+                        <p style="margin: 0; color: #333;"><strong>Отдел продаж:</strong></p>
+                        <p style="margin: 0; color: #666; font-size: 0.9rem;">+375 (232) 12-34-57, sales@gomelzlin.by</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0;">
+                        <p style="margin: 0; color: #333;"><strong>Техническая поддержка:</strong></p>
+                        <p style="margin: 0; color: #666; font-size: 0.9rem;">+375 (232) 12-34-59, support@gomelzlin.by</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0;">
+                        <p style="margin: 0; color: #333;"><strong>Отдел логистики:</strong></p>
+                        <p style="margin: 0; color: #666; font-size: 0.9rem;">+375 (232) 12-34-60, logistics@gomelzlin.by</p>
+                    </div>
+                    
+                    <div>
+                        <p style="margin: 0; color: #333;"><strong>Отдел кадров:</strong></p>
+                        <p style="margin: 0; color: #666; font-size: 0.9rem;">+375 (232) 12-34-61, hr@gomelzlin.by</p>
+                    </div>
+                </div>
             </div>
+
+            <!-- Социальные сети -->
+            <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1);">
+                <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 1.5rem;">📱 Мы в социальных сетях</h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="#" style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+                        <span style="font-size: 1.5rem; margin-right: 1rem;">📘</span>
+                        <span>Facebook</span>
+                    </a>
+                    
+                    <a href="#" style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+                        <span style="font-size: 1.5rem; margin-right: 1rem;">📸</span>
+                        <span>Instagram</span>
+                    </a>
+                    
+                    <a href="#" style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+                        <span style="font-size: 1.5rem; margin-right: 1rem;">💼</span>
+                        <span>LinkedIn</span>
+                    </a>
+                    
+                    <a href="#" style="display: flex; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 10px; text-decoration: none; color: #333; transition: all 0.3s ease;">
+                        <span style="font-size: 1.5rem; margin-right: 1rem;">📺</span>
+                        <span>YouTube</span>
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<script>
+function callPhone() {
+    window.location.href = 'tel:+375232123456';
+}
+
+function sendEmail() {
+    window.location.href = 'mailto:info@gomelzlin.by?subject=Вопрос с сайта ОАО "ГЗЛиН"';
+}
+
+function submitContactForm(event) {
+    event.preventDefault();
+    
+    // Здесь можно добавить отправку формы
+    alert('Спасибо за ваше сообщение!\nМы свяжемся с вами в ближайшее время.');
+    
+    // Сброс формы
+    event.target.reset();
+}
+
+// Добавляем интерактивность к полям формы
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input, textarea, select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.borderColor = '#cb413b';
+            this.style.outline = 'none';
+            this.style.boxShadow = '0 0 0 3px rgba(203, 65, 59, 0.1)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.borderColor = '#e9ecef';
+            this.style.boxShadow = 'none';
+        });
+    });
+
+    // Эффекты для кнопок
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+
+    // Эффекты для ссылок соцсетей
+    const socialLinks = document.querySelectorAll('a[href="#"]');
+    socialLinks.forEach(link => {
+        link.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#e9ecef';
+            this.style.transform = 'translateX(5px)';
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '#f8f9fa';
+            this.style.transform = 'translateX(0)';
+        });
+    });
+});
+</script>
+
+<style>
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+    
+    .container > div:first-of-type {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+    
+    form > div:first-child {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
 {% endblock %}

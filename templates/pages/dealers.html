@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Дилерские центры - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="dealers-page">
+    <!-- Заголовок -->
+    <div style="background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%); color: white; padding: 4rem 0; margin-bottom: 3rem; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Дилерские центры</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto;">
+                Сеть официальных дилеров ОАО "ГЗЛиН" по всей Республике Беларусь
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Карта дилеров -->
+        <div style="background: white; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); padding: 2rem; margin-bottom: 3rem;">
+            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem; text-align: center;">🗺️ Карта дилерских центров</h2>
+            
+            <!-- Яндекс.Карты -->
+            <div id="dealer-map" style="width: 100%; height: 400px; border-radius: 10px; overflow: hidden; background: #f5f5f5; display: flex; align-items: center; justify-content: center; color: #666; font-size: 1.1rem;">
+                <div style="text-align: center;">
+                    🗺️ Здесь будет интегрирована Яндекс.Карта<br>
+                    <small style="color: #999;">с отметками всех дилерских центров</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Список дилерских центров по областям -->
+        <div style="margin-bottom: 3rem;">
+            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem; text-align: center;">📍 Дилерские центры по областям</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                
+                <!-- Минская область -->
+                <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, #cb413b, #a0342e); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                            🏭
+                        </div>
+                        <div>
+                            <h3 style="color: #333; font-size: 1.3rem; margin: 0;">Минская область</h3>
+                            <p style="color: #666; margin: 0; font-size: 0.9rem;">Главный региональный центр</p>
+                        </div>
+                    </div>
+                    
+                    <div style="border-left: 3px solid #cb413b; padding-left: 1rem; margin-bottom: 1.5rem;">
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📍 Адрес:</strong> г. Минск, пр. Независимости, 125</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📞 Телефон:</strong> +375 17 123-45-67</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>✉️ Email:</strong> minsk@gomelzlin.by</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>🕒 Режим:</strong> Пн-Пт: 8:00-17:00</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="showOnMap('minsk')" style="background: #cb413b; color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            🗺️ На карте
+                        </button>
+                        <button onclick="callDealer('+375171234567')" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            📞 Позвонить
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Брестская область -->
+                <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, #cb413b, #a0342e); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                            🏭
+                        </div>
+                        <div>
+                            <h3 style="color: #333; font-size: 1.3rem; margin: 0;">Брестская область</h3>
+                            <p style="color: #666; margin: 0; font-size: 0.9rem;">Западный регион</p>
+                        </div>
+                    </div>
+                    
+                    <div style="border-left: 3px solid #cb413b; padding-left: 1rem; margin-bottom: 1.5rem;">
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📍 Адрес:</strong> г. Брест, ул. Московская, 45</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📞 Телефон:</strong> +375 162 123-45-67</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>✉️ Email:</strong> brest@gomelzlin.by</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>🕒 Режим:</strong> Пн-Пт: 8:00-17:00</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="showOnMap('brest')" style="background: #cb413b; color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            🗺️ На карте
+                        </button>
+                        <button onclick="callDealer('+375162123567')" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            📞 Позвонить
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Витебская область -->
+                <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, #cb413b, #a0342e); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                            🏭
+                        </div>
+                        <div>
+                            <h3 style="color: #333; font-size: 1.3rem; margin: 0;">Витебская область</h3>
+                            <p style="color: #666; margin: 0; font-size: 0.9rem;">Северный регион</p>
+                        </div>
+                    </div>
+                    
+                    <div style="border-left: 3px solid #cb413b; padding-left: 1rem; margin-bottom: 1.5rem;">
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📍 Адрес:</strong> г. Витебск, ул. Зеленогурская, 14</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📞 Телефон:</strong> +375 212 123-45-67</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>✉️ Email:</strong> vitebsk@gomelzlin.by</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>🕒 Режим:</strong> Пн-Пт: 8:00-17:00</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="showOnMap('vitebsk')" style="background: #cb413b; color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            🗺️ На карте
+                        </button>
+                        <button onclick="callDealer('+375212123567')" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            📞 Позвонить
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Гомельская область -->
+                <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, #cb413b, #a0342e); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                            🏭
+                        </div>
+                        <div>
+                            <h3 style="color: #333; font-size: 1.3rem; margin: 0;">Гомельская область</h3>
+                            <p style="color: #666; margin: 0; font-size: 0.9rem;">Главный завод</p>
+                        </div>
+                    </div>
+                    
+                    <div style="border-left: 3px solid #cb413b; padding-left: 1rem; margin-bottom: 1.5rem;">
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📍 Адрес:</strong> г. Гомель, ул. Могилёвская, 16</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📞 Телефон:</strong> +375 232 123-45-67</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>✉️ Email:</strong> gomel@gomelzlin.by</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>🕒 Режим:</strong> Пн-Пт: 8:00-17:00</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="showOnMap('gomel')" style="background: #cb413b; color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            🗺️ На карте
+                        </button>
+                        <button onclick="callDealer('+375232123567')" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            📞 Позвонить
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Гродненская область -->
+                <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, #cb413b, #a0342e); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                            🏭
+                        </div>
+                        <div>
+                            <h3 style="color: #333; font-size: 1.3rem; margin: 0;">Гродненская область</h3>
+                            <p style="color: #666; margin: 0; font-size: 0.9rem;">Западный регион</p>
+                        </div>
+                    </div>
+                    
+                    <div style="border-left: 3px solid #cb413b; padding-left: 1rem; margin-bottom: 1.5rem;">
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📍 Адрес:</strong> г. Гродно, ул. Богдановича, 12</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📞 Телефон:</strong> +375 152 123-45-67</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>✉️ Email:</strong> grodno@gomelzlin.by</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>🕒 Режим:</strong> Пн-Пт: 8:00-17:00</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="showOnMap('grodno')" style="background: #cb413b; color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            🗺️ На карте
+                        </button>
+                        <button onclick="callDealer('+375152123567')" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            📞 Позвонить
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Могилевская область -->
+                <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, #cb413b, #a0342e); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                            🏭
+                        </div>
+                        <div>
+                            <h3 style="color: #333; font-size: 1.3rem; margin: 0;">Могилевская область</h3>
+                            <p style="color: #666; margin: 0; font-size: 0.9rem;">Восточный регион</p>
+                        </div>
+                    </div>
+                    
+                    <div style="border-left: 3px solid #cb413b; padding-left: 1rem; margin-bottom: 1.5rem;">
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📍 Адрес:</strong> г. Могилев, ул. Первомайская, 89</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>📞 Телефон:</strong> +375 222 123-45-67</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>✉️ Email:</strong> mogilev@gomelzlin.by</p>
+                        <p style="margin: 0.5rem 0; color: #333;"><strong>🕒 Режим:</strong> Пн-Пт: 8:00-17:00</p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button onclick="showOnMap('mogilev')" style="background: #cb413b; color: white; border: none; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            🗺️ На карте
+                        </button>
+                        <button onclick="callDealer('+375222123567')" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; flex: 1;">
+                            📞 Позвонить
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Как стать дилером -->
+        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; padding: 3rem; text-align: center; margin-bottom: 3rem;">
+            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 1.5rem;">🤝 Хотите стать нашим дилером?</h2>
+            <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Присоединяйтесь к сети официальных дилеров ОАО "ГЗЛиН" и получите доступ к качественной продукции и поддержке компании.
+            </p>
+            <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
+                <button onclick="contactForPartnership()" style="background: #cb413b; color: white; border: none; padding: 1rem 2rem; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    📧 Связаться с нами
+                </button>
+                <button onclick="downloadPartnershipInfo()" style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 1rem 2rem; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    📄 Скачать презентацию
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showOnMap(city) {
+    const coordinates = {
+        'minsk': { lat: 53.9045, lng: 27.5615 },
+        'brest': { lat: 52.0975, lng: 23.7340 },
+        'vitebsk': { lat: 55.1904, lng: 30.2049 },
+        'gomel': { lat: 52.4411, lng: 30.9878 },
+        'grodno': { lat: 53.6884, lng: 23.8258 },
+        'mogilev': { lat: 53.9168, lng: 30.3449 }
+    };
+    
+    const coord = coordinates[city];
+    if (coord) {
+        // Здесь можно интегрировать Яндекс.Карты или Google Maps
+        alert(`Показать на карте: ${city}\nКоординаты: ${coord.lat}, ${coord.lng}`);
+        
+        // Пример интеграции с Яндекс.Картами:
+        // window.open(`https://yandex.ru/maps/?ll=${coord.lng},${coord.lat}&z=16&l=map`, '_blank');
+    }
+}
+
+function callDealer(phone) {
+    window.location.href = `tel:${phone}`;
+}
+
+function contactForPartnership() {
+    const subject = 'Заявка на партнерство с ОАО "ГЗЛиН"';
+    const body = 'Здравствуйте!%0A%0AЯ заинтересован в сотрудничестве в качестве дилера ОАО "ГЗЛиН".%0A%0AПрошу предоставить подробную информацию о программе партнерства.%0A%0AС уважением.';
+    window.location.href = `mailto:partnership@gomelzlin.by?subject=${subject}&body=${body}`;
+}
+
+function downloadPartnershipInfo() {
+    // Здесь можно добавить ссылку на реальный файл презентации
+    alert('Функция загрузки презентации будет добавлена позже.\nОбратитесь к менеджеру по партнерству по телефону +375 232 123-45-67');
+}
+
+// Добавляем эффекты при наведении на карточки
+document.addEventListener('DOMContentLoaded', function() {
+    const dealerCards = document.querySelectorAll('.dealer-card');
+    
+    dealerCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+            this.style.boxShadow = '0 12px 40px rgba(203, 65, 59, 0.2)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.boxShadow = '0 6px 25px rgba(0,0,0,0.1)';
+        });
+    });
+});
+</script>
+
+<style>
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+@media (max-width: 768px) {
+    .dealer-card {
+        padding: 1.5rem !important;
+    }
+    
+    .dealer-card > div:first-child {
+        flex-direction: column !important;
+        text-align: center;
+    }
+    
+    .dealer-card > div:first-child > div:first-child {
+        margin-right: 0 !important;
+        margin-bottom: 1rem !important;
+    }
+}
+</style>
+{% endblock %}

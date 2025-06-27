@@ -50,4 +50,10 @@ urlpatterns = [
     path('list/', views.OrderListView.as_view(), name='order_list'),
     path('<str:number>/', views.OrderDetailView.as_view(), name='order_detail'),
     path('<str:number>/cancel/', views.cancel_order, name='cancel_order'),
+    
+    # Избранное (wishlist)
+    path('wishlist/add/', views.add_to_wishlist, name='add_to_wishlist'),
+    path('wishlist/remove/', views.remove_from_wishlist, name='remove_from_wishlist'),
+    path('wishlist/status/', views.get_wishlist_status, name='get_wishlist_status'),
+    path('wishlist/count/', views.wishlist_count, name='wishlist_count'),
 ]

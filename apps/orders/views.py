@@ -14,6 +14,8 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 import json
 from decimal import Decimal
+from apps.catalog.models import Product
+from .models import Wishlist, WishlistItem
 
 from .models import (
     Cart, CartItem, Order, OrderItem, OrderStatusHistory,
@@ -647,3 +649,182 @@ def cart_context(request):
     return {
         'cart_count': cart_count
     }
+
+@login_required
+@require_POST
+def add_to_wishlist(request):
+    """AJAX добавление товара в избранное"""
+    try:
+        product_id = request.POST.get('product_id')
+        
+        if not product_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Не указан товар'
+            })
+        
+        product = get_object_or_404(Product, id=product_id, is_active=True, is_published=True)
+        
+        # Получаем или создаем основной список желаний пользователя
+        wishlist, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            name='Основной список',
+            defaults={'is_public': False}
+        )
+        
+        # Проверяем, есть ли товар уже в списке
+        wishlist_item, item_created = WishlistItem.objects.get_or_create(
+            wishlist=wishlist,
+            product=product
+        )
+        
+        if item_created:
+            # Товар добавлен в избранное
+            wishlist_count = wishlist.items.count()
+            return JsonResponse({
+                'success': True,
+                'message': f'Товар "{product.name}" добавлен в избранное!',
+                'in_wishlist': True,
+                'wishlist_count': wishlist_count
+            })
+        else:
+            # Товар уже в избранном
+            return JsonResponse({
+                'success': False,
+                'message': 'Товар уже находится в избранном',
+                'in_wishlist': True,
+                'wishlist_count': wishlist.items.count()
+            })
+            
+    except Product.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Товар не найден'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Произошла ошибка: {str(e)}'
+        })
+
+
+@login_required
+@require_POST
+def remove_from_wishlist(request):
+    """AJAX удаление товара из избранного"""
+    try:
+        product_id = request.POST.get('product_id')
+        
+        if not product_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'Не указан товар'
+            })
+        
+        product = get_object_or_404(Product, id=product_id)
+        
+        # Получаем основной список желаний пользователя
+        try:
+            wishlist = Wishlist.objects.get(
+                user=request.user,
+                name='Основной список'
+            )
+            
+            # Удаляем товар из списка
+            wishlist_item = WishlistItem.objects.get(
+                wishlist=wishlist,
+                product=product
+            )
+            wishlist_item.delete()
+            
+            wishlist_count = wishlist.items.count()
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Товар "{product.name}" удален из избранного',
+                'in_wishlist': False,
+                'wishlist_count': wishlist_count
+            })
+            
+        except Wishlist.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Список желаний не найден'
+            })
+        except WishlistItem.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Товар не найден в избранном'
+            })
+            
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Произошла ошибка: {str(e)}'
+        })
+
+
+@login_required
+def get_wishlist_status(request):
+    """AJAX получение статуса товара в избранном"""
+    try:
+        product_id = request.GET.get('product_id')
+        
+        if not product_id:
+            return JsonResponse({'in_wishlist': False})
+        
+        # Проверяем, есть ли товар в избранном
+        try:
+            wishlist = Wishlist.objects.get(
+                user=request.user,
+                name='Основной список'
+            )
+            
+            in_wishlist = WishlistItem.objects.filter(
+                wishlist=wishlist,
+                product_id=product_id
+            ).exists()
+            
+            return JsonResponse({
+                'in_wishlist': in_wishlist,
+                'wishlist_count': wishlist.items.count()
+            })
+            
+        except Wishlist.DoesNotExist:
+            return JsonResponse({
+                'in_wishlist': False,
+                'wishlist_count': 0
+            })
+            
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Ошибка: {str(e)}'
+        })
+
+
+@login_required
+def wishlist_count(request):
+    """AJAX получение количества товаров в избранном"""
+    try:
+        wishlist = Wishlist.objects.get(
+            user=request.user,
+            name='Основной список'
+        )
+        count = wishlist.items.count()
+        
+        return JsonResponse({
+            'success': True,
+            'count': count
+        })
+        
+    except Wishlist.DoesNotExist:
+        return JsonResponse({
+            'success': True,
+            'count': 0
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Ошибка: {str(e)}'
+        })

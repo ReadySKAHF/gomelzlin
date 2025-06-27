@@ -90,12 +90,12 @@
                 {% if view_type == 'grid' %}
                 <div class="products-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
                     {% for product in products %}
-                    <div class="product-card" onclick="location.href='{{ product.get_absolute_url }}'" 
-                         style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; transition: all 0.3s ease;">
+                    <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="product-card"
+                        style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; cursor: pointer; transition: all 0.3s ease; text-decoration: none; color: inherit; display: block;">
                         <div class="product-image" style="height: 200px; background: var(--light-gray); position: relative;">
                             {% if product.image %}
                                 <img src="{{ product.image.url }}" alt="{{ product.name }}" 
-                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                    style="width: 100%; height: 100%; object-fit: cover;">
                             {% else %}
                                 <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--secondary-gray); font-size: 3rem;">
                                     📦
@@ -114,9 +114,11 @@
                                 {{ product.name }}
                             </h3>
                             
+                            {% if product.article %}
                             <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">
                                 Артикул: {{ product.article }}
                             </p>
+                            {% endif %}
                             
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                                 <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-red);">
@@ -130,11 +132,17 @@
                                 {% endif %}
                             </div>
                             
-                            <button class="btn btn-primary" style="width: 100%; padding: 0.75rem; background: var(--primary-red); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">
-                                Заказать
+                            <!-- Кнопка "Заказать" теперь НЕ блокирует переход -->
+                            <button class="btn btn-primary add-to-cart-btn" 
+                                    data-product-id="{{ product.id }}" 
+                                    data-product-name="{{ product.name }}" 
+                                    data-product-price="{{ product.price }}"
+                                    style="width: 100%; padding: 0.75rem; background: var(--primary-red); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;"
+                                    onclick="event.preventDefault(); event.stopPropagation(); addToCart(this);">
+                                В корзину
                             </button>
                         </div>
-                    </div>
+                    </a>
                     {% endfor %}
                 </div>
 
@@ -142,8 +150,8 @@
                 <!-- Товары в виде списка -->
                 <div class="products-list">
                     {% for product in products %}
-                    <div class="product-row" onclick="location.href='{{ product.get_absolute_url }}'" 
-                         style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease; display: grid; grid-template-columns: 120px 1fr auto auto; gap: 1.5rem; align-items: center;">
+                    <a href="{% url 'catalog:product_detail' slug=product.slug %}" class="product-row" 
+                        style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s ease; display: grid; grid-template-columns: 120px 1fr auto auto; gap: 1.5rem; align-items: center; text-decoration: none; color: inherit;">
                         
                         <!-- Изображение -->
                         <div class="product-image" style="width: 120px; height: 80px; background: var(--light-gray); border-radius: 5px; overflow: hidden;">
@@ -158,32 +166,46 @@
                         </div>
                         
                         <!-- Информация о товаре -->
-                        <div class="product-info">
-                            <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <h3 style="font-size: 1.2rem; font-weight: 600; color: var(--dark-gray); margin-bottom: 0.5rem;">
                                 {{ product.name }}
                             </h3>
-                            <p style="color: var(--secondary-gray); font-size: 0.9rem;">
+                            {% if product.article %}
+                            <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 0.5rem;">
                                 Артикул: {{ product.article }}
                             </p>
+                            {% endif %}
+                            {% if product.short_description %}
+                            <p style="color: var(--secondary-gray); font-size: 0.9rem;">
+                                {{ product.short_description|truncatewords:15 }}
+                            </p>
+                            {% endif %}
                         </div>
                         
                         <!-- Цена -->
-                        <div class="product-price" style="text-align: right;">
-                            <span style="font-size: 1.2rem; font-weight: 600; color: var(--primary-red);">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.3rem; font-weight: 600; color: var(--primary-red); margin-bottom: 0.5rem;">
                                 {% if product.price %}{{ product.price|floatformat:0 }} BYN{% else %}По запросу{% endif %}
-                            </span>
+                            </div>
                             {% if product.stock_quantity %}
-                            <div style="font-size: 0.85rem; color: #28a745; margin-top: 0.25rem;">
+                            <div style="font-size: 0.8rem; color: #28a745;">
                                 В наличии: {{ product.stock_quantity }}
                             </div>
                             {% endif %}
                         </div>
                         
                         <!-- Кнопка -->
-                        <button class="btn btn-primary" style="padding: 0.5rem 1rem; background: var(--primary-red); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">
-                            Заказать
-                        </button>
-                    </div>
+                        <div>
+                            <button class="btn btn-primary add-to-cart-btn" 
+                                    data-product-id="{{ product.id }}" 
+                                    data-product-name="{{ product.name }}" 
+                                    data-product-price="{{ product.price }}"
+                                    style="padding: 0.75rem 1.5rem; background: var(--primary-red); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;"
+                                    onclick="event.preventDefault(); event.stopPropagation(); addToCart(this);">
+                                В корзину
+                            </button>
+                        </div>
+                    </a>
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -237,6 +259,17 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
+.product-card, .product-row {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.product-card:hover, .product-row:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
 .product-card:hover, .product-row:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
@@ -257,6 +290,55 @@
     .subcategories-grid, .products-grid {
         grid-template-columns: 1fr !important;
     }
+}
+</style>
+<script>
+function addToCart(productId, productName, productPrice) {
+    // Предотвращаем переход по ссылке
+    event.preventDefault();
+    event.stopPropagation();
+    
+    console.log('Добавляем в корзину:', productName);
+    
+    // Показываем уведомление
+    showNotification('Товар "' + productName + '" добавлен в корзину!', 'success');
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : '#cb413b'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 5px;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        document.body.removeChild(notification);
+    }, 3000);
+}
+</script>
+
+<!-- Дополнительные CSS стили -->
+<style>
+.product-card:hover, .product-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+.add-to-cart-btn:hover {
+    background: #b8362f !important;
+    transform: scale(1.02);
 }
 </style>
 {% endblock %}
