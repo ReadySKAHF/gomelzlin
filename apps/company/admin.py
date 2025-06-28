@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CompanyInfo, Leader
+from .models import CompanyInfo, Leader, Partner
 
 @admin.register(CompanyInfo)
 class CompanyInfoAdmin(admin.ModelAdmin):
@@ -64,3 +64,44 @@ class LeaderAdmin(admin.ModelAdmin):
             'fields': ('is_public', 'sort_order')
         }),
     )
+
+@admin.register(Partner)
+class PartnerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'partner_type', 'city', 'country', 'is_featured', 'is_public', 'sort_order', 'website')
+    list_filter = ('partner_type', 'is_featured', 'is_public', 'country', 'created_at')
+    search_fields = ('name', 'full_name', 'description', 'city')
+    ordering = ('-is_featured', 'sort_order', 'name')
+    list_editable = ('is_featured', 'is_public', 'sort_order')
+    
+    fieldsets = (
+        ('Основная информация', {
+            'fields': ('name', 'full_name', 'description', 'partner_type')
+        }),
+        ('Контактная информация', {
+            'fields': ('website', 'email', 'phone')
+        }),
+        ('Логотип', {
+            'fields': ('logo',)
+        }),
+        ('Адрес', {
+            'fields': ('country', 'city', 'address')
+        }),
+        ('Информация о сотрудничестве', {
+            'fields': ('partnership_start_date', 'cooperation_areas'),
+            'classes': ('collapse',)
+        }),
+        ('Настройки отображения', {
+            'fields': ('is_featured', 'is_public', 'sort_order')
+        }),
+    )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related()
+    
+    # Предпросмотр логотипа в админке
+    def logo_preview(self, obj):
+        if obj.logo:
+            return f'<img src="{obj.logo.url}" style="max-height: 50px; max-width: 100px;">'
+        return 'Нет логотипа'
+    logo_preview.allow_tags = True
+    logo_preview.short_description = 'Предпросмотр логотипа'

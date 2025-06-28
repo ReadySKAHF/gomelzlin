@@ -233,3 +233,124 @@ class Leader(AbstractBaseModel):
         """Возвращает полное имя"""
         parts = [self.last_name, self.first_name, self.middle_name]
         return ' '.join(filter(None, parts))
+    
+class Partner(AbstractBaseModel):
+    """
+    Партнеры компании
+    """
+    PARTNER_TYPES = [
+        ('strategic', _('Стратегический партнер')),
+        ('supplier', _('Поставщик')),
+        ('customer', _('Клиент')),
+        ('distributor', _('Дистрибьютор')),
+        ('technology', _('Технологический партнер')),
+    ]
+    
+    # Основная информация
+    name = models.CharField(
+        _('Название организации'),
+        max_length=255
+    )
+    full_name = models.CharField(
+        _('Полное название'),
+        max_length=500,
+        blank=True
+    )
+    description = models.TextField(
+        _('Описание'),
+        max_length=500,
+        help_text=_('Краткое описание партнерства или деятельности компании')
+    )
+    
+    # Тип партнерства
+    partner_type = models.CharField(
+        _('Тип партнерства'),
+        max_length=20,
+        choices=PARTNER_TYPES,
+        default='strategic'
+    )
+    
+    # Контактная информация
+    website = models.URLField(
+        _('Веб-сайт'),
+        blank=True
+    )
+    email = models.EmailField(
+        _('Email'),
+        blank=True
+    )
+    phone = models.CharField(
+        _('Телефон'),
+        max_length=20,
+        blank=True
+    )
+    
+    # Логотип
+    logo = models.ImageField(
+        _('Логотип'),
+        upload_to='company/partners/',
+        blank=True,
+        null=True,
+        help_text=_('Рекомендуемый размер: 300x200 пикселей')
+    )
+    
+    # Адрес
+    country = models.CharField(
+        _('Страна'),
+        max_length=100,
+        default='Беларусь'
+    )
+    city = models.CharField(
+        _('Город'),
+        max_length=100,
+        blank=True
+    )
+    address = models.TextField(
+        _('Адрес'),
+        blank=True
+    )
+    
+    # Информация о сотрудничестве
+    partnership_start_date = models.DateField(
+        _('Дата начала сотрудничества'),
+        blank=True,
+        null=True
+    )
+    cooperation_areas = models.TextField(
+        _('Области сотрудничества'),
+        blank=True,
+        help_text=_('Описание основных направлений сотрудничества')
+    )
+    
+    # Настройки отображения
+    is_featured = models.BooleanField(
+        _('Рекомендуемый партнер'),
+        default=False,
+        help_text=_('Будет отображаться в приоритетном порядке')
+    )
+    is_public = models.BooleanField(
+        _('Показывать на сайте'),
+        default=True
+    )
+    sort_order = models.PositiveIntegerField(
+        _('Порядок сортировки'),
+        default=0
+    )
+    
+    class Meta:
+        verbose_name = _('Партнер')
+        verbose_name_plural = _('Партнеры')
+        ordering = ['-is_featured', 'sort_order', 'name']
+        indexes = [
+            models.Index(fields=['is_active', 'is_public']),
+            models.Index(fields=['is_featured', 'sort_order']),
+        ]
+    
+    def __str__(self):
+        return self.name
+    
+    def get_short_description(self):
+        """Возвращает краткое описание (первые 100 символов)"""
+        if len(self.description) <= 100:
+            return self.description
+        return self.description[:97] + '...'

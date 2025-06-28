@@ -42,14 +42,32 @@
         <div class="leadership-grid">
             {% for leader in leaders %}
                 <div class="card leader-card">
-                    <img src="{% static leader.photo %}" alt="{{ leader.position }}" onerror="this.src='{% static 'images/default-avatar.svg' %}';">
-                    <div class="card-content">
-                        <div class="card-title">{{ leader.name }}</div>
-                        <div class="card-subtitle">{{ leader.position }}</div>
-                        <div class="contact-info">
-                            <p>📧 <a href="mailto:{{ leader.email }}">{{ leader.email }}</a></p>
-                            <p>📞 <a href="tel:{{ leader.phone }}">{{ leader.phone }}</a></p>
+                    {% if leader.photo %}
+                        <img src="{{ leader.photo.url }}" alt="{{ leader.position }}">
+                    {% else %}
+                        <div class="no-photo-placeholder">
+                            <span class="placeholder-text">{{ leader.get_full_name|first }}</span>
                         </div>
+                    {% endif %}
+                    <div class="card-content">
+                        <div class="card-title">{{ leader.get_full_name }}</div>
+                        <div class="card-subtitle">{{ leader.position }}</div>
+                        {% if leader.department %}
+                            <div class="card-department">{{ leader.department }}</div>
+                        {% endif %}
+                        <div class="contact-info">
+                            {% if leader.email %}
+                                <p>📧 <a href="mailto:{{ leader.email }}">{{ leader.email }}</a></p>
+                            {% endif %}
+                            {% if leader.phone %}
+                                <p>📞 <a href="tel:{{ leader.phone }}">{{ leader.phone }}</a></p>
+                            {% endif %}
+                        </div>
+                        {% if leader.bio %}
+                            <div class="leader-bio">
+                                <p>{{ leader.bio|truncatewords:20 }}</p>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             {% empty %}
@@ -64,7 +82,7 @@
             {% for partner in partners %}
                 <div class="card partner-card" onclick="window.open('{{ partner.website }}', '_blank')">
                     <div class="partner-logo-container">
-                        <img src="{% static partner.logo %}" alt="{{ partner.name }}" onerror="this.src='{% static 'images/default-partner.svg' %}';">
+                        <img src="{{ partner.logo.url }}" alt="{{ partner.name }}" onerror="this.src='{% static 'images/default-partner.svg' %}';">
                     </div>
                     <div class="card-content">
                         <div class="card-title">{{ partner.name }}</div>
@@ -221,6 +239,14 @@
     font-weight: 500;
 }
 
+/* Добавленные стили для отдела */
+.card-department {
+    color: var(--secondary-gray);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
 .contact-info {
     text-align: left;
     background: var(--light-gray);
@@ -243,7 +269,56 @@
     text-decoration: underline;
 }
 
+/* Добавленные стили для биографии */
+.leader-bio {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+    font-size: 0.85rem;
+    color: #666;
+    text-align: left;
+}
 
+.leader-bio p {
+    line-height: 1.4;
+    margin: 0;
+}
+
+.partners-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.partner-card {
+    text-align: center;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.partner-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.partner-logo-container {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.partner-logo-container img {
+    max-height: 60px;
+    max-width: 100%;
+    object-fit: contain;
+}
 
 @media (max-width: 768px) {
     .product-nav {
@@ -310,6 +385,10 @@
         font-size: 0.85rem;
         min-height: 3rem;
     }
+    
+    .leader-bio {
+        font-size: 0.8rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -336,6 +415,40 @@
     
     .contact-info {
         padding: 0.8rem;
+    }
+    
+    .leader-bio {
+        font-size: 0.75rem;
+    }
+}
+
+.no-photo-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    background: linear-gradient(135deg, #cb413b, #a0342f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--primary-red);
+}
+
+.placeholder-text {
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+    .no-photo-placeholder {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .placeholder-text {
+        font-size: 1.5rem;
     }
 }
 </style>
