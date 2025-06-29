@@ -151,41 +151,86 @@
 <!-- News Section -->
 <section style="padding: 4rem 0;">
     <div class="container">
-        <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 3rem; color: var(--dark-gray);">Новости компании</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-            <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition);">
-                <img src="https://images.unsplash.com/photo-1625048815564-14ac8b56e65d?w=400&h=200&fit=crop" alt="Новости" 
-                     style="width: 100%; height: 200px; object-fit: cover;">
-                <div style="padding: 1.5rem;">
-                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Новая линейка жаток 2025</h3>
-                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">15 января 2025</p>
-                    <p>Представлена новая серия жаток с улучшенными характеристиками производительности и надежности.</p>
-                    <a href="#" style="color: var(--primary-red); font-weight: 600;">Читать далее →</a>
-                </div>
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--dark-gray);">
+                📰 Новости компании
+            </h2>
+            <p style="color: var(--secondary-gray); font-size: 1.1rem;">
+                Актуальная информация о деятельности ОАО "ГЗЛиН"
+            </p>
+        </div>
+
+        {% if featured_news %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                {% for news in featured_news %}
+                    <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition);"
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.15)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow)'">
+                        
+                        {% if news.image %}
+                            <img src="{{ news.image.url }}" alt="{{ news.title }}" 
+                                 style="width: 100%; height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #cb413b, #ff6b5b); 
+                                       display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 3rem; color: white;">📰</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div style="padding: 1.5rem;">
+                            <h3 style="color: var(--primary-red); margin-bottom: 0.5rem; font-size: 1.2rem;">
+                                <a href="{{ news.get_absolute_url }}" 
+                                   style="color: inherit; text-decoration: none;"
+                                   onmouseover="this.style.color='#a03530'"
+                                   onmouseout="this.style.color='var(--primary-red)'">
+                                    {{ news.title }}
+                                </a>
+                            </h3>
+                            
+                            <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">
+                                📅 {{ news.published_at|date:"d.m.Y" }}
+                                {% if news.views_count %} • 👁️ {{ news.views_count }}{% endif %}
+                            </p>
+                            
+                            <div class="tinymce-content" style="color: var(--dark-gray); line-height: 1.6; margin-bottom: 1rem;">
+                                {{ news.short_description|safe|truncatewords_html:20 }}
+                            </div>
+                            
+                            <a href="{{ news.get_absolute_url }}" 
+                               style="color: var(--primary-red); font-weight: 600; text-decoration: none; 
+                                      display: inline-flex; align-items: center; gap: 0.5rem;"
+                               onmouseover="this.style.gap='0.8rem'"
+                               onmouseout="this.style.gap='0.5rem'">
+                                Читать далее <span style="transition: var(--transition);">→</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
             
-            <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition);">
-                <img src="https://images.unsplash.com/photo-1560472355-a9a8904389dd?w=400&h=200&fit=crop" alt="Новости" 
-                     style="width: 100%; height: 200px; object-fit: cover;">
-                <div style="padding: 1.5rem;">
-                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Открытие нового дилерского центра</h3>
-                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">10 января 2025</p>
-                    <p>В Витебске открылся новый дилерский центр ОАО "ГЗЛиН" для обслуживания северных регионов страны.</p>
-                    <a href="#" style="color: var(--primary-red); font-weight: 600;">Читать далее →</a>
-                </div>
+            <!-- Кнопка "Все новости" -->
+            <div style="text-align: center;">
+                <a href="{% url 'core:news_list' %}" 
+                   style="display: inline-block; padding: 1rem 2rem; background: var(--primary-red); 
+                          color: white; text-decoration: none; border-radius: var(--radius); 
+                          font-weight: 600; transition: var(--transition);"
+                   onmouseover="this.style.background='#a03530'; this.style.transform='translateY(-2px)'"
+                   onmouseout="this.style.background='var(--primary-red)'; this.style.transform='translateY(0)'">
+                    📰 Все новости
+                </a>
             </div>
-
-            <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; transition: var(--transition);">
-                <img src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=200&fit=crop" alt="Новости" 
-                     style="width: 100%; height: 200px; object-fit: cover;">
-                <div style="padding: 1.5rem;">
-                    <h3 style="color: var(--primary-red); margin-bottom: 0.5rem;">Модернизация производства</h3>
-                    <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1rem;">5 января 2025</p>
-                    <p>Завершена модернизация литейного производства с установкой современного оборудования.</p>
-                    <a href="#" style="color: var(--primary-red); font-weight: 600;">Читать далее →</a>
-                </div>
+            
+        {% else %}
+            <!-- Заглушка, если новостей нет -->
+            <div style="text-align: center; padding: 3rem; background: var(--light-gray); border-radius: var(--radius);">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📰</div>
+                <h3 style="color: var(--dark-gray); margin-bottom: 1rem;">Новости скоро появятся</h3>
+                <p style="color: var(--secondary-gray);">
+                    Мы работаем над добавлением актуальных новостей компании. 
+                    Следите за обновлениями!
+                </p>
             </div>
-        </div>
+        {% endif %}
     </div>
 </section>
 

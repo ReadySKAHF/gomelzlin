@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
+from tinymce.models import HTMLField
 import uuid
 
 
@@ -297,3 +298,153 @@ class ContactMessage(AbstractBaseModel):
     
     def __str__(self):
         return f'{self.name} - {self.subject}'
+
+class News(AbstractBaseModel, SeoModel):
+    """
+    Модель новостей компании с поддержкой форматированного текста
+    """
+    STATUS_CHOICES = [
+        ('draft', _('Черновик')),
+        ('published', _('Опубликовано')),
+        ('archived', _('Архив')),
+    ]
+    
+    title = models.CharField(
+        _('Заголовок'),
+        max_length=255
+    )
+    slug = models.SlugField(
+        _('URL'),
+        max_length=255,
+        unique=True,
+        help_text=_('Автоматически генерируется из заголовка')
+    )
+    short_description = HTMLField(
+        _('Краткое описание'),
+        help_text=_('Краткое описание для списка новостей')
+    )
+    content = HTMLField(
+        _('Полное содержание'),
+        help_text=_('Полный текст новости с форматированием')
+    )
+    image = models.ImageField(
+        _('Изображение'),
+        upload_to='news/%Y/%m/',
+        blank=True,
+        null=True,
+        help_text=_('Основное изображение новости')
+    )
+    status = models.CharField(
+        _('Статус'),
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft'
+    )
+    is_featured = models.BooleanField(
+        _('Рекомендуемая'),
+        default=False,
+        help_text=_('Отображается на главной странице')
+    )
+    published_at = models.DateTimeField(
+        _('Дата публикации'),
+        blank=True,
+        null=True,
+        help_text=_('Оставьте пустым для автоматической установки при публикации')
+    )
+    views_count = models.PositiveIntegerField(
+        _('Количество просмотров'),
+        default=0
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Автор'),
+        related_name='news_articles'
+    )
+    
+    class Meta:
+        verbose_name = _('Новость')
+        verbose_name_plural = _('Новости')
+        ordering = ['-published_at', '-created_at']
+        indexes = [
+            models.Index(fields=['status', 'is_active']),
+            models.Index(fields=['published_at']),
+            models.Index(fields=['is_featured', 'status']),
+        ]
+    
+    def __str__(self):
+        return self.title
+    
+    def save(self, *args, **kwargs):
+        # Автогенерация slug из заголовка
+        if not self.slug:
+            from django.utils.text import slugify
+            
+            base_slug = slugify(self.title)
+            if not base_slug:
+                base_slug = 'news'
+            
+            # Проверяем уникальность slug
+            slug = base_slug
+            counter = 1
+            while News.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            
+            self.slug = slug
+        
+        # Автоматическая установка даты публикации
+        if self.status == 'published' and not self.published_at:
+            from django.utils import timezone
+            self.published_at = timezone.now()
+        
+        super().save(*args, **kwargs)
+    
+    def get_absolute_url(self):
+        """Возвращает URL для детального просмотра новости"""
+        return f'/news/{self.slug}/'
+    
+    def get_short_description_text(self):
+        """Возвращает краткое описание без HTML тегов для мета-тегов"""
+        if self.short_description:
+            import re
+            # Убираем HTML теги
+            clean_content = re.sub(r'<[^>]+>', '', self.short_description)
+            return clean_content
+        return ''
+    
+    def get_short_description(self):
+        """Возвращает краткое описание для отображения в списках"""
+        if self.short_description:
+            return self.short_description
+        
+        # Если краткого описания нет, берем первые 150 символов из контента
+        if self.content:
+            import re
+            clean_content = re.sub(r'<[^>]+>', '', self.content)
+            return clean_content[:150] + '...' if len(clean_content) > 150 else clean_content
+        
+        return ''
+    
+    def increment_views(self):
+        """Увеличивает счетчик просмотров"""
+        self.views_count = models.F('views_count') + 1
+        self.save(update_fields=['views_count'])
+    
+    @classmethod
+    def get_published(cls):
+        """Возвращает только опубликованные активные новости"""
+        return cls.objects.filter(
+            status='published',
+            is_active=True,
+            published_at__isnull=False
+        )
+    
+    @classmethod
+    def get_featured(cls, limit=3):
+        """Возвращает рекомендуемые новости для главной страницы"""
+        return cls.get_published().filter(
+            is_featured=True
+        ).order_by('-published_at')[:limit]

@@ -33,6 +33,7 @@ THIRD_PARTY_APPS = [
     # 'django_htmx',
     # 'corsheaders',
     # 'django_cleanup',
+    'tinymce',
 ]
 
 LOCAL_APPS = [
@@ -224,4 +225,15 @@ LOGGING = {
             'propagate': True,
         },
     },
+}
+
+# Упрощенная конфигурация для небольших полей
+TINYMCE_MINIMAL_CONFIG = {
+    'height': 200,
+    'width': '100%',
+    'menubar': False,
+    'plugins': ['link', 'lists', 'textcolor'],
+    'toolbar': 'bold italic underline | forecolor | bullist numlist | link removeformat',
+    'paste_as_text': True,
+    'cleanup_on_startup': True,
 }

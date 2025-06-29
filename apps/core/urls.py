@@ -7,7 +7,11 @@ app_name = 'core'
 
 urlpatterns = [
     # Главная страница
-    path('', TemplateView.as_view(template_name='pages/home.html'), name='home'),
+    path('', views.HomeView.as_view(), name='home'),
+    
+    # Новости
+    path('news/', views.NewsListView.as_view(), name='news_list'),
+    path('news/<slug:slug>/', views.NewsDetailView.as_view(), name='news_detail'),
     
     # О компании
     path('about/', AboutView.as_view(), name='about'),
@@ -16,7 +20,7 @@ urlpatterns = [
     path('dealers/', TemplateView.as_view(template_name='pages/dealers.html'), name='dealers'),
     
     # Контакты
-    path('contacts/', TemplateView.as_view(template_name='pages/contacts.html'), name='contacts'),
+    path('contacts/', views.ContactsView.as_view(), name='contacts'),
     
     # Дополнительные страницы
     path('privacy/', TemplateView.as_view(template_name='pages/privacy.html'), name='privacy'),

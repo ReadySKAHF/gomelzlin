@@ -1,0 +1,238 @@
+<!-- templates/news/news_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ news.title }} - Новости - ОАО "ГЗЛиН"{% endblock %}
+
+{% block meta_description %}{{ news.meta_description|default:news.get_short_description }}{% endblock %}
+{% block meta_keywords %}{{ news.meta_keywords|default:"новости, ГЗЛиН, Гомель" }}{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0;">
+    <!-- Добавьте CSS для CKEditor контента в head -->
+    <link rel="stylesheet" href="{% static 'css/tinymce-content.css' %}">
+    
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" style="margin-bottom: 2rem;">
+        <ol class="breadcrumb" style="background: none; padding: 0;">
+            <li class="breadcrumb-item">
+                <a href="{% url 'core:home' %}" style="color: var(--primary-red); text-decoration: none;">Главная</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'core:news_list' %}" style="color: var(--primary-red); text-decoration: none;">Новости</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page" style="color: var(--secondary-gray);">
+                {{ news.title|truncatechars:50 }}
+            </li>
+        </ol>
+    </nav>
+
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 3rem; align-items: start;">
+        
+        <!-- Основной контент новости -->
+        <article style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;">
+            
+            <!-- Изображение новости -->
+            {% if news.image %}
+                <img src="{{ news.image.url }}" alt="{{ news.title }}" 
+                     style="width: 100%; height: 400px; object-fit: cover;">
+            {% else %}
+                <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #cb413b, #ff6b5b); 
+                           display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 4rem; color: white;">📰</span>
+                </div>
+            {% endif %}
+            
+            <div style="padding: 2rem;">
+                
+                <!-- Заголовок -->
+                <h1 style="color: var(--dark-gray); margin-bottom: 1rem; font-size: 2rem; line-height: 1.3;">
+                    {{ news.title }}
+                </h1>
+                
+                <!-- Метаинформация -->
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; 
+                           margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #eee;">
+                    
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--secondary-gray);">
+                        <span>📅</span>
+                        <span>{{ news.published_at|date:"d.m.Y в H:i" }}</span>
+                    </div>
+                    
+                    {% if news.author %}
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--secondary-gray);">
+                            <span>👤</span>
+                            <span>{{ news.author.get_full_name|default:news.author.username }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--secondary-gray);">
+                        <span>👁️</span>
+                        <span>{{ news.views_count }} просмотров</span>
+                    </div>
+                    
+                    {% if news.is_featured %}
+                        <span style="background: var(--primary-red); color: white; padding: 0.3rem 0.8rem; 
+                                     border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
+                            ⭐ Рекомендуемая новость
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <!-- Краткое описание -->
+                {% if news.short_description %}
+                    <div style="background: var(--light-gray); padding: 1.5rem; border-radius: 8px; 
+                            margin-bottom: 2rem; border-left: 4px solid var(--primary-red);">
+                        <div class="tinymce-content" style="font-size: 1.1rem; color: var(--dark-gray); margin: 0; font-weight: 500;">
+                            {{ news.short_description|safe }}
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <!-- Основной контент -->
+                <div class="tinymce-content" style="font-size: 1rem; line-height: 1.8; color: var(--dark-gray);">
+                    {{ news.content|safe }}
+                </div>
+                
+                <!-- Социальные кнопки и действия -->
+                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #eee;">
+                    <div style="display: flex; justify-content: between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        
+                        <!-- Кнопки социальных сетей -->
+                        <div style="display: flex; gap: 0.5rem;">
+                            <span style="color: var(--secondary-gray); margin-right: 0.5rem;">Поделиться:</span>
+                            
+                            <!-- VK -->
+                            <a href="https://vk.com/share.php?url={{ request.build_absolute_uri }}&title={{ news.title|urlencode }}" 
+                               target="_blank" rel="noopener"
+                               style="display: inline-flex; align-items: center; justify-content: center; 
+                                      width: 40px; height: 40px; background: #4C75A3; color: white; 
+                                      text-decoration: none; border-radius: 8px; transition: var(--transition);"
+                               onmouseover="this.style.transform='scale(1.1)'"
+                               onmouseout="this.style.transform='scale(1)'">
+                                VK
+                            </a>
+                            
+                            <!-- Telegram -->
+                            <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text={{ news.title|urlencode }}" 
+                               target="_blank" rel="noopener"
+                               style="display: inline-flex; align-items: center; justify-content: center; 
+                                      width: 40px; height: 40px; background: #0088cc; color: white; 
+                                      text-decoration: none; border-radius: 8px; transition: var(--transition);"
+                               onmouseover="this.style.transform='scale(1.1)'"
+                               onmouseout="this.style.transform='scale(1)'">
+                                TG
+                            </a>
+                            
+                            <!-- Email -->
+                            <a href="mailto:?subject={{ news.title|urlencode }}&body=Прочитайте эту новость: {{ request.build_absolute_uri }}" 
+                               style="display: inline-flex; align-items: center; justify-content: center; 
+                                      width: 40px; height: 40px; background: var(--secondary-gray); color: white; 
+                                      text-decoration: none; border-radius: 8px; transition: var(--transition);"
+                               onmouseover="this.style.transform='scale(1.1)'"
+                               onmouseout="this.style.transform='scale(1)'">
+                                📧
+                            </a>
+                        </div>
+                        
+                        <!-- Кнопка "Назад к новостям" -->
+                        <a href="{% url 'core:news_list' %}" 
+                           style="display: inline-flex; align-items: center; gap: 0.5rem; 
+                                  padding: 0.8rem 1.5rem; background: var(--primary-red); color: white; 
+                                  text-decoration: none; border-radius: var(--radius); transition: var(--transition);"
+                           onmouseover="this.style.background='#a03530'"
+                           onmouseout="this.style.background='var(--primary-red)'">
+                            ← Все новости
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+        
+        <!-- Сайдбар с похожими новостями -->
+        <aside>
+            {% if related_news %}
+                <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.5rem;">
+                    <h3 style="color: var(--dark-gray); margin-bottom: 1.5rem; font-size: 1.2rem;">
+                        📰 Другие новости
+                    </h3>
+                    
+                    {% for related in related_news %}
+                        <article style="padding-bottom: 1rem; margin-bottom: 1rem; 
+                                       {% if not forloop.last %}border-bottom: 1px solid #eee;{% endif %}">
+                            <h4 style="margin-bottom: 0.5rem;">
+                                <a href="{{ related.get_absolute_url }}" 
+                                   style="color: var(--dark-gray); text-decoration: none; font-size: 0.9rem; 
+                                          display: block; line-height: 1.4;"
+                                   onmouseover="this.style.color='var(--primary-red)'"
+                                   onmouseout="this.style.color='var(--dark-gray)'">
+                                    {{ related.title|truncatechars:60 }}
+                                </a>
+                            </h4>
+                            <p style="color: var(--secondary-gray); font-size: 0.8rem; margin: 0;">
+                                📅 {{ related.published_at|date:"d.m.Y" }}
+                            </p>
+                        </article>
+                    {% endfor %}
+                    
+                    <a href="{% url 'core:news_list' %}" 
+                       style="display: block; text-align: center; padding: 0.8rem; 
+                              background: var(--light-gray); color: var(--primary-red); 
+                              text-decoration: none; border-radius: 6px; font-weight: 600; 
+                              transition: var(--transition);"
+                       onmouseover="this.style.background='var(--primary-red)'; this.style.color='white'"
+                       onmouseout="this.style.background='var(--light-gray)'; this.style.color='var(--primary-red)'">
+                        Все новости →
+                    </a>
+                </div>
+            {% endif %}
+            
+            <!-- Блок "Вернуться на главную" -->
+            <div style="background: white; border-radius: var(--radius); box-shadow: var(--shadow); 
+                       padding: 1.5rem; margin-top: 1.5rem;">
+                <h3 style="color: var(--dark-gray); margin-bottom: 1rem; font-size: 1.2rem;">
+                    🏠 Перейти на главную
+                </h3>
+                <p style="color: var(--secondary-gray); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Узнайте больше о продукции и услугах ОАО "ГЗЛиН"
+                </p>
+                <a href="{% url 'core:home' %}" 
+                   style="display: block; text-align: center; padding: 1rem; 
+                          background: var(--primary-red); color: white; 
+                          text-decoration: none; border-radius: var(--radius); 
+                          transition: var(--transition);"
+                   onmouseover="this.style.background='#a03530'"
+                   onmouseout="this.style.background='var(--primary-red)'">
+                    На главную страницу
+                </a>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- Мобильная адаптация -->
+<style>
+@media (max-width: 768px) {
+    .container > div {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+    
+    aside {
+        order: -1;
+    }
+    
+    article img {
+        height: 250px !important;
+    }
+    
+    .breadcrumb {
+        font-size: 0.9rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem !important;
+    }
+}
+</style>
+{% endblock %}

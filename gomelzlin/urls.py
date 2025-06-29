@@ -8,7 +8,8 @@ from django.views.generic import RedirectView
 urlpatterns = [
     # Django Admin
     path('django-admin/', admin.site.urls),
-    
+    path('tinymce/', include('tinymce.urls')),
+
     # Main site URLs
     path('', include('apps.core.urls')),
     
