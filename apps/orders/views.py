@@ -65,7 +65,6 @@ def add_to_cart(request):
         product_id = request.POST.get('product_id')
         quantity = int(request.POST.get('quantity', 1))
         
-        # Логирование для отладки
         logger.info(f"Add to cart request: product_id={product_id}, quantity={quantity}, user={request.user}")
         
         if not product_id:
@@ -142,6 +141,7 @@ def add_to_cart(request):
 @require_POST
 def update_cart_item(request):
     """AJAX обновление количества товара в корзине"""
+
     try:
         item_id = request.POST.get('item_id')
         change = request.POST.get('change')  # 'increase' или 'decrease'
@@ -674,7 +674,7 @@ def cart_context(request):
 @login_required
 @require_POST
 def add_to_wishlist(request):
-    """AJAX добавление товара в избранное"""
+    """AJAX добавление/удаление товара в избранное"""
     try:
         product_id = request.POST.get('product_id')
         
@@ -694,27 +694,35 @@ def add_to_wishlist(request):
         )
         
         # Проверяем, есть ли товар уже в списке
-        wishlist_item, item_created = WishlistItem.objects.get_or_create(
-            wishlist=wishlist,
-            product=product
-        )
-        
-        if item_created:
-            # Товар добавлен в избранное
+        try:
+            wishlist_item = WishlistItem.objects.get(
+                wishlist=wishlist,
+                product=product
+            )
+            # Товар уже в избранном - удаляем его
+            wishlist_item.delete()
             wishlist_count = wishlist.items.count()
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Товар "{product.name}" удален из избранного',
+                'in_wishlist': False,
+                'wishlist_count': wishlist_count
+            })
+            
+        except WishlistItem.DoesNotExist:
+            # Товара нет в избранном - добавляем
+            WishlistItem.objects.create(
+                wishlist=wishlist,
+                product=product
+            )
+            wishlist_count = wishlist.items.count()
+            
             return JsonResponse({
                 'success': True,
                 'message': f'Товар "{product.name}" добавлен в избранное!',
                 'in_wishlist': True,
                 'wishlist_count': wishlist_count
-            })
-        else:
-            # Товар уже в избранном
-            return JsonResponse({
-                'success': False,
-                'message': 'Товар уже находится в избранном',
-                'in_wishlist': True,
-                'wishlist_count': wishlist.items.count()
             })
             
     except Product.DoesNotExist:
@@ -727,7 +735,6 @@ def add_to_wishlist(request):
             'success': False,
             'message': f'Произошла ошибка: {str(e)}'
         })
-
 
 @login_required
 @require_POST

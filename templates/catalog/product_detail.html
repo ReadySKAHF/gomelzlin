@@ -382,11 +382,9 @@
             <!-- Действия с товаром -->
             <div class="product-actions">
                 <!-- ИСПРАВЛЕННАЯ кнопка добавления в корзину -->
-                <button onclick="addToCart()" 
+                <button onclick="addToCart({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }})" 
                         class="btn"
-                        data-product-id="{{ product.id }}"
-                        data-product-name="{{ product.name|escapejs }}"
-                        data-product-price="{{ product.price }}">
+                        data-product-id="{{ product.id }}">
                     🛒 Добавить в корзину
                 </button>
                 
@@ -396,10 +394,6 @@
                         onclick="toggleWishlist({{ product.id }}, '{{ product.name|escapejs }}');">
                     <span class="heart-icon">♡</span>
                     <span class="wishlist-text">В избранное</span>
-                </button>
-                
-                <button onclick="requestQuote()" class="btn btn-outline">
-                    📞 Запросить цену
                 </button>
             </div>
 
@@ -415,7 +409,7 @@
             <div class="product-meta">
                 <div class="meta-item">
                     <strong>Артикул:</strong>
-                    <span>{{ product.sku|default:"Не указан" }}</span>
+                    <span>{{ product.article|default:"Не указан" }}</span>
                 </div>
                 <div class="meta-item">
                     <strong>Категория:</strong>
@@ -500,314 +494,54 @@
 
 {% block extra_js %}
 <script>
-// Глобальные переменные
-let wishlistItems = new Set();
-
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    initWishlist();
-});
-
-function initWishlist() {
-    // Проверяем статус текущего товара в избранном
-    const wishlistBtn = document.querySelector('.wishlist-btn-detail');
-    if (wishlistBtn) {
-        const productId = wishlistBtn.getAttribute('data-product-id');
-        checkWishlistStatus(productId);
-    }
-}
-
-function checkWishlistStatus(productId) {
-    // Проверяем, авторизован ли пользователь
-    if (!isUserLoggedIn()) {
-        return;
-    }
-    
-    fetch(`/cart/wishlist/status/?product_id=${productId}`)
-        .then(response => response.json())
-        .then(data => {
-            updateWishlistButton(productId, data.in_wishlist);
-            if (data.in_wishlist) {
-                wishlistItems.add(productId);
-            }
-        })
-        .catch(error => console.error('Error checking wishlist status:', error));
-}
-
 function toggleWishlist(productId, productName) {
     // Проверяем авторизацию
-    if (!isUserLoggedIn()) {
-        showNotification('Для добавления в избранное необходимо войти в систему', 'warning');
+    if (!document.querySelector('[data-user-authenticated]')) {
+        alert('Для работы с избранным необходимо войти в систему');
         return;
     }
     
-    const isInWishlist = wishlistItems.has(productId.toString());
-    const action = isInWishlist ? 'remove' : 'add';
-    
-    // Временно обновляем UI
-    updateWishlistButton(productId, !isInWishlist);
-    
-    fetch(`/cart/wishlist/${action}/`, {
+    fetch('/cart/wishlist/add/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCSRFToken()
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         },
         body: `product_id=${productId}`
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            if (action === 'add') {
-                wishlistItems.add(productId.toString());
-                showNotification(data.message, 'success');
+            // Обновляем UI кнопки
+            const heartIcon = document.querySelector(`[data-product-id="${productId}"] .heart-icon`);
+            const wishlistText = document.querySelector(`[data-product-id="${productId}"] .wishlist-text`);
+            
+            if (data.in_wishlist) {
+                // Товар добавлен в избранное
+                if (heartIcon) heartIcon.textContent = '♥';
+                if (wishlistText) wishlistText.textContent = 'В избранном';
             } else {
-                wishlistItems.delete(productId.toString());
-                showNotification(data.message, 'success');
+                // Товар удален из избранного
+                if (heartIcon) heartIcon.textContent = '♡';
+                if (wishlistText) wishlistText.textContent = 'В избранное';
             }
             
-            // Обновляем счетчик в header, если есть
-            updateWishlistCounter(data.wishlist_count);
+            alert(data.message);
         } else {
-            // Возвращаем исходное состояние при ошибке
-            updateWishlistButton(productId, isInWishlist);
-            showNotification(data.message, 'error');
+            alert('Ошибка: ' + data.message);
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        // Возвращаем исходное состояние при ошибке
-        updateWishlistButton(productId, isInWishlist);
-        showNotification('Произошла ошибка при работе с избранным', 'error');
+        alert('Ошибка: ' + error.message);
     });
 }
 
-function updateWishlistButton(productId, isInWishlist) {
-    const button = document.querySelector(`[data-product-id="${productId}"]`);
-    if (!button) return;
-    
-    const heartIcon = button.querySelector('.heart-icon');
-    const wishlistText = button.querySelector('.wishlist-text');
-    
-    if (isInWishlist) {
-        // Товар в избранном
-        heartIcon.style.color = '#e74c3c';
-        heartIcon.textContent = '♥'; // Закрашенное сердце
-        button.classList.add('in-wishlist');
-        
-        if (wishlistText) {
-            wishlistText.textContent = 'В избранном';
-        }
-        button.title = 'Удалить из избранного';
-        
-        // Анимация добавления
-        button.style.animation = 'wishlistPulse 0.6s ease';
-        setTimeout(() => button.style.animation = '', 600);
-        
-    } else {
-        // Товара нет в избранном
-        heartIcon.style.color = 'var(--primary-red)';
-        heartIcon.textContent = '♡'; // Пустое сердце
-        button.classList.remove('in-wishlist');
-        
-        if (wishlistText) {
-            wishlistText.textContent = 'В избранное';
-        }
-        button.title = 'Добавить в избранное';
-    }
+function switchTab(tabName) { 
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    const targetTab = document.getElementById(tabName);
+    if (targetTab) targetTab.classList.add('active');
+    if (event && event.target) event.target.classList.add('active');
 }
-
-function updateWishlistCounter(count) {
-    // Обновляем счетчик в шапке сайта, если есть
-    const counter = document.querySelector('.wishlist-counter');
-    if (counter) {
-        counter.textContent = count;
-        counter.style.display = count > 0 ? 'inline-block' : 'none';
-    }
-}
-
-// Смена главного изображения
-function changeMainImage(imageSrc, thumbnail) {
-    document.getElementById('mainImage').src = imageSrc;
-    
-    // Убираем активный класс у всех миниатюр
-    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-    
-    // Добавляем активный класс к выбранной миниатюре
-    thumbnail.classList.add('active');
-}
-
-// Переключение табов
-function switchTab(tabName) {
-    // Скрываем все табы
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Убираем активный класс у всех кнопок
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Показываем выбранный таб
-    document.getElementById(tabName).classList.add('active');
-    
-    // Добавляем активный класс к кнопке
-    event.target.classList.add('active');
-}
-
-// Добавление в корзину
-function addToCart() {
-    // Правильно получаем ID товара из атрибута data или из URL
-    let productId = null;
-    
-    // Способ 1: Из кнопки "Добавить в корзину"
-    const addToCartBtn = document.querySelector('.btn[onclick*="addToCart"]');
-    if (addToCartBtn) {
-        productId = addToCartBtn.getAttribute('data-product-id');
-    }
-    
-    // Способ 2: Из скрытого input
-    if (!productId) {
-        const hiddenInput = document.querySelector('input[name="product_id"]');
-        if (hiddenInput) {
-            productId = hiddenInput.value;
-        }
-    }
-    
-    if (!productId) {
-        showNotification('Ошибка: не удалось определить товар', 'error');
-        return;
-    }
-
-    // Показываем индикатор загрузки
-    const button = document.querySelector('.btn[onclick*="addToCart"]');
-    if (button) {
-        const originalText = button.innerHTML;
-        button.innerHTML = '⏳ Добавление...';
-        button.disabled = true;
-        
-        // Восстанавливаем кнопку через 3 секунды в любом случае
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }, 3000);
-    }
-
-    // Отправляем запрос
-    fetch('/cart/add/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCSRFToken()
-        },
-        body: `product_id=${productId}&quantity=1`
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            showNotification(data.message || 'Товар добавлен в корзину!', 'success');
-            updateCartCounter(data.cart_count || 0);
-        } else {
-            showNotification(data.message || 'Ошибка при добавлении товара', 'error');
-        }
-        
-        // Восстанавливаем кнопку
-        if (button) {
-            button.innerHTML = '🛒 Добавить в корзину';
-            button.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Произошла ошибка при добавлении товара', 'error');
-        
-        // Восстанавливаем кнопку
-        if (button) {
-            button.innerHTML = '🛒 Добавить в корзину';
-            button.disabled = false;
-        }
-    });
-}
-
-// Запрос цены
-function requestQuote() {
-    showNotification('Функция запроса цены будет добавлена в ближайшее время', 'info');
-}
-
-function updateCartCounter(count) {
-    const counters = document.querySelectorAll('.cart-counter, .cart-count');
-    counters.forEach(counter => {
-        if (counter) {
-            counter.textContent = count;
-            counter.style.display = count > 0 ? 'flex' : 'none';
-        }
-    });
-}
-
-function isUserLoggedIn() {
-    // Простая проверка - если есть CSRF токен, значит пользователь авторизован
-    return document.querySelector('[name=csrfmiddlewaretoken]') !== null || 
-           document.querySelector('meta[name="csrf-token"]') !== null;
-}
-
-function getCSRFToken() {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value 
-                   || document.querySelector('meta[name=csrf-token]')?.getAttribute('content')
-                   || window.csrfToken;
-    return csrfToken;
-}
-
-function showNotification(message, type = 'info') {
-    // Удаляем предыдущие уведомления
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(n => n.remove());
-    
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        z-index: 9999;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        animation: slideIn 0.3s ease;
-        max-width: 350px;
-        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
-    `;
-    
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    // Автоматическое удаление через 4 секунды
-    setTimeout(() => {
-        if (notification && notification.parentNode) {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }
-    }, 4000);
-}
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
 </script>
 {% endblock %}
