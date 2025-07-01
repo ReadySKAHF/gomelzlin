@@ -381,7 +381,12 @@
 
             <!-- Действия с товаром -->
             <div class="product-actions">
-                <button onclick="addToCart()" class="btn">
+                <!-- ИСПРАВЛЕННАЯ кнопка добавления в корзину -->
+                <button onclick="addToCart()" 
+                        class="btn"
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.name|escapejs }}"
+                        data-product-price="{{ product.price }}">
                     🛒 Добавить в корзину
                 </button>
                 
@@ -398,6 +403,14 @@
                 </button>
             </div>
 
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+
+            {% csrf_token %}
+
+            {% if user.is_authenticated %}
+            <div class="user-menu" style="display: none;" data-user-authenticated="true"></div>
+            {% endif %}
+            
             <!-- Метаданные товара -->
             <div class="product-meta">
                 <div class="meta-item">
@@ -645,13 +658,43 @@ function switchTab(tabName) {
 
 // Добавление в корзину
 function addToCart() {
-    const productId = document.querySelector('.wishlist-btn-detail').getAttribute('data-product-id');
+    // Правильно получаем ID товара из атрибута data или из URL
+    let productId = null;
+    
+    // Способ 1: Из кнопки "Добавить в корзину"
+    const addToCartBtn = document.querySelector('.btn[onclick*="addToCart"]');
+    if (addToCartBtn) {
+        productId = addToCartBtn.getAttribute('data-product-id');
+    }
+    
+    // Способ 2: Из скрытого input
+    if (!productId) {
+        const hiddenInput = document.querySelector('input[name="product_id"]');
+        if (hiddenInput) {
+            productId = hiddenInput.value;
+        }
+    }
     
     if (!productId) {
         showNotification('Ошибка: не удалось определить товар', 'error');
         return;
     }
 
+    // Показываем индикатор загрузки
+    const button = document.querySelector('.btn[onclick*="addToCart"]');
+    if (button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '⏳ Добавление...';
+        button.disabled = true;
+        
+        // Восстанавливаем кнопку через 3 секунды в любом случае
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 3000);
+    }
+
+    // Отправляем запрос
     fetch('/cart/add/', {
         method: 'POST',
         headers: {
@@ -660,18 +703,35 @@ function addToCart() {
         },
         body: `product_id=${productId}&quantity=1`
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            showNotification(data.message, 'success');
-            updateCartCounter(data.cart_count);
+            showNotification(data.message || 'Товар добавлен в корзину!', 'success');
+            updateCartCounter(data.cart_count || 0);
         } else {
-            showNotification(data.message, 'error');
+            showNotification(data.message || 'Ошибка при добавлении товара', 'error');
+        }
+        
+        // Восстанавливаем кнопку
+        if (button) {
+            button.innerHTML = '🛒 Добавить в корзину';
+            button.disabled = false;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         showNotification('Произошла ошибка при добавлении товара', 'error');
+        
+        // Восстанавливаем кнопку
+        if (button) {
+            button.innerHTML = '🛒 Добавить в корзину';
+            button.disabled = false;
+        }
     });
 }
 
@@ -681,11 +741,13 @@ function requestQuote() {
 }
 
 function updateCartCounter(count) {
-    const counter = document.querySelector('.cart-counter');
-    if (counter) {
-        counter.textContent = count;
-        counter.style.display = count > 0 ? 'inline-block' : 'none';
-    }
+    const counters = document.querySelectorAll('.cart-counter, .cart-count');
+    counters.forEach(counter => {
+        if (counter) {
+            counter.textContent = count;
+            counter.style.display = count > 0 ? 'flex' : 'none';
+        }
+    });
 }
 
 function isUserLoggedIn() {
@@ -695,43 +757,57 @@ function isUserLoggedIn() {
 }
 
 function getCSRFToken() {
-    const token = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (token) return token.value;
-    
-    const metaToken = document.querySelector('meta[name="csrf-token"]');
-    if (metaToken) return metaToken.getAttribute('content');
-    
-    return '';
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value 
+                   || document.querySelector('meta[name=csrf-token]')?.getAttribute('content')
+                   || window.csrfToken;
+    return csrfToken;
 }
 
 function showNotification(message, type = 'info') {
+    // Удаляем предыдущие уведомления
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(n => n.remove());
+    
     const notification = document.createElement('div');
+    notification.className = 'notification';
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#cb413b'};
-        color: ${type === 'warning' ? '#333' : 'white'};
         padding: 1rem 1.5rem;
         border-radius: 8px;
-        z-index: 1000;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        font-weight: 600;
-        max-width: 300px;
+        color: white;
+        font-weight: 500;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         animation: slideIn 0.3s ease;
+        max-width: 350px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
     `;
-    notification.textContent = message;
     
+    notification.textContent = message;
     document.body.appendChild(notification);
     
+    // Автоматическое удаление через 4 секунды
     setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
+        if (notification && notification.parentNode) {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 4000);
 }
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
 </script>
 {% endblock %}

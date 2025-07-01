@@ -421,15 +421,44 @@ class Cart(models.Model):
         return sum(item.get_total_price() for item in self.items.all())
     
     def add_product(self, product, quantity=1):
-        """Добавляет товар в корзину"""
-        item, created = self.items.get_or_create(
-            product=product,
-            defaults={'quantity': quantity}
-        )
-        if not created:
-            item.quantity += quantity
-            item.save()
-        return item
+        """Добавляет товар в корзину с улучшенной обработкой ошибок"""
+        try:
+            # Проверяем валидность товара
+            if not product:
+                raise ValueError("Товар не может быть None")
+            
+            if not hasattr(product, 'id'):
+                raise ValueError("Товар должен иметь ID")
+            
+            if quantity <= 0:
+                raise ValueError("Количество должно быть больше 0")
+            
+            # Пытаемся найти существующий элемент корзины
+            try:
+                item = self.items.get(product=product)
+                # Если элемент уже существует, увеличиваем количество
+                item.quantity += quantity
+                item.save()
+                
+            except CartItem.DoesNotExist:
+                # Если элемента нет, создаем новый
+                item = CartItem.objects.create(
+                    cart=self,
+                    product=product,
+                    quantity=quantity
+                )
+            
+            # Обновляем время изменения корзины
+            self.save(update_fields=['updated_at'])
+            
+            return item
+            
+        except Exception as e:
+            # Логируем ошибку для отладки
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in Cart.add_product: {e}, cart_id={self.id}, product_id={getattr(product, 'id', 'None')}, quantity={quantity}")
+            raise
     
     def remove_product(self, product):
         """Удаляет товар из корзины"""

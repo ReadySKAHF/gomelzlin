@@ -13,16 +13,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
 import json
+import logging
 from decimal import Decimal
-from apps.catalog.models import Product
-from .models import Wishlist, WishlistItem
 
+from apps.catalog.models import Product
 from .models import (
-    Cart, CartItem, Order, OrderItem, OrderStatusHistory,
+    Cart, CartItem, Order, OrderItem, OrderStatusHistory, Wishlist, WishlistItem,
     get_or_create_cart, merge_carts, create_order_from_cart, get_cart_for_request
 )
-from apps.catalog.models import Product
 
+logger = logging.getLogger(__name__)
 
 # Попытаемся импортировать Product, если он существует
 try:
@@ -65,6 +65,9 @@ def add_to_cart(request):
         product_id = request.POST.get('product_id')
         quantity = int(request.POST.get('quantity', 1))
         
+        # Логирование для отладки
+        logger.info(f"Add to cart request: product_id={product_id}, quantity={quantity}, user={request.user}")
+        
         if not product_id:
             return JsonResponse({
                 'success': False,
@@ -85,36 +88,54 @@ def add_to_cart(request):
                 is_published=True
             )
         except Product.DoesNotExist:
+            logger.error(f"Product not found: id={product_id}")
             return JsonResponse({
                 'success': False,
-                'message': 'Товар не найден'
+                'message': 'Товар не найден или недоступен'
             })
         
         # Получаем или создаем корзину
         cart = get_cart_for_request(request)
         
+        if not cart:
+            logger.error("Failed to create cart")
+            return JsonResponse({
+                'success': False,
+                'message': 'Не удалось создать корзину'
+            })
+        
         # Добавляем товар в корзину
-        cart_item = cart.add_product(product, quantity)
+        try:
+            cart_item = cart.add_product(product, quantity)
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Товар "{product.name}" добавлен в корзину',
+                'cart_count': cart.items_count,
+                'cart_total': str(cart.total_price),
+                'item_id': cart_item.id,
+                'item_quantity': cart_item.quantity,
+                'item_total': str(cart_item.get_total_price())
+            })
+            
+        except Exception as e:
+            logger.error(f"Error adding product to cart: {e}")
+            return JsonResponse({
+                'success': False,
+                'message': 'Ошибка при добавлении товара в корзину'
+            })
         
-        return JsonResponse({
-            'success': True,
-            'message': f'{product.name} добавлен в корзину',
-            'cart_count': cart.items_count,
-            'cart_total': str(cart.total_price),
-            'item_id': cart_item.id,
-            'item_quantity': cart_item.quantity,
-            'item_total': str(cart_item.get_total_price())
-        })
-        
-    except ValueError:
+    except ValueError as e:
+        logger.error(f"ValueError in add_to_cart: {e}")
         return JsonResponse({
             'success': False,
             'message': 'Неверное количество товара'
         })
     except Exception as e:
+        logger.error(f"Unexpected error in add_to_cart: {e}")
         return JsonResponse({
             'success': False,
-            'message': 'Произошла ошибка при добавлении товара'
+            'message': 'Произошла неожиданная ошибка'
         })
 
 
