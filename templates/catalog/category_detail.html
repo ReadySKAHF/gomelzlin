@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load russian_utils %}
 {% block title %}{{ category.name }} - Каталог - ОАО "ГЗЛиН"{% endblock %}
 
 {% block extra_css %}
@@ -304,14 +304,20 @@
 <div class="category-header">
     <div class="container">
         <nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
-            <ol class="breadcrumb" style="background: transparent; margin-bottom: 0;">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item">
-                    <a href="{% url 'core:home' %}" style="color: rgba(255,255,255,0.8);">Главная</a>
+                    <a href="{% url 'core:home' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                        Главная
+                    </a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{% url 'catalog:product_list' %}" style="color: rgba(255,255,255,0.8);">Каталог</a>
+                    <a href="{% url 'catalog:product_list' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                        Каталог
+                    </a>
                 </li>
-                <li class="breadcrumb-item active" style="color: white;">{{ category.name }}</li>
+                <li class="breadcrumb-item active" style="color: white; font-weight: 500;">
+                    {{ category.name }}
+                </li>
             </ol>
         </nav>
         
@@ -352,7 +358,7 @@
                                 </p>
                                 <div class="subcategory-meta">
                                     <span class="product-count">
-                                        {{ subcat_data.product_count }} товар{{ subcat_data.product_count|pluralize:"ов,ов,ов" }}
+                                        {{ subcat_data.product_count|count_with_word:"товар,товара,товаров" }}
                                     </span>
                                     <span class="category-arrow">→</span>
                                 </div>

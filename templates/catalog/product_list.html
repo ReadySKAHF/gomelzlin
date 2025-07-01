@@ -162,7 +162,8 @@
                                 box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
                                 transition: all 0.3s ease;
                             ">
-                                {{ category.total_products }} товар{{ category.total_products|pluralize:"ов,ов,ов" }}
+                                {% load russian_utils %}
+                                {{ category.total_products|count_with_word:"товар,товара,товаров" }}
                             </div>
                             
                             <div style="

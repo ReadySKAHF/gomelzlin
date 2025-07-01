@@ -345,31 +345,107 @@ a:hover {
 
 /* === ХЛЕБНЫЕ КРОШКИ === */
 .breadcrumb {
-    background: none;
-    padding: 1rem 0;
-    margin-bottom: 2rem;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    list-style: none !important;
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
     font-size: 0.9rem;
 }
 
+.breadcrumb li {
+    list-style: none !important; /* Убираем числа у li */
+    display: inline-flex !important;
+    align-items: center;
+}
+
+.breadcrumb-item {
+    display: inline-flex !important;
+    align-items: center;
+    list-style: none !important;
+}
+
 .breadcrumb-item a {
-    color: var(--primary-red, #cb413b);
+    color: rgba(255, 255, 255, 0.8) !important;
     text-decoration: none;
     transition: color 0.3s ease;
+    padding: 0.25rem 0;
 }
 
 .breadcrumb-item a:hover {
-    color: #a0342e;
+    color: white !important;
     text-decoration: underline;
 }
 
 .breadcrumb-item.active {
-    color: var(--secondary-gray, #6c757d);
+    color: white !important;
+    font-weight: 500;
 }
 
 .breadcrumb-item + .breadcrumb-item::before {
-    content: "›";
-    color: var(--secondary-gray, #6c757d);
-    margin: 0 0.5rem;
+    content: ">" !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    margin: 0 0.75rem;
+    font-weight: normal;
+}
+
+/* Для страниц с красным фоном */
+.category-header {
+    background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%) !important;
+    color: white;
+    padding: 2rem 0;
+    position: relative;
+}
+
+.category-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M1200 120L0 16.48V0h1200v120z" fill="rgba(255,255,255,0.1)"></path></svg>') no-repeat bottom;
+    background-size: cover;
+    opacity: 0.1;
+}
+
+.category-header .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* Заголовок категории */
+.category-title {
+    color: white !important;
+    font-size: 2.5rem;
+    margin: 1rem 0 0.5rem;
+    font-weight: 700;
+}
+
+.category-subtitle {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 1.1rem;
+    margin: 0;
+    max-width: 800px;
+    line-height: 1.4;
+}
+
+/* Убираем стандартные стили для ol */
+nav[aria-label="breadcrumb"] ol {
+    list-style: none !important;
+    counter-reset: none !important;
+    padding-left: 0 !important;
+}
+
+nav[aria-label="breadcrumb"] ol li {
+    list-style: none !important;
+    counter-increment: none !important;
+}
+
+nav[aria-label="breadcrumb"] ol li::before {
+    content: none !important;
 }
 
 /* === BADGE === */

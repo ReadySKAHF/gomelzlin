@@ -6,15 +6,32 @@ from django.db.models import Count, Q, F
 from django.db import models
 from .models import Category, Product
 
-
-# apps/catalog/admin.py
-from django.contrib import admin
-from django.utils.html import format_html
-from django.urls import reverse
-from django.db.models import Count, Q, F
-from django.db import models
-from .models import Category, Product
-
+def russian_pluralize(number, forms):
+    """
+    Функция для правильного склонения в админке
+    """
+    forms_list = [form.strip() for form in forms.split(',')]
+    if len(forms_list) != 3:
+        return forms
+    
+    try:
+        num = int(number)
+        
+        # Особые случаи для 11-14
+        if 10 <= num % 100 <= 14:
+            return forms_list[2]
+        
+        last_digit = num % 10
+        
+        if last_digit == 1:
+            return forms_list[0]
+        elif 2 <= last_digit <= 4:
+            return forms_list[1]
+        else:
+            return forms_list[2]
+            
+    except (ValueError, IndexError):
+        return forms
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -66,7 +83,7 @@ class CategoryAdmin(admin.ModelAdmin):
     actions = ['make_featured', 'make_not_featured', 'activate_categories', 'deactivate_categories']
     
     def product_count(self, obj):
-        """Количество товаров в категории"""
+        """Количество товаров в категории с правильным склонением"""
         try:
             count = obj.products.filter(is_active=True, is_published=True).count()
             
@@ -76,9 +93,11 @@ class CategoryAdmin(admin.ModelAdmin):
             
             if count > 0:
                 url = reverse('admin:catalog_product_changelist') + f'?category__id__exact={obj.id}'
+                # ИСПРАВЛЕНО: правильное склонение
+                word = russian_pluralize(count, "товар,товара,товаров")
                 return format_html(
-                    '<a href="{}" style="color: #007cba; font-weight: bold;">{} товаров</a>',
-                    url, count
+                    '<a href="{}" style="color: #007cba; font-weight: bold;">{} {}</a>',
+                    url, count, word
                 )
             return "0 товаров"
         except:
@@ -97,26 +116,29 @@ class CategoryAdmin(admin.ModelAdmin):
     def make_featured(self, request, queryset):
         """Отметить как популярные"""
         count = queryset.update(is_featured=True)
-        self.message_user(request, f'{count} категорий отмечено как популярные.')
+        word = russian_pluralize(count, "категория,категории,категорий")
+        self.message_user(request, f'{count} {word} отмечено как популярные.')
     make_featured.short_description = "⭐ Отметить как популярные"
     
     def make_not_featured(self, request, queryset):
         """Убрать из популярных"""
         count = queryset.update(is_featured=False)
-        self.message_user(request, f'{count} категорий убрано из популярных.')
+        word = russian_pluralize(count, "категория,категории,категорий")
+        self.message_user(request, f'{count} {word} убрано из популярных.')
     make_not_featured.short_description = "☆ Убрать из популярных"
     
     def activate_categories(self, request, queryset):
         """Активировать категории"""
         count = queryset.update(is_active=True)
-        self.message_user(request, f'{count} категорий активировано.')
+        word = russian_pluralize(count, "категория,категории,категорий")
+        self.message_user(request, f'{count} {word} активировано.')
     activate_categories.short_description = "✅ Активировать категории"
     
     def deactivate_categories(self, request, queryset):
         """Деактивировать категории"""
         count = queryset.update(is_active=False)
-        self.message_user(request, f'{count} категорий деактивировано.')
-    deactivate_categories.short_description = "❌ Деактивировать категории"
+        word = russian_pluralize(count, "категория,категории,категорий")
+        self.message_user(request, f'{count} {word} деактивировано.')
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)

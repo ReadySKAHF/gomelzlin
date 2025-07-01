@@ -316,15 +316,37 @@
 
 {% block content %}
 <div class="container product-detail">
-    <!-- Хлебные крошки -->
-    <nav class="product-breadcrumb">
-        <a href="{% url 'core:home' %}">Главная</a> / 
-        <a href="{% url 'catalog:product_list' %}">Каталог</a> / 
-        {% if product.category %}
-            <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a> / 
-        {% endif %}
-        {{ product.name }}
-    </nav>
+    <!-- Красивый хедер товара с breadcrumbs -->
+    <div class="category-header">
+        <div class="container">
+            <nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'core:home' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                            Главная
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'catalog:product_list' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                            Каталог
+                        </a>
+                    </li>
+                    {% if product.category %}
+                    <li class="breadcrumb-item">
+                        <a href="{{ product.category.get_absolute_url }}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                            {{ product.category.name }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="breadcrumb-item active" style="color: white; font-weight: 500;">
+                        {{ product.name|truncatechars:40 }}
+                    </li>
+                </ol>
+            </nav>
+            
+            <h1 class="category-title">{{ product.name }}</h1>
+        </div>
+    </div>
 
     <!-- Основная информация о товаре -->
     <div class="product-main">
