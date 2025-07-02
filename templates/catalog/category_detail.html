@@ -1,601 +1,919 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load russian_utils %}
-{% block title %}{{ category.name }} - Каталог - ОАО "ГЗЛиН"{% endblock %}
 
-{% block extra_css %}
-<style>
-/* Базовые стили */
-:root {
-    --primary-red: #cb413b;
-    --dark-gray: #333;
-    --secondary-gray: #666;
-    --light-gray: #f8f9fa;
-    --radius: 8px;
-    --transition: all 0.3s ease;
-}
+{% block title %}{{ category.name }} - ОАО "ГЗЛиН"{% endblock %}
 
-.category-header {
-    background: linear-gradient(135deg, var(--primary-red) 0%, #a0342e 100%);
-    color: white;
-    padding: 4rem 0 2rem;
-    margin-bottom: 3rem;
-}
-
-.category-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.category-subtitle {
-    font-size: 1.2rem;
-    opacity: 0.9;
-    margin-bottom: 0;
-}
-
-.section-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--dark-gray);
-    margin-bottom: 2rem;
-    border-bottom: 3px solid var(--primary-red);
-    padding-bottom: 0.5rem;
-    display: inline-block;
-}
-
-.subcategory-card {
-    background: white;
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: var(--transition);
-    text-decoration: none;
-    color: inherit;
-    display: block;
-}
-
-.subcategory-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    text-decoration: none;
-    color: inherit;
-}
-
-.subcategory-image {
-    height: 150px;
-    background: var(--light-gray);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 4rem;
-    color: var(--secondary-gray);
-}
-
-.subcategory-content {
-    padding: 1.5rem;
-}
-
-.subcategory-name {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--dark-gray);
-    margin-bottom: 0.5rem;
-}
-
-.subcategory-description {
-    color: var(--secondary-gray);
-    font-size: 0.95rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-}
-
-.subcategory-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.product-count {
-    color: var(--primary-red);
-    font-weight: 600;
-}
-
-.category-arrow {
-    color: var(--primary-red);
-    font-size: 1.5rem;
-    font-weight: bold;
-}
-
-.product-card {
-    background: white;
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: var(--transition);
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    position: relative;
-}
-
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    text-decoration: none;
-    color: inherit;
-}
-
-.product-image {
-    height: 200px;
-    background: var(--light-gray);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 4rem;
-    color: var(--secondary-gray);
-    position: relative;
-}
-
-.product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.product-content {
-    padding: 1.5rem;
-}
-
-.product-name {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--dark-gray);
-    margin-bottom: 0.5rem;
-    line-height: 1.3;
-}
-
-.product-description {
-    color: var(--secondary-gray);
-    font-size: 0.9rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-}
-
-.product-price {
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: var(--primary-red);
-    margin-bottom: 1rem;
-}
-
-.product-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-.btn {
-    background: var(--primary-red);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    text-decoration: none;
-    display: inline-block;
-    text-align: center;
-}
-
-.btn:hover {
-    background: #b8362f;
-    transform: translateY(-2px);
-    text-decoration: none;
-    color: white;
-}
-
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.subcategories-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 4rem 0;
-    color: var(--secondary-gray);
-}
-
-.empty-state-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-}
-
-/* Стили для кнопки избранного */
-.wishlist-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(255,255,255,0.95);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-}
-
-.wishlist-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-    background: white;
-}
-
-.wishlist-btn .heart-icon {
-    color: #ccc;
-    font-size: 1.5rem;
-    transition: all 0.3s ease;
-}
-
-.wishlist-btn:hover .heart-icon {
-    transform: scale(1.2);
-}
-
-.wishlist-btn.in-wishlist .heart-icon {
-    color: #e74c3c;
-}
-
-@media (max-width: 768px) {
-    .category-title {
-        font-size: 2rem;
-    }
-    
-    .category-subtitle {
-        font-size: 1rem;
-    }
-    
-    .subcategories-grid,
-    .products-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-    }
-    
-    .subcategory-content,
-    .product-content {
-        padding: 1.2rem;
-    }
-}
-
-/* Анимации для уведомлений */
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-}
-
-@keyframes heartBeat {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-    100% { transform: scale(1); }
-}
-</style>
+{% block extra_js %}
+<script src="{% static 'js/wishlist.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<!-- Хедер категории -->
-<div class="category-header">
+<!-- Скрытые данные для JavaScript -->
+{% if user.is_authenticated %}
+<div data-user-authenticated="true" style="display: none;"></div>
+{% endif %}
+
+<div class="category-page">
+    <!-- Красивый хедер с breadcrumbs -->
+    <div class="category-header" style="
+        background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+    ">
+        <div class="container">
+            <nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
+                <ol class="breadcrumb" style="
+                    background: none;
+                    padding: 0;
+                    margin: 0;
+                    display: flex;
+                    list-style: none;
+                    gap: 0.5rem;
+                    align-items: center;
+                ">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'core:home' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                            Главная
+                        </a>
+                    </li>
+                    <li style="color: rgba(255,255,255,0.6);">></li>
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'catalog:product_list' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
+                            Каталог
+                        </a>
+                    </li>
+                    <li style="color: rgba(255,255,255,0.6);">></li>
+                    <li class="breadcrumb-item active" style="color: white; font-weight: 500;">
+                        {{ category.name }}
+                    </li>
+                </ol>
+            </nav>
+            
+            <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">{{ category.name }}</h1>
+            {% if category.description %}
+                <p style="font-size: 1.2rem; opacity: 0.9; max-width: 600px;">{{ category.description }}</p>
+            {% else %}
+                <p style="font-size: 1.2rem; opacity: 0.9;">Подкатегория {{ category.name }}</p>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="container">
-        <nav aria-label="breadcrumb" style="margin-bottom: 1rem;">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item">
-                    <a href="{% url 'core:home' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
-                        Главная
+        {% if error %}
+            <div style="
+                background: #f8d7da;
+                color: #721c24;
+                padding: 1rem;
+                border-radius: 8px;
+                margin-bottom: 2rem;
+                text-align: center;
+            ">
+                {{ error }}
+            </div>
+        {% else %}
+            {% if has_subcategories %}
+                <!-- Подкатегории -->
+                <div class="subcategories-section" style="margin-bottom: 4rem;">
+                    <h2 style="
+                        color: #cb413b; 
+                        font-size: 1.8rem; 
+                        font-weight: 700; 
+                        margin-bottom: 2rem; 
+                        text-align: center;
+                    ">
+                        Подкатегории
+                    </h2>
+                    
+                    <div style="
+                        display: grid; 
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+                        gap: 2rem;
+                    ">
+                        {% for subcat_data in subcategories_with_counts %}
+                            <a href="{{ subcat_data.category.get_absolute_url }}" style="
+                                text-decoration: none; 
+                                color: inherit; 
+                                display: block;
+                            ">
+                                <div style="
+                                    background: white; 
+                                    border-radius: 15px; 
+                                    box-shadow: 0 5px 25px rgba(203, 65, 59, 0.15); 
+                                    padding: 2rem; 
+                                    transition: all 0.3s ease; 
+                                    height: 100%;
+                                    border: 1px solid #f0f0f0;
+                                "
+                                onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(203, 65, 59, 0.25)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 5px 25px rgba(203, 65, 59, 0.15)'">
+                                    
+                                    <div style="
+                                        width: 60px; 
+                                        height: 60px; 
+                                        background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%); 
+                                        border-radius: 12px; 
+                                        display: flex; 
+                                        align-items: center; 
+                                        justify-content: center; 
+                                        font-size: 1.8rem; 
+                                        margin-bottom: 1.5rem;
+                                        color: white;
+                                    ">
+                                        📦
+                                    </div>
+                                    
+                                    <h3 style="
+                                        font-size: 1.3rem; 
+                                        font-weight: 600; 
+                                        color: #333; 
+                                        margin-bottom: 1rem;
+                                    ">
+                                        {{ subcat_data.category.name }}
+                                    </h3>
+                                    
+                                    <p style="
+                                        color: #6c757d; 
+                                        margin-bottom: 1.5rem; 
+                                        line-height: 1.5;
+                                    ">
+                                        {% if subcat_data.category.description %}
+                                            {{ subcat_data.category.description|truncatewords:20 }}
+                                        {% else %}
+                                            Просмотр товаров категории {{ subcat_data.category.name }}
+                                        {% endif %}
+                                    </p>
+                                    
+                                    <div style="
+                                        display: flex; 
+                                        justify-content: space-between; 
+                                        align-items: center;
+                                    ">
+                                        <span style="
+                                            background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                                            color: white;
+                                            padding: 0.5rem 1rem;
+                                            border-radius: 20px;
+                                            font-size: 0.9rem;
+                                            font-weight: 600;
+                                        ">
+                                            {{ subcat_data.product_count|count_with_word:"товар,товара,товаров" }}
+                                        </span>
+                                        
+                                        <span style="
+                                            color: #cb413b; 
+                                            font-size: 1.5rem; 
+                                            font-weight: bold;
+                                        ">→</span>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if products %}
+                <!-- Товары в категории -->
+                <div class="products-section">
+                    <!-- Заголовок с переключателем видов -->
+                    <div style="
+                        display: flex; 
+                        justify-content: space-between; 
+                        align-items: center; 
+                        margin-bottom: 2rem;
+                        flex-wrap: wrap;
+                        gap: 1rem;
+                    ">
+                        <h2 style="
+                            color: #cb413b; 
+                            font-size: 1.8rem; 
+                            font-weight: 700; 
+                            margin: 0;
+                        ">
+                            {% if has_subcategories %}
+                                Товары в категории
+                            {% else %}
+                                Товары
+                            {% endif %}
+                        </h2>
+                        
+                        <!-- Переключатель видов отображения -->
+                        <div class="view-toggle" style="
+                            display: flex; 
+                            gap: 0.5rem;
+                            background: #f8f9fa;
+                            padding: 0.25rem;
+                            border-radius: 8px;
+                            border: 1px solid #e9ecef;
+                        ">
+                            <a href="?view=grid" class="view-btn grid-btn" style="
+                                padding: 0.5rem 1rem;
+                                border-radius: 6px;
+                                text-decoration: none;
+                                font-size: 0.9rem;
+                                font-weight: 600;
+                                transition: all 0.2s ease;
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                                {% if view_type == 'grid' %}
+                                    background: #cb413b;
+                                    color: white;
+                                    box-shadow: 0 2px 4px rgba(203, 65, 59, 0.3);
+                                {% else %}
+                                    background: transparent;
+                                    color: #6c757d;
+                                {% endif %}
+                            "
+                            onmouseover="if (!this.classList.contains('active')) { this.style.backgroundColor='#e9ecef'; }"
+                            onmouseout="if (!this.classList.contains('active')) { this.style.backgroundColor='transparent'; }"
+                            >
+                                <span style="font-size: 1rem;">⊞</span>
+                                Плитка
+                            </a>
+                            
+                            <a href="?view=list" class="view-btn list-btn" style="
+                                padding: 0.5rem 1rem;
+                                border-radius: 6px;
+                                text-decoration: none;
+                                font-size: 0.9rem;
+                                font-weight: 600;
+                                transition: all 0.2s ease;
+                                display: flex;
+                                align-items: center;
+                                gap: 0.5rem;
+                                {% if view_type == 'list' %}
+                                    background: #cb413b;
+                                    color: white;
+                                    box-shadow: 0 2px 4px rgba(203, 65, 59, 0.3);
+                                {% else %}
+                                    background: transparent;
+                                    color: #6c757d;
+                                {% endif %}
+                            "
+                            onmouseover="if (!this.classList.contains('active')) { this.style.backgroundColor='#e9ecef'; }"
+                            onmouseout="if (!this.classList.contains('active')) { this.style.backgroundColor='transparent'; }"
+                            >
+                                <span style="font-size: 1rem;">☰</span>
+                                Список
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Отображение товаров -->
+                    {% if view_type == 'grid' %}
+                        <!-- ПЛИТОЧНОЕ ОТОБРАЖЕНИЕ -->
+                        <div class="products-grid" style="
+                            display: grid; 
+                            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+                            gap: 2rem;
+                        ">
+                            {% for product in products %}
+                                <div class="product-card" style="
+                                    background: white;
+                                    border-radius: 15px;
+                                    box-shadow: 0 5px 25px rgba(203, 65, 59, 0.15);
+                                    overflow: hidden;
+                                    transition: all 0.3s ease;
+                                    border: 1px solid #f0f0f0;
+                                    position: relative;
+                                "
+                                onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(203, 65, 59, 0.25)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 5px 25px rgba(203, 65, 59, 0.15)'">
+                                    
+                                    <!-- Кнопка избранного -->
+                                    <button class="wishlist-btn" 
+                                            data-product-id="{{ product.id }}"
+                                            data-product-name="{{ product.name }}"
+                                            title="Добавить в избранное"
+                                            style="
+                                        position: absolute;
+                                        top: 1rem;
+                                        right: 1rem;
+                                        background: rgba(255, 255, 255, 0.9);
+                                        border: none;
+                                        border-radius: 50%;
+                                        width: 40px;
+                                        height: 40px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        cursor: pointer;
+                                        z-index: 2;
+                                        transition: all 0.2s ease;
+                                        font-size: 1.2rem;
+                                    "
+                                    onmouseover="this.style.background='#cb413b'; this.style.color='white'"
+                                    onmouseout="this.style.background='rgba(255, 255, 255, 0.9)'; this.style.color='#333'"
+                                    >
+                                        <span class="heart-icon">♡</span>
+                                    </button>
+                                    
+                                    <!-- Изображение товара -->
+                                    <div class="product-image" style="
+                                        height: 250px;
+                                        background: #f8f9fa;
+                                        position: relative;
+                                        overflow: hidden;
+                                    ">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                                 style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% else %}
+                                            <div style="
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                height: 100%;
+                                                color: #cb413b;
+                                                font-size: 4rem;
+                                            ">
+                                                {% if 'жатка' in product.name|lower %}
+                                                    🌾
+                                                {% elif 'комбайн' in product.name|lower %}
+                                                    🚜
+                                                {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}
+                                                    🔩
+                                                {% elif 'бункер' in product.name|lower %}
+                                                    📦
+                                                {% else %}
+                                                    🏭
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if product.is_featured %}
+                                        <span style="
+                                            position: absolute;
+                                            top: 1rem;
+                                            left: 1rem;
+                                            background: #28a745;
+                                            color: white;
+                                            padding: 0.3rem 0.8rem;
+                                            border-radius: 20px;
+                                            font-size: 0.8rem;
+                                            font-weight: 600;
+                                        ">
+                                            ⭐ Хит
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Информация о товаре -->
+                                    <div style="padding: 1.5rem;">
+                                        <h3 style="
+                                            font-size: 1.2rem;
+                                            font-weight: 600;
+                                            color: #333;
+                                            margin-bottom: 0.5rem;
+                                            line-height: 1.3;
+                                            min-height: 2.6rem;
+                                        ">
+                                            <a href="{{ product.get_absolute_url }}" style="
+                                                color: inherit;
+                                                text-decoration: none;
+                                            "
+                                            onmouseover="this.style.color='#cb413b'"
+                                            onmouseout="this.style.color='#333'"
+                                            >
+                                                {{ product.name|truncatechars:60 }}
+                                            </a>
+                                        </h3>
+                                        
+                                        <p style="
+                                            color: #6c757d;
+                                            font-size: 0.9rem;
+                                            margin-bottom: 1rem;
+                                        ">
+                                            Артикул: {{ product.article }}
+                                        </p>
+                                        
+                                        {% if product.short_description %}
+                                        <p style="
+                                            color: #6c757d;
+                                            font-size: 0.9rem;
+                                            margin-bottom: 1rem;
+                                            line-height: 1.4;
+                                            min-height: 2.8rem;
+                                        ">
+                                            {{ product.short_description|truncatewords:15 }}
+                                        </p>
+                                        {% endif %}
+                                        
+                                        <!-- Цена и кнопка -->
+                                        <div style="
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                            margin-top: auto;
+                                            padding-top: 1rem;
+                                            border-top: 1px solid #f0f0f0;
+                                        ">
+                                            {% if product.price %}
+                                            <div style="
+                                                font-size: 1.3rem;
+                                                font-weight: 700;
+                                                color: #cb413b;
+                                            ">
+                                                {{ product.price }} BYN
+                                            </div>
+                                            {% else %}
+                                            <div style="
+                                                font-size: 1rem;
+                                                font-weight: 600;
+                                                color: #6c757d;
+                                            ">
+                                                Цена по запросу
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <button class="add-to-cart-btn" style="
+                                                background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                                                color: white;
+                                                border: none;
+                                                padding: 0.6rem 1.2rem;
+                                                border-radius: 8px;
+                                                font-size: 0.9rem;
+                                                font-weight: 600;
+                                                cursor: pointer;
+                                                transition: all 0.3s ease;
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 0.5rem;
+                                            "
+                                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(203, 65, 59, 0.4)'"
+                                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                                            onclick="addToCart({{ product.id }})"
+                                            >
+                                                🛒 В корзину
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    
+                    {% else %}
+                        <!-- СПИСОЧНОЕ ОТОБРАЖЕНИЕ -->
+                        <div class="products-list" style="
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.5rem;
+                        ">
+                            {% for product in products %}
+                                <div class="product-list-item" style="
+                                    background: white;
+                                    border-radius: 12px;
+                                    box-shadow: 0 3px 15px rgba(203, 65, 59, 0.1);
+                                    padding: 1.5rem;
+                                    display: flex;
+                                    gap: 1.5rem;
+                                    align-items: center;
+                                    transition: all 0.3s ease;
+                                    border: 1px solid #f0f0f0;
+                                    position: relative;
+                                "
+                                onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 8px 25px rgba(203, 65, 59, 0.2)'"
+                                onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 3px 15px rgba(203, 65, 59, 0.1)'">
+                                    
+                                    <!-- Изображение -->
+                                    <div class="product-list-image" style="
+                                        width: 120px;
+                                        height: 120px;
+                                        border-radius: 8px;
+                                        overflow: hidden;
+                                        flex-shrink: 0;
+                                        background: #f8f9fa;
+                                    ">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt="{{ product.name }}" 
+                                                 style="width: 100%; height: 100%; object-fit: cover;">
+                                        {% else %}
+                                            <div style="
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                height: 100%;
+                                                color: #cb413b;
+                                                font-size: 2.5rem;
+                                            ">
+                                                {% if 'жатка' in product.name|lower %}
+                                                    🌾
+                                                {% elif 'комбайн' in product.name|lower %}
+                                                    🚜
+                                                {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}
+                                                    🔩
+                                                {% elif 'бункер' in product.name|lower %}
+                                                    📦
+                                                {% else %}
+                                                    🏭
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Основная информация -->
+                                    <div class="product-list-content" style="
+                                        flex: 1;
+                                        min-width: 0;
+                                    ">
+                                        <h3 style="
+                                            font-size: 1.3rem;
+                                            font-weight: 600;
+                                            color: #333;
+                                            margin-bottom: 0.5rem;
+                                        ">
+                                            <a href="{{ product.get_absolute_url }}" style="
+                                                color: inherit;
+                                                text-decoration: none;
+                                            "
+                                            onmouseover="this.style.color='#cb413b'"
+                                            onmouseout="this.style.color='#333'"
+                                            >
+                                                {{ product.name }}
+                                            </a>
+                                        </h3>
+                                        
+                                        <div style="
+                                            display: flex;
+                                            gap: 1rem;
+                                            margin-bottom: 0.5rem;
+                                            flex-wrap: wrap;
+                                        ">
+                                            <span style="
+                                                color: #6c757d;
+                                                font-size: 0.9rem;
+                                            ">
+                                                Артикул: {{ product.article }}
+                                            </span>
+                                            
+                                            {% if product.is_featured %}
+                                            <span style="
+                                                background: #28a745;
+                                                color: white;
+                                                padding: 0.2rem 0.6rem;
+                                                border-radius: 12px;
+                                                font-size: 0.8rem;
+                                                font-weight: 600;
+                                            ">
+                                                ⭐ Хит
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if product.short_description %}
+                                        <p style="
+                                            color: #6c757d;
+                                            font-size: 0.95rem;
+                                            line-height: 1.4;
+                                            margin-bottom: 1rem;
+                                        ">
+                                            {{ product.short_description|truncatewords:20 }}
+                                        </p>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Цена и действия -->
+                                    <div class="product-list-actions" style="
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: flex-end;
+                                        gap: 1rem;
+                                        min-width: 180px;
+                                    ">
+                                        {% if product.price %}
+                                        <div style="
+                                            font-size: 1.4rem;
+                                            font-weight: 700;
+                                            color: #cb413b;
+                                            text-align: right;
+                                        ">
+                                            {{ product.price }} BYN
+                                        </div>
+                                        {% else %}
+                                        <div style="
+                                            font-size: 1.1rem;
+                                            font-weight: 600;
+                                            color: #6c757d;
+                                            text-align: right;
+                                        ">
+                                            Цена по запросу
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div style="
+                                            display: flex;
+                                            gap: 0.5rem;
+                                        ">
+                                            <button class="wishlist-btn" 
+                                                    data-product-id="{{ product.id }}"
+                                                    data-product-name="{{ product.name }}"
+                                                    title="Добавить в избранное"
+                                                    style="
+                                                background: #f8f9fa;
+                                                border: 1px solid #e9ecef;
+                                                border-radius: 8px;
+                                                width: 40px;
+                                                height: 40px;
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                cursor: pointer;
+                                                transition: all 0.2s ease;
+                                                font-size: 1.1rem;
+                                            "
+                                            onmouseover="this.style.background='#cb413b'; this.style.borderColor='#cb413b'; this.style.color='white'"
+                                            onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='#e9ecef'; this.style.color='#333'"
+                                            >
+                                                <span class="heart-icon">♡</span>
+                                            </button>
+                                            
+                                            <button class="add-to-cart-btn-list" style="
+                                                background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                                                color: white;
+                                                border: none;
+                                                padding: 0.6rem 1.2rem;
+                                                border-radius: 8px;
+                                                font-size: 0.9rem;
+                                                font-weight: 600;
+                                                cursor: pointer;
+                                                transition: all 0.3s ease;
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 0.5rem;
+                                            "
+                                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(203, 65, 59, 0.4)'"
+                                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+                                            onclick="addToCart({{ product.id }})"
+                                            >
+                                                🛒 В корзину
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if not has_subcategories and not products %}
+                <!-- Пустое состояние -->
+                <div style="
+                    text-align: center;
+                    padding: 4rem 2rem;
+                    color: #6c757d;
+                ">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                    <h3 style="margin-bottom: 1rem; color: #cb413b;">Товары не найдены</h3>
+                    <p>В этой категории пока нет товаров.</p>
+                    <a href="{% url 'catalog:product_list' %}" style="
+                        display: inline-block;
+                        margin-top: 1rem;
+                        background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                        color: white;
+                        padding: 1rem 2rem;
+                        border-radius: 8px;
+                        text-decoration: none;
+                        font-weight: 600;
+                        transition: all 0.3s ease;
+                    "
+                    onmouseover="this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.transform='translateY(0)'"
+                    >
+                        Вернуться к каталогу
                     </a>
-                </li>
-                <li class="breadcrumb-item">
-                    <a href="{% url 'catalog:product_list' %}" style="color: rgba(255,255,255,0.8); text-decoration: none;">
-                        Каталог
-                    </a>
-                </li>
-                <li class="breadcrumb-item active" style="color: white; font-weight: 500;">
-                    {{ category.name }}
-                </li>
-            </ol>
-        </nav>
-        
-        <h1 class="category-title">{{ category.name }}</h1>
-        {% if category.description %}
-            <p class="category-subtitle">{{ category.description }}</p>
+                </div>
+            {% endif %}
         {% endif %}
     </div>
 </div>
 
-<div class="container">
-    {% if error %}
-        <div class="empty-state">
-            <div class="empty-state-icon">❌</div>
-            <h3>{{ error }}</h3>
-            <p>Категория не найдена или недоступна</p>
-            <a href="{% url 'catalog:product_list' %}" class="btn">Вернуться к каталогу</a>
-        </div>
-    {% else %}
-        {% if has_subcategories %}
-            <!-- Подкатегории -->
-            <div class="subcategories-section">
-                <h2 class="section-title">Подкатегории</h2>
-                <div class="subcategories-grid">
-                    {% for subcat_data in subcategories_with_counts %}
-                        <a href="{{ subcat_data.category.get_absolute_url }}" class="subcategory-card">
-                            <div class="subcategory-image">
-                                📦
-                            </div>
-                            <div class="subcategory-content">
-                                <h3 class="subcategory-name">{{ subcat_data.category.name }}</h3>
-                                <p class="subcategory-description">
-                                    {% if subcat_data.category.description %}
-                                        {{ subcat_data.category.description|truncatewords:20 }}
-                                    {% else %}
-                                        Просмотр товаров категории {{ subcat_data.category.name }}
-                                    {% endif %}
-                                </p>
-                                <div class="subcategory-meta">
-                                    <span class="product-count">
-                                        {{ subcat_data.product_count|count_with_word:"товар,товара,товаров" }}
-                                    </span>
-                                    <span class="category-arrow">→</span>
-                                </div>
-                            </div>
-                        </a>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endif %}
-
-        {% if products %}
-            <!-- Товары в категории -->
-            <div class="products-section">
-                <h2 class="section-title">
-                    {% if has_subcategories %}
-                        Товары в категории
-                    {% else %}
-                        Товары
-                    {% endif %}
-                </h2>
-                <div class="products-grid">
-                    {% for product in products %}
-                        <div class="product-card">
-                            <!-- Кнопка избранного -->
-                            <button class="wishlist-btn" 
-                                    data-product-id="{{ product.id }}" 
-                                    onclick="event.preventDefault(); event.stopPropagation(); toggleWishlist({{ product.id }}, '{{ product.name|escapejs }}');"
-                                    title="Добавить в избранное">
-                                <span class="heart-icon">♡</span>
-                            </button>
-                            
-                            <a href="{% url 'catalog:product_detail' slug=product.slug %}" style="text-decoration: none; color: inherit; display: block;">
-                                <div class="product-image">
-                                    {% if product.image %}
-                                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                                    {% else %}
-                                        {% if 'жатка' in product.name|lower %}
-                                            🌾
-                                        {% elif 'комбайн' in product.name|lower %}
-                                            🚜
-                                        {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}
-                                            🔩
-                                        {% elif 'бункер' in product.name|lower %}
-                                            📦
-                                        {% else %}
-                                            🏭
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                                <div class="product-content">
-                                    <h3 class="product-name">{{ product.name }}</h3>
-                                    {% if product.description %}
-                                        <p class="product-description">
-                                            {{ product.description|truncatewords:15 }}
-                                        </p>
-                                    {% endif %}
-                                    {% if product.price %}
-                                        <div class="product-price">{{ product.price }} BYN</div>
-                                    {% endif %}
-                                    <div class="product-actions">
-                                        <span class="btn" onclick="event.preventDefault(); event.stopPropagation(); addToCart('{{ product.id }}', '{{ product.name|escapejs }}', '{{ product.price }}');">
-                                            🛒 В корзину
-                                        </span>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endif %}
-
-        {% if not has_subcategories and not products %}
-            <div class="empty-state">
-                <div class="empty-state-icon">📦</div>
-                <h3>В этой категории пока нет товаров</h3>
-                <p>Товары будут добавлены в ближайшее время</p>
-                <a href="{% url 'catalog:product_list' %}" class="btn">Вернуться к каталогу</a>
-            </div>
-        {% endif %}
-    {% endif %}
-</div>
-
-<!-- Уведомления -->
-<div id="notifications" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
-{% endblock %}
-
-{% block extra_js %}
+<!-- JavaScript -->
 <script>
-// Глобальные функции для работы с избранным и корзиной
-let wishlistItems = new Set();
-
-// Инициализация при загрузке страницы
+// Инициализация системы избранного
 document.addEventListener('DOMContentLoaded', function() {
-    initWishlist();
+    // Инициализируем WishlistManager, если он есть
+    if (typeof WishlistManager !== 'undefined') {
+        window.wishlistManager = new WishlistManager();
+    }
+    
+    // Даем время на загрузку, затем проверяем статус избранного
+    setTimeout(() => {
+        const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+        wishlistButtons.forEach(btn => {
+            const productId = btn.getAttribute('data-product-id');
+            if (productId) {
+                if (typeof window.wishlistManager !== 'undefined') {
+                    window.wishlistManager.checkWishlistStatus(productId);
+                }
+                
+                // Добавляем обработчик клика, если его еще нет
+                if (!btn.hasAttribute('data-wishlist-initialized')) {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        if (typeof window.wishlistManager !== 'undefined') {
+                            const productName = this.getAttribute('data-product-name') || 'товар';
+                            window.wishlistManager.toggleWishlist(productId, productName);
+                        } else {
+                            // Fallback если WishlistManager не загружен
+                            toggleWishlistFallback(productId, this.getAttribute('data-product-name'));
+                        }
+                    });
+                    btn.setAttribute('data-wishlist-initialized', 'true');
+                }
+            }
+        });
+    }, 100);
 });
 
-function initWishlist() {
-    // Получаем все кнопки избранного на странице
-    const wishlistBtns = document.querySelectorAll('.wishlist-btn');
+// Fallback функция избранного
+function toggleWishlistFallback(productId, productName) {
+    const userAuthElement = document.querySelector('[data-user-authenticated]');
+    const isAuthenticated = userAuthElement && userAuthElement.getAttribute('data-user-authenticated') === 'true';
     
-    wishlistBtns.forEach(btn => {
-        const productId = btn.getAttribute('data-product-id');
-        checkWishlistStatus(productId);
-    });
-}
-
-function checkWishlistStatus(productId) {
-    // Проверяем, авторизован ли пользователь
-    if (!isUserLoggedIn()) {
+    if (!isAuthenticated) {
+        showNotification('Для работы с избранным необходимо войти в систему', 'warning');
         return;
     }
     
-    fetch(`/cart/wishlist/status/?product_id=${productId}`)
-        .then(response => response.json())
-        .then(data => {
-            updateWishlistButton(productId, data.in_wishlist);
-            if (data.in_wishlist) {
-                wishlistItems.add(productId);
-            }
-        })
-        .catch(error => console.error('Error checking wishlist status:', error));
-}
-
-function toggleWishlist(productId, productName) {
-    // Проверяем авторизацию
-    if (!isUserLoggedIn()) {
-        showNotification('Для добавления в избранное необходимо войти в систему', 'warning');
-        return;
-    }
-    
-    const isInWishlist = wishlistItems.has(productId.toString());
-    const action = isInWishlist ? 'remove' : 'add';
-    
-    // Временно обновляем UI
-    updateWishlistButton(productId, !isInWishlist);
-    
-    fetch(`/cart/wishlist/${action}/`, {
+    fetch('/cart/wishlist/add/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCSRFToken()
+            'X-CSRFToken': getCookie('csrftoken'),
         },
         body: `product_id=${productId}`
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            if (action === 'add') {
-                wishlistItems.add(productId.toString());
-                showNotification(data.message, 'success');
-            } else {
-                wishlistItems.delete(productId.toString());
-                showNotification(data.message, 'success');
-            }
+            showNotification(data.message || `"${productName}" обновлен в избранном!`, 'success');
             
-            // Обновляем счетчик в header, если есть
-            updateWishlistCounter(data.wishlist_count);
+            // Обновляем UI кнопки
+            const buttons = document.querySelectorAll(`[data-product-id="${productId}"]`);
+            buttons.forEach(btn => {
+                const heartIcon = btn.querySelector('.heart-icon');
+                if (heartIcon) {
+                    if (data.in_wishlist) {
+                        heartIcon.textContent = '♥';
+                        heartIcon.style.color = '#e74c3c';
+                        btn.title = 'Удалить из избранного';
+                    } else {
+                        heartIcon.textContent = '♡';
+                        heartIcon.style.color = '#ccc';
+                        btn.title = 'Добавить в избранное';
+                    }
+                }
+            });
         } else {
-            // Возвращаем исходное состояние при ошибке
-            updateWishlistButton(productId, isInWishlist);
-            showNotification(data.message, 'error');
+            showNotification(data.message || 'Ошибка при работе с избранным', 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        // Возвращаем исходное состояние при ошибке
-        updateWishlistButton(productId, isInWishlist);
         showNotification('Произошла ошибка при работе с избранным', 'error');
     });
 }
 
-function updateWishlistButton(productId, isInWishlist) {
-    const button = document.querySelector(`[data-product-id="${productId}"]`);
-    if (!button) return;
+// Функция добавления в корзину
+function addToCart(productId) {
+    // Проверяем авторизацию пользователя
+    const userAuthElement = document.querySelector('[data-user-authenticated]');
+    const isAuthenticated = userAuthElement && userAuthElement.getAttribute('data-user-authenticated') === 'true';
     
-    const heartIcon = button.querySelector('.heart-icon');
-    
-    if (isInWishlist) {
-        // Товар в избранном
-        heartIcon.style.color = '#e74c3c';
-        heartIcon.textContent = '♥'; // Закрашенное сердце
-        button.classList.add('in-wishlist');
-        button.title = 'Удалить из избранного';
-        
-        // Анимация добавления
-        button.style.animation = 'heartBeat 0.6s ease';
-        setTimeout(() => button.style.animation = '', 600);
-        
-    } else {
-        // Товара нет в избранном
-        heartIcon.style.color = '#ccc';
-        heartIcon.textContent = '♡'; // Пустое сердце
-        button.classList.remove('in-wishlist');
-        button.title = 'Добавить в избранное';
-    }
-}
-
-function updateWishlistCounter(count) {
-    // Обновляем счетчик в шапке сайта, если есть
-    const counter = document.querySelector('.wishlist-counter');
-    if (counter) {
-        counter.textContent = count;
-        counter.style.display = count > 0 ? 'inline-block' : 'none';
-    }
-}
-
-function addToCart(productId, productName, price) {
-    if (!productId) {
-        showNotification('Ошибка: не указан товар', 'error');
+    if (!isAuthenticated) {
+        showNotification('Для добавления в корзину необходимо войти в систему', 'warning');
         return;
     }
-
+    
+    // Показываем индикатор загрузки
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Добавляем...';
+    button.disabled = true;
+    
+    // AJAX запрос для добавления в корзину
     fetch('/cart/add/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': getCSRFToken()
+            'X-CSRFToken': getCookie('csrftoken'),
         },
         body: `product_id=${productId}&quantity=1`
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(data.message, 'success');
-            // Обновляем счетчик корзины, если есть
+            showNotification(data.message || 'Товар добавлен в корзину!', 'success');
+            
+            // Обновляем счетчик корзины в шапке
             updateCartCounter(data.cart_count);
         } else {
-            showNotification(data.message, 'error');
+            showNotification(data.message || 'Ошибка при добавлении товара', 'error');
         }
     })
     .catch(error => {
         console.error('Error:', error);
         showNotification('Произошла ошибка при добавлении товара', 'error');
+    })
+    .finally(() => {
+        // Восстанавливаем кнопку
+        button.innerHTML = originalText;
+        button.disabled = false;
     });
 }
 
+// Функция получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Функция показа уведомлений
+function showNotification(message, type = 'info') {
+    // Создаем контейнер для уведомлений если его нет
+    let container = document.getElementById('notifications');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notifications';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 300px;
+        `;
+        document.body.appendChild(container);
+    }
+    
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#17a2b8'};
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: slideIn 0.3s ease;
+        cursor: pointer;
+    `;
+    
+    notification.textContent = message;
+    
+    // Добавляем анимацию
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    container.appendChild(notification);
+    
+    // Удаляем уведомление через 5 секунд
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+    
+    // Удаляем при клике
+    notification.addEventListener('click', () => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    });
+}
+
+// Функция обновления счетчика корзины
 function updateCartCounter(count) {
     const counter = document.querySelector('.cart-counter');
     if (counter) {
@@ -604,50 +922,109 @@ function updateCartCounter(count) {
     }
 }
 
-function isUserLoggedIn() {
-    // Простая проверка - если есть CSRF токен, значит пользователь авторизован
-    return document.querySelector('[name=csrfmiddlewaretoken]') !== null || 
-           document.querySelector('meta[name="csrf-token"]') !== null;
-}
-
-function getCSRFToken() {
-    const token = document.querySelector('[name=csrfmiddlewaretoken]');
-    if (token) return token.value;
+// Сохранение выбранного вида в localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const currentView = new URLSearchParams(window.location.search).get('view') || 'grid';
+    localStorage.setItem('catalogView', currentView);
     
-    const metaToken = document.querySelector('meta[name="csrf-token"]');
-    if (metaToken) return metaToken.getAttribute('content');
+    // Добавляем классы для активных кнопок
+    const gridBtn = document.querySelector('.grid-btn');
+    const listBtn = document.querySelector('.list-btn');
     
-    return '';
-}
-
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : type === 'warning' ? '#ffc107' : '#cb413b'};
-        color: ${type === 'warning' ? '#333' : 'white'};
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        z-index: 1000;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        font-weight: 600;
-        max-width: 300px;
-        animation: slideIn 0.3s ease;
-    `;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
+    if (currentView === 'grid' && gridBtn) {
+        gridBtn.classList.add('active');
+    } else if (currentView === 'list' && listBtn) {
+        listBtn.classList.add('active');
+    }
+});
 </script>
+
+<style>
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+    
+    .product-list-item {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        text-align: left !important;
+    }
+    
+    .product-list-image {
+        width: 100% !important;
+        max-width: 200px !important;
+        align-self: center !important;
+    }
+    
+    .product-list-actions {
+        width: 100% !important;
+        min-width: unset !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+    
+    .view-toggle {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    .category-header h1 {
+        font-size: 2rem !important;
+    }
+    
+    .category-header p {
+        font-size: 1rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    .product-card,
+    .product-list-item {
+        margin: 0 -0.5rem !important;
+    }
+    
+    .product-list-actions {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.product-card,
+.product-list-item {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Скроллбар */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cb413b;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a0342e;
+}
+</style>
 {% endblock %}
