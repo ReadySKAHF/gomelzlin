@@ -14,6 +14,153 @@
         </p>
     </div>
 
+    <!-- НОВЫЙ БЛОК ПОИСКА -->
+    <div class="search-section" style="
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(203, 65, 59, 0.15);
+        padding: 2rem;
+        margin: 2rem 0 3rem 0;
+        position: relative;
+    ">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="font-size: 1.5rem;">🔍</div>
+            <h2 style="color: #cb413b; margin: 0; font-size: 1.5rem; font-weight: 600;">
+                Поиск товаров и категорий
+            </h2>
+        </div>
+        
+        <form class="search-form" style="display: flex; gap: 1rem; align-items: center;" onsubmit="return handleSearch(event)">
+            <div class="search-input-wrapper" style="flex: 1; position: relative;">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="Введите название товара или артикул..." 
+                    autocomplete="off"
+                    style="
+                        width: 100%;
+                        padding: 1rem 1.5rem 1rem 3.5rem;
+                        border: 2px solid #e9ecef;
+                        border-radius: 12px;
+                        font-size: 1.1rem;
+                        transition: all 0.3s ease;
+                        background: white;
+                    "
+                    onfocus="this.style.borderColor='#cb413b'; this.style.boxShadow='0 0 0 3px rgba(203, 65, 59, 0.1)'"
+                    onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none'"
+                    oninput="handleSearchInput(event)"
+                >
+                <div style="
+                    position: absolute;
+                    left: 1rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #808080;
+                    font-size: 1.2rem;
+                ">🔍</div>
+                
+                <!-- Автодополнение -->
+                <div class="search-suggestions" id="suggestions" style="
+                    position: absolute;
+                    top: 100%;
+                    left: 0;
+                    right: 0;
+                    background: white;
+                    border: 1px solid #e9ecef;
+                    border-top: none;
+                    border-radius: 0 0 12px 12px;
+                    box-shadow: 0 10px 40px rgba(203, 65, 59, 0.15);
+                    z-index: 1000;
+                    max-height: 400px;
+                    overflow-y: auto;
+                    display: none;
+                "></div>
+            </div>
+            
+            <button type="submit" class="search-btn" style="
+                background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                color: white;
+                border: none;
+                padding: 1rem 2rem;
+                border-radius: 12px;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                min-width: 120px;
+            " 
+            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(203, 65, 59, 0.25)'"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
+            onmousedown="this.style.transform='translateY(0)'"
+            >
+                Найти
+            </button>
+        </form>
+        
+        <!-- Популярные запросы -->
+        <div style="margin-top: 1.5rem;">
+            <p style="color: #808080; margin-bottom: 0.5rem; font-size: 0.9rem;">Популярные запросы:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                <a href="javascript:searchFor('комбайн')" style="
+                    background: #f8f9fa;
+                    color: #808080;
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 20px;
+                    text-decoration: none;
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                    border: 1px solid #e9ecef;
+                " 
+                onmouseover="this.style.background='#cb413b'; this.style.color='white'; this.style.borderColor='#cb413b'"
+                onmouseout="this.style.background='#f8f9fa'; this.style.color='#808080'; this.style.borderColor='#e9ecef'"
+                >комбайн</a>
+                
+                <a href="javascript:searchFor('жатка')" style="
+                    background: #f8f9fa;
+                    color: #808080;
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 20px;
+                    text-decoration: none;
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                    border: 1px solid #e9ecef;
+                " 
+                onmouseover="this.style.background='#cb413b'; this.style.color='white'; this.style.borderColor='#cb413b'"
+                onmouseout="this.style.background='#f8f9fa'; this.style.color='#808080'; this.style.borderColor='#e9ecef'"
+                >жатка</a>
+                
+                <a href="javascript:searchFor('метизы')" style="
+                    background: #f8f9fa;
+                    color: #808080;
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 20px;
+                    text-decoration: none;
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                    border: 1px solid #e9ecef;
+                " 
+                onmouseover="this.style.background='#cb413b'; this.style.color='white'; this.style.borderColor='#cb413b'"
+                onmouseout="this.style.background='#f8f9fa'; this.style.color='#808080'; this.style.borderColor='#e9ecef'"
+                >метизы</a>
+                
+                <a href="javascript:searchFor('бункер')" style="
+                    background: #f8f9fa;
+                    color: #808080;
+                    padding: 0.3rem 0.8rem;
+                    border-radius: 20px;
+                    text-decoration: none;
+                    font-size: 0.9rem;
+                    transition: all 0.2s ease;
+                    border: 1px solid #e9ecef;
+                " 
+                onmouseover="this.style.background='#cb413b'; this.style.color='white'; this.style.borderColor='#cb413b'"
+                onmouseout="this.style.background='#f8f9fa'; this.style.color='#808080'; this.style.borderColor='#e9ecef'"
+                >бункер</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Сетка категорий с увеличенными карточками -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 3rem; margin: 3rem 0;">
         {% for category in categories %}
@@ -47,53 +194,46 @@
                             <img src="{{ category.image }}" alt="{{ category.name }}" 
                                  style="width: 100%; height: 100%; object-fit: cover;">
                         {% else %}
+                            <!-- Эмодзи в зависимости от категории -->
                             <div style="
+                                width: 100%; 
+                                height: 100%; 
                                 display: flex; 
                                 align-items: center; 
                                 justify-content: center; 
-                                height: 100%; 
-                                font-size: 6rem; 
-                                color: white;
-                                text-shadow: 0 4px 20px rgba(0,0,0,0.4);
-                                transition: transform 0.4s ease;
-                            " class="emoji-container">
-                                {% if category.name == "Зерноуборочная техника" %}🌾
-                                {% elif category.name == "Кормоуборочная техника" %}🚜
-                                {% elif category.name == "Картофелеуборочная техника" %}🥔
-                                {% elif category.name == "Метизная продукция" %}🔩
-                                {% elif category.name == "Бункеры-перегрузчики" %}📦
-                                {% elif category.name == "Новинки" %}⭐
-                                {% elif category.name == "Прочая техника" %}⚙️
-                                {% elif category.name == "Прочие товары, работы и услуги" %}🛠️
-                                {% elif category.name == "Режущие системы жаток" %}🔪
-                                {% elif category.name == "Самоходные носилки" %}🚛
-                                {% else %}🏭
+                                font-size: 6rem;
+                                color: rgba(255,255,255,0.9);
+                                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                            ">
+                                {% if category.name == "Зерноуборочная техника" %}
+                                    🌾
+                                {% elif category.name == "Кормоуборочная техника" %}
+                                    🚜
+                                {% elif category.name == "Картофелеуборочная техника" %}
+                                    🥔
+                                {% elif category.name == "Метизная продукция" %}
+                                    🔩
+                                {% elif category.name == "Прочая техника" %}
+                                    ⚙️
+                                {% elif category.name == "Бункеры-перегрузчики" %}
+                                    📦
+                                {% elif category.name == "Новинки" %}
+                                    ✨
+                                {% elif category.name == "Прочие товары, работы и услуги" %}
+                                    🛠️
+                                {% elif category.name == "Режущие системы жаток" %}
+                                    ⚔️
+                                {% elif category.name == "Самоходные носилки" %}
+                                    🚚
+                                {% else %}
+                                    🏭
                                 {% endif %}
                             </div>
                         {% endif %}
-                        
-                        <!-- Градиентный оверлей -->
-                        <div style="
-                            position: absolute; 
-                            bottom: 0; 
-                            left: 0; 
-                            right: 0; 
-                            background: linear-gradient(transparent, rgba(0,0,0,0.7)); 
-                            height: 80px;
-                        "></div>
                     </div>
-
-                    <!-- Содержимое карточки с увеличенным размером -->
-                    <div style="
-                        padding: 2.5rem 2rem; 
-                        flex-grow: 1; 
-                        display: flex; 
-                        flex-direction: column; 
-                        justify-content: space-between;
-                        background: white;
-                        position: relative;
-                    ">
-                        <div>
+                    
+                    <div style="padding: 2rem; display: flex; flex-direction: column; flex-grow: 1;">
+                        <div style="flex-grow: 1;">
                             <h3 style="
                                 font-size: 1.6rem; 
                                 font-weight: 700; 
@@ -167,6 +307,7 @@
                             </div>
                             
                             <div style="
+                                font-size: 2rem; 
                                 color: #cb413b; 
                                 font-size: 1.8rem; 
                                 font-weight: bold;
@@ -234,16 +375,14 @@
                         font-size: 3rem;
                         color: #cb413b;
                     ">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}" 
-                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        {% if 'жатка' in product.name|lower %}
+                            🌾
+                        {% elif 'комбайн' in product.name|lower %}
+                            🚜
+                        {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}
+                            🔩
                         {% else %}
-                            {% if 'жатка' in product.name|lower %}🌾
-                            {% elif 'комбайн' in product.name|lower %}🚜
-                            {% elif 'болт' in product.name|lower or 'гайка' in product.name|lower %}🔩
-                            {% elif 'бункер' in product.name|lower %}📦
-                            {% else %}🏭
-                            {% endif %}
+                            🏭
                         {% endif %}
                     </div>
                     
@@ -251,59 +390,47 @@
                         <h4 style="
                             font-size: 1.2rem; 
                             font-weight: 600; 
-                            color: #343a40; 
-                            margin-bottom: 0.8rem;
-                            line-height: 1.3;
+                            margin-bottom: 0.5rem;
+                            color: #333;
                         ">
-                            {{ product.name }}
+                            {{ product.name|truncatechars:50 }}
                         </h4>
                         
-                        {% if product.short_description %}
-                            <p style="
-                                color: #6c757d; 
-                                font-size: 0.95rem; 
-                                margin-bottom: 1.5rem;
-                                line-height: 1.4;
+                        <p style="
+                            color: #6c757d; 
+                            font-size: 0.9rem; 
+                            margin-bottom: 1rem;
+                        ">
+                            Артикул: {{ product.article }}
+                        </p>
+                        
+                        {% if product.price %}
+                            <div style="
+                                font-size: 1.3rem; 
+                                font-weight: 700; 
+                                color: #cb413b;
+                                margin-bottom: 1rem;
                             ">
-                                {{ product.short_description|truncatewords:15 }}
-                            </p>
+                                {{ product.price }} BYN
+                            </div>
                         {% endif %}
                         
-                        <div style="
-                            display: flex; 
-                            justify-content: space-between; 
-                            align-items: center;
-                            border-top: 1px solid #f0f0f0;
-                            padding-top: 1rem;
-                        ">
-                            <span style="
-                                font-weight: 700; 
-                                font-size: 1.3rem; 
-                                color: #cb413b;
-                            ">
-                                {{ product.price }} р.
-                            </span>
-                            
-                            <button onclick="addToCart({{ product.id }})" style="
-                                background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
-                                color: white;
-                                border: none;
-                                padding: 0.8rem 1.5rem;
-                                border-radius: 8px;
-                                font-weight: 600;
-                                font-size: 0.9rem;
-                                cursor: pointer;
-                                transition: all 0.3s ease;
-                                box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
-                                display: flex;
-                                align-items: center;
-                                gap: 0.5rem;
-                            "
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(203, 65, 59, 0.4)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(203, 65, 59, 0.3)';">
-                                🛒 В корзину
-                            </button>
-                        </div>
+                        <a href="{{ product.get_absolute_url }}" style="
+                            display: inline-block;
+                            background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                            color: white;
+                            padding: 0.7rem 1.5rem;
+                            border-radius: 8px;
+                            text-decoration: none;
+                            font-weight: 600;
+                            font-size: 0.9rem;
+                            transition: all 0.3s ease;
+                        "
+                        onmouseover="this.style.transform='translateY(-2px)'"
+                        onmouseout="this.style.transform='translateY(0)'"
+                        >
+                            Подробнее
+                        </a>
                     </div>
                 </div>
             {% endfor %}
@@ -312,17 +439,248 @@
     {% endif %}
 </div>
 
-<!-- CSRF токен для AJAX запросов -->
-{% csrf_token %}
+<!-- JavaScript для поиска -->
+<script>
+// Переменные для работы с поиском
+let searchTimeout;
+let isSearching = false;
+
+// Обработка ввода в поисковой строке
+function handleSearchInput(event) {
+    const query = event.target.value.trim();
+    const suggestionsContainer = document.getElementById('suggestions');
+    
+    // Очищаем предыдущий таймаут
+    clearTimeout(searchTimeout);
+    
+    if (query.length < 2) {
+        hideSuggestions();
+        return;
+    }
+    
+    // Устанавливаем новый таймаут для запроса
+    searchTimeout = setTimeout(() => {
+        fetchSuggestions(query);
+    }, 300);
+}
+
+// Получение предложений с сервера
+async function fetchSuggestions(query) {
+    if (isSearching) return;
+    
+    isSearching = true;
+    
+    try {
+        const response = await fetch(`/catalog/ajax/quick-search/?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        displaySuggestions(data.results || []);
+    } catch (error) {
+        console.error('Ошибка поиска:', error);
+        hideSuggestions();
+    } finally {
+        isSearching = false;
+    }
+}
+
+// Отображение предложений
+function displaySuggestions(results) {
+    const suggestionsContainer = document.getElementById('suggestions');
+    
+    if (results.length === 0) {
+        hideSuggestions();
+        return;
+    }
+    
+    let html = '';
+    
+    results.forEach(item => {
+        const emoji = getItemEmoji(item.name, item.category_name);
+        const itemType = item.type === 'product' ? 'Товар' : 'Категория';
+        
+        html += `
+            <div class="suggestion-item" style="
+                padding: 1rem;
+                border-bottom: 1px solid #f8f9fa;
+                cursor: pointer;
+                transition: background-color 0.2s ease;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            " 
+            onmouseover="this.style.backgroundColor='#f8f9fa'"
+            onmouseout="this.style.backgroundColor='white'"
+            onclick="selectSuggestion('${item.url}')">
+                
+                <div style="
+                    font-size: 1.5rem;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                ">
+                    ${emoji}
+                </div>
+                
+                <div style="flex: 1;">
+                    <div style="
+                        font-weight: 600;
+                        color: #333;
+                        margin-bottom: 0.25rem;
+                    ">
+                        ${item.name}
+                    </div>
+                    
+                    <div style="
+                        font-size: 0.9rem;
+                        color: #808080;
+                        display: flex;
+                        gap: 1rem;
+                        align-items: center;
+                    ">
+                        <span style="
+                            background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+                            color: white;
+                            padding: 0.1rem 0.5rem;
+                            border-radius: 4px;
+                            font-size: 0.8rem;
+                            font-weight: 500;
+                        ">${itemType}</span>
+                        
+                        ${item.article ? `<span>Арт: ${item.article}</span>` : ''}
+                        ${item.category_name ? `<span>• ${item.category_name}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    suggestionsContainer.innerHTML = html;
+    suggestionsContainer.style.display = 'block';
+}
+
+// Скрытие предложений
+function hideSuggestions() {
+    const suggestionsContainer = document.getElementById('suggestions');
+    suggestionsContainer.style.display = 'none';
+}
+
+// Выбор предложения
+function selectSuggestion(url) {
+    window.location.href = url;
+}
+
+// Получение эмодзи для элемента
+function getItemEmoji(name, categoryName) {
+    const lowerName = name.toLowerCase();
+    const lowerCategory = (categoryName || '').toLowerCase();
+    
+    if (lowerName.includes('жатка') || lowerCategory.includes('зерно')) {
+        return '🌾';
+    } else if (lowerName.includes('комбайн') || lowerCategory.includes('кормо')) {
+        return '🚜';
+    } else if (lowerName.includes('картофель')) {
+        return '🥔';
+    } else if (lowerName.includes('болт') || lowerName.includes('гайка') || lowerCategory.includes('метиз')) {
+        return '🔩';
+    } else if (lowerName.includes('бункер')) {
+        return '📦';
+    } else if (lowerName.includes('режущ')) {
+        return '⚔️';
+    } else if (lowerName.includes('носилки')) {
+        return '🚚';
+    } else {
+        return '🏭';
+    }
+}
+
+// Обработка отправки формы поиска
+function handleSearch(event) {
+    event.preventDefault();
+    const query = document.getElementById('searchInput').value.trim();
+    
+    if (query.length < 2) {
+        alert('Введите минимум 2 символа для поиска');
+        return false;
+    }
+    
+    // Переход на страницу поиска
+    window.location.href = `/catalog/search/?q=${encodeURIComponent(query)}`;
+    return false;
+}
+
+// Поиск по популярным запросам
+function searchFor(query) {
+    document.getElementById('searchInput').value = query;
+    window.location.href = `/catalog/search/?q=${encodeURIComponent(query)}`;
+}
+
+// Скрытие предложений при клике вне поиска
+document.addEventListener('click', function(event) {
+    const searchSection = event.target.closest('.search-section');
+    if (!searchSection) {
+        hideSuggestions();
+    }
+});
+
+// Обработка клавиш для навигации по предложениям
+document.getElementById('searchInput').addEventListener('keydown', function(event) {
+    const suggestions = document.querySelectorAll('.suggestion-item');
+    
+    if (event.key === 'Escape') {
+        hideSuggestions();
+        this.blur();
+    }
+});
+</script>
 
 <style>
-/* Анимации для эмодзи при наведении */
-.emoji-container:hover {
-    transform: scale(1.15) rotate(5deg) !important;
+/* Дополнительные стили для анимаций */
+.category-arrow {
+    transition: transform 0.3s ease !important;
 }
 
 .category-arrow:hover {
     transform: translateX(8px) !important;
+}
+
+/* Адаптивность для поисковой формы */
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .search-input-wrapper {
+        width: 100% !important;
+    }
+    
+    .search-btn {
+        width: 100% !important;
+    }
+    
+    .search-section > div:last-child > div {
+        justify-content: center !important;
+    }
+}
+
+/* Анимация появления предложений */
+.search-suggestions {
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Адаптивность */
@@ -379,148 +737,5 @@
         font-size: 4rem !important;
     }
 }
-
-/* Анимации загрузки */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.container > div:first-of-type > a {
-    animation: fadeInUp 0.6s ease forwards;
-}
-
-.container > div:first-of-type > a:nth-child(1) { animation-delay: 0.1s; }
-.container > div:first-of-type > a:nth-child(2) { animation-delay: 0.2s; }
-.container > div:first-of-type > a:nth-child(3) { animation-delay: 0.3s; }
-.container > div:first-of-type > a:nth-child(4) { animation-delay: 0.4s; }
-.container > div:first-of-type > a:nth-child(5) { animation-delay: 0.5s; }
-.container > div:first-of-type > a:nth-child(6) { animation-delay: 0.6s; }
 </style>
-
-<script>
-// Функция добавления товара в корзину
-function addToCart(productId, quantity = 1) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    
-    // Показываем индикатор загрузки на кнопке
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '⏳ Добавление...';
-    button.disabled = true;
-    
-    fetch('/cart/add/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken,
-        },
-        body: `product_id=${productId}&quantity=${quantity}`
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Обновляем счетчик корзины
-            updateCartCount();
-            
-            // Показываем уведомление
-            showNotification('Товар добавлен в корзину!', 'success');
-            
-            // Меняем кнопку временно
-            button.innerHTML = '✅ Добавлено';
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }, 1500);
-        } else {
-            showNotification('Ошибка при добавлении товара', 'error');
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Произошла ошибка', 'error');
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-}
-
-// Обновление счетчика корзины
-function updateCartCount() {
-    fetch('/cart/count/')
-        .then(response => response.json())
-        .then(data => {
-            const cartCountElement = document.querySelector('.cart-count');
-            if (cartCountElement) {
-                cartCountElement.textContent = data.count;
-                
-                // Анимация обновления
-                cartCountElement.style.transform = 'scale(1.3)';
-                cartCountElement.style.background = '#28a745';
-                setTimeout(() => {
-                    cartCountElement.style.transform = 'scale(1)';
-                    cartCountElement.style.background = 'white';
-                }, 300);
-            }
-        })
-        .catch(error => console.error('Ошибка обновления корзины:', error));
-}
-
-// Показ уведомлений
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span>${type === 'success' ? '✅' : '❌'}</span>
-            <span>${message}</span>
-        </div>
-    `;
-    
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' : 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        z-index: 1000;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        animation: slideIn 0.3s ease;
-        font-weight: 600;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease forwards';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// CSS для анимаций уведомлений
-const notificationStyle = document.createElement('style');
-notificationStyle.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(notificationStyle);
-
-// Обновляем счетчик при загрузке страницы
-document.addEventListener('DOMContentLoaded', updateCartCount);
-</script>
 {% endblock %}
