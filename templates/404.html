@@ -1,0 +1,477 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Страница не найдена - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="error-page" style="
+    background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+">
+    <!-- Падающие шестеренки и промышленные элементы -->
+    <div class="falling-gears">
+        <!-- Большие шестеренки -->
+        <div class="gear gear-1" style="left: 10%; animation-delay: 0s;">⚙️</div>
+        <div class="gear gear-2" style="left: 20%; animation-delay: 2s;">🔧</div>
+        <div class="gear gear-3" style="left: 30%; animation-delay: 4s;">🛠️</div>
+        <div class="gear gear-4" style="left: 40%; animation-delay: 6s;">⚙️</div>
+        <div class="gear gear-5" style="left: 50%; animation-delay: 8s;">🔩</div>
+        <div class="gear gear-6" style="left: 60%; animation-delay: 1s;">🔧</div>
+        <div class="gear gear-7" style="left: 70%; animation-delay: 3s;">⚙️</div>
+        <div class="gear gear-8" style="left: 80%; animation-delay: 5s;">🛠️</div>
+        <div class="gear gear-9" style="left: 90%; animation-delay: 7s;">🔩</div>
+        
+        <!-- Средние элементы -->
+        <div class="gear gear-medium-1" style="left: 15%; animation-delay: 1.5s;">⚙️</div>
+        <div class="gear gear-medium-2" style="left: 35%; animation-delay: 3.5s;">🔧</div>
+        <div class="gear gear-medium-3" style="left: 55%; animation-delay: 5.5s;">🛠️</div>
+        <div class="gear gear-medium-4" style="left: 75%; animation-delay: 7.5s;">🔩</div>
+        <div class="gear gear-medium-5" style="left: 85%; animation-delay: 0.5s;">⚙️</div>
+        
+        <!-- Мелкие элементы -->
+        <div class="gear gear-small-1" style="left: 12%; animation-delay: 2.5s;">⚙️</div>
+        <div class="gear gear-small-2" style="left: 22%; animation-delay: 4.5s;">🔧</div>
+        <div class="gear gear-small-3" style="left: 32%; animation-delay: 6.5s;">🔩</div>
+        <div class="gear gear-small-4" style="left: 42%; animation-delay: 0.8s;">🛠️</div>
+        <div class="gear gear-small-5" style="left: 52%; animation-delay: 2.8s;">⚙️</div>
+        <div class="gear gear-small-6" style="left: 62%; animation-delay: 4.8s;">🔧</div>
+        <div class="gear gear-small-7" style="left: 72%; animation-delay: 6.8s;">🔩</div>
+        <div class="gear gear-small-8" style="left: 82%; animation-delay: 1.2s;">🛠️</div>
+        
+        <!-- Дополнительные промышленные элементы -->
+        <div class="gear gear-extra-1" style="left: 5%; animation-delay: 9s;">🏭</div>
+        <div class="gear gear-extra-2" style="left: 45%; animation-delay: 11s;">🚜</div>
+        <div class="gear gear-extra-3" style="left: 65%; animation-delay: 13s;">🌾</div>
+        <div class="gear gear-extra-4" style="left: 95%; animation-delay: 15s;">📦</div>
+    </div>
+    
+    <!-- Основной контент -->
+    <div style="
+        text-align: center;
+        color: white;
+        z-index: 10;
+        max-width: 500px;
+        padding: 2rem;
+    ">
+        <!-- Большая 404 -->
+        <div style="
+            font-size: 8rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: pulse 2s ease-in-out infinite alternate;
+            background: linear-gradient(45deg, #ffffff, #f8f9fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        ">
+            404
+        </div>
+        
+        <!-- Заголовок -->
+        <h1 style="
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        ">
+            Страница не найдена
+        </h1>
+        
+        <!-- Описание -->
+        <p style="
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        ">
+            Запрашиваемая страница не существует или была перемещена
+        </p>
+        
+        <!-- БОЛЬШАЯ КНОПКА НА ГЛАВНУЮ -->
+        <a href="{% url 'core:home' %}" style="
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 1.5rem 3rem;
+            border-radius: 60px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.4rem;
+            transition: all 0.4s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        "
+        onmouseover="
+            this.style.background='rgba(255, 255, 255, 0.3)'; 
+            this.style.transform='translateY(-8px) scale(1.05)'; 
+            this.style.boxShadow='0 15px 50px rgba(0,0,0,0.4)';
+            this.style.borderColor='rgba(255, 255, 255, 0.6)';
+        "
+        onmouseout="
+            this.style.background='rgba(255, 255, 255, 0.2)'; 
+            this.style.transform='translateY(0) scale(1)'; 
+            this.style.boxShadow='0 8px 32px rgba(0,0,0,0.2)';
+            this.style.borderColor='rgba(255, 255, 255, 0.4)';
+        "
+        >
+            <span style="font-size: 2rem;">🏠</span>
+            <span>На главную страницу</span>
+        </a>
+    </div>
+</div>
+
+<!-- CSS анимации -->
+<style>
+/* Анимация падения */
+@keyframes fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes fallSlow {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 0;
+    }
+    15% {
+        opacity: 1;
+    }
+    85% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+@keyframes fallFast {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 0;
+    }
+    5% {
+        opacity: 1;
+    }
+    95% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(180deg);
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    100% { 
+        opacity: 0.8; 
+        transform: scale(1.02);
+    }
+}
+
+/* Контейнер для падающих элементов */
+.falling-gears {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Базовые стили для шестеренок */
+.gear {
+    position: absolute;
+    top: -10%;
+    opacity: 0.15;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Большие шестеренки */
+.gear[class*="gear-"]:not([class*="medium"]):not([class*="small"]):not([class*="extra"]) {
+    font-size: 4rem;
+    animation: fall 8s linear infinite;
+}
+
+/* Средние шестеренки */
+.gear[class*="medium"] {
+    font-size: 2.5rem;
+    animation: fallSlow 12s linear infinite;
+    opacity: 0.12;
+}
+
+/* Мелкие шестеренки */
+.gear[class*="small"] {
+    font-size: 1.5rem;
+    animation: fallFast 6s linear infinite;
+    opacity: 0.1;
+}
+
+/* Дополнительные промышленные элементы */
+.gear[class*="extra"] {
+    font-size: 3rem;
+    animation: fall 15s linear infinite;
+    opacity: 0.08;
+}
+
+/* Индивидуальные настройки для разнообразия */
+.gear-1 { animation-duration: 8s; }
+.gear-2 { animation-duration: 10s; }
+.gear-3 { animation-duration: 7s; }
+.gear-4 { animation-duration: 9s; }
+.gear-5 { animation-duration: 11s; }
+.gear-6 { animation-duration: 6s; }
+.gear-7 { animation-duration: 12s; }
+.gear-8 { animation-duration: 8.5s; }
+.gear-9 { animation-duration: 9.5s; }
+
+.gear-medium-1 { animation-duration: 14s; }
+.gear-medium-2 { animation-duration: 16s; }
+.gear-medium-3 { animation-duration: 13s; }
+.gear-medium-4 { animation-duration: 15s; }
+.gear-medium-5 { animation-duration: 11s; }
+
+.gear-small-1 { animation-duration: 5s; }
+.gear-small-2 { animation-duration: 7s; }
+.gear-small-3 { animation-duration: 4s; }
+.gear-small-4 { animation-duration: 6s; }
+.gear-small-5 { animation-duration: 5.5s; }
+.gear-small-6 { animation-duration: 4.5s; }
+.gear-small-7 { animation-duration: 6.5s; }
+.gear-small-8 { animation-duration: 3.5s; }
+
+.gear-extra-1 { animation-duration: 18s; }
+.gear-extra-2 { animation-duration: 20s; }
+.gear-extra-3 { animation-duration: 17s; }
+.gear-extra-4 { animation-duration: 19s; }
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .error-page div:first-child {
+        font-size: 5rem !important;
+    }
+    
+    .error-page h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .error-page p {
+        font-size: 1rem !important;
+        padding: 0 1rem;
+    }
+    
+    .error-page a {
+        font-size: 1.2rem !important;
+        padding: 1.2rem 2rem !important;
+        margin: 0 1rem;
+    }
+    
+    /* Уменьшаем размеры шестеренок на мобильных */
+    .gear[class*="gear-"]:not([class*="medium"]):not([class*="small"]):not([class*="extra"]) {
+        font-size: 3rem;
+    }
+    
+    .gear[class*="medium"] {
+        font-size: 2rem;
+    }
+    
+    .gear[class*="small"] {
+        font-size: 1.2rem;
+    }
+    
+    .gear[class*="extra"] {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-page div:first-child {
+        font-size: 4rem !important;
+    }
+    
+    .error-page a {
+        font-size: 1.1rem !important;
+        padding: 1rem 1.5rem !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .error-page a span:first-child {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Еще больше уменьшаем на очень маленьких экранах */
+    .gear[class*="gear-"]:not([class*="medium"]):not([class*="small"]):not([class*="extra"]) {
+        font-size: 2.5rem;
+    }
+    
+    .gear[class*="medium"] {
+        font-size: 1.8rem;
+    }
+    
+    .gear[class*="small"] {
+        font-size: 1rem;
+    }
+    
+    .gear[class*="extra"] {
+        font-size: 2rem;
+    }
+}
+
+/* Glassmorphism для поддержки */
+@supports (backdrop-filter: blur(10px)) {
+    .error-page a {
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+    }
+}
+
+/* Анимация появления для плавности */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<!-- JavaScript для плавной анимации появления и дополнительных эффектов -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Анимация появления основного контента
+    const mainContent = document.querySelector('.error-page > div:last-child');
+    const elements = mainContent.querySelectorAll('> *');
+    
+    elements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'all 0.8s ease';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 300);
+    });
+    
+    // Добавляем случайность в анимации шестеренок
+    const gears = document.querySelectorAll('.gear');
+    gears.forEach((gear, index) => {
+        // Случайная задержка для более естественного эффекта
+        const randomDelay = Math.random() * 5;
+        gear.style.animationDelay = randomDelay + 's';
+        
+        // Случайное горизонтальное смещение для разнообразия
+        const currentLeft = parseFloat(gear.style.left);
+        const randomOffset = (Math.random() - 0.5) * 10; // ±5% смещение
+        gear.style.left = Math.max(0, Math.min(95, currentLeft + randomOffset)) + '%';
+        
+        // Добавляем легкое горизонтальное покачивание для некоторых элементов
+        if (index % 3 === 0) {
+            gear.style.animation += ', sway 4s ease-in-out infinite';
+            gear.style.animationDelay = randomDelay + 's, ' + (randomDelay + 1) + 's';
+        }
+    });
+    
+    // Добавляем дополнительную анимацию покачивания
+    const swayStyle = document.createElement('style');
+    swayStyle.textContent = `
+        @keyframes sway {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(10px) rotate(5deg); }
+            75% { transform: translateX(-10px) rotate(-5deg); }
+        }
+    `;
+    document.head.appendChild(swayStyle);
+    
+    // Периодически добавляем новые падающие элементы для более густого эффекта
+    setInterval(() => {
+        addRandomGear();
+    }, 3000);
+});
+
+// Функция добавления случайных шестеренок
+function addRandomGear() {
+    const container = document.querySelector('.falling-gears');
+    const gear = document.createElement('div');
+    
+    // Случайные элементы
+    const gearTypes = ['⚙️', '🔧', '🛠️', '🔩'];
+    const randomGear = gearTypes[Math.floor(Math.random() * gearTypes.length)];
+    
+    // Случайные размеры
+    const sizes = ['2rem', '2.5rem', '3rem', '1.5rem'];
+    const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+    
+    gear.innerHTML = randomGear;
+    gear.className = 'gear gear-dynamic';
+    gear.style.cssText = `
+        position: absolute;
+        top: -10%;
+        left: ${Math.random() * 90}%;
+        font-size: ${randomSize};
+        opacity: 0.1;
+        animation: fall ${6 + Math.random() * 8}s linear forwards;
+        pointer-events: none;
+        user-select: none;
+    `;
+    
+    container.appendChild(gear);
+    
+    // Удаляем элемент после анимации чтобы не засорять DOM
+    setTimeout(() => {
+        if (gear.parentNode) {
+            gear.parentNode.removeChild(gear);
+        }
+    }, 15000);
+}
+
+// Эффект параллакса при движении мыши (опционально, легкий)
+document.addEventListener('mousemove', function(e) {
+    const gears = document.querySelectorAll('.gear');
+    const mouseX = e.clientX / window.innerWidth;
+    const mouseY = e.clientY / window.innerHeight;
+    
+    gears.forEach((gear, index) => {
+        if (index % 4 === 0) { // Применяем только к каждой 4-й шестеренке
+            const speed = 0.5;
+            const x = (mouseX - 0.5) * speed * 10;
+            const y = (mouseY - 0.5) * speed * 5;
+            
+            gear.style.transform += ` translate(${x}px, ${y}px)`;
+        }
+    });
+});
+</script>
+{% endblock %}

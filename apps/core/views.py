@@ -5,6 +5,9 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import News
 
+def test_404(request):
+    raise Http404("Тест кастомной 404")
+
 class HomeView(TemplateView):
     """Главная страница с новостями и популярными категориями"""
     template_name = 'pages/home.html'
