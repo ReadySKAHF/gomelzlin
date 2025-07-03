@@ -386,7 +386,7 @@ class CheckoutView(TemplateView):
             context['cart_items'] = cart.items.all().select_related('product')
         else:
             messages.error(self.request, 'Ваша корзина пуста')
-            return redirect('orders:cart')
+            return redirect('cart:cart')
         
         # Получаем профиль пользователя для автозаполнения
         try:
@@ -425,7 +425,7 @@ class CheckoutView(TemplateView):
             
             if not cart or not cart.items.exists():
                 messages.error(request, 'Корзина пуста')
-                return redirect('orders:cart')
+                return redirect('cart:cart')
             
             # Получаем IP-адрес клиента
             def get_client_ip():
@@ -578,42 +578,41 @@ class OrderListView(LoginRequiredMixin, TemplateView):
         
         return context
 
-
 @login_required
 @require_POST
-def cancel_order(request, order_number):
+def cancel_order(request, number):
     """Отмена заказа пользователем"""
     try:
         order = get_object_or_404(
             Order,
-            number=order_number,
+            number=number,
             user=request.user
         )
         
         if not order.can_be_cancelled:
             messages.error(request, 'Заказ нельзя отменить на текущем этапе')
-            return redirect('orders:order_detail', number=order_number)
+            return redirect('orders:order_detail', number=number)
         
         # Отменяем заказ
         old_status = order.status
-        order.status = 'cancelled'  # Используем строковое значение вместо OrderStatus.CANCELLED
+        order.status = 'cancelled'
         order.save()
         
         # Записываем в историю
         OrderStatusHistory.objects.create(
             order=order,
             old_status=old_status,
-            new_status=order.status,
-            changed_by=request.user,
+            new_status='cancelled',
             comment='Заказ отменен пользователем'
         )
         
-        messages.success(request, f'Заказ №{order.number} отменен')
-        return redirect('orders:order_detail', number=order_number)
+        messages.success(request, f'Заказ №{order.number} успешно отменен')
+        return redirect('accounts:profile')
         
     except Exception as e:
+        print(f"Ошибка отмены заказа: {e}")
         messages.error(request, 'Произошла ошибка при отмене заказа')
-        return redirect('orders:order_list')
+        return redirect('accounts:profile')
 
 # Middleware для объединения корзин при входе в систему
 class CartMergeMiddleware:

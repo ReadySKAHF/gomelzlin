@@ -1,7 +1,8 @@
 class CheckoutManager {
     constructor() {
         this.deliveryAddresses = {}; // Кэш адресов доставки
-        this.baseCartTotal = parseFloat(document.getElementById('base_cart_total')?.value || '0');
+        // Получаем сумму корзины из глобальной переменной или Django переменной
+        this.baseCartTotal = window.cartSubtotal || 0;
         
         this.initEventListeners();
         this.loadSavedAddresses();
@@ -27,7 +28,7 @@ class CheckoutManager {
             checkoutForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
         }
 
-        // Автосохранение данных в localStorage (но только для незарегистрированных пользователей)
+        // Автосохранение данных
         this.initAutoSave();
 
         // Показ дополнительных полей для организаций
@@ -37,6 +38,8 @@ class CheckoutManager {
     handleDeliveryMethodChange() {
         const deliveryMethod = document.getElementById('delivery_method').value;
         const addressSection = document.getElementById('delivery_address_section');
+        
+        console.log('Delivery method changed to:', deliveryMethod);
         
         if (deliveryMethod === 'pickup') {
             addressSection.style.display = 'none';
@@ -52,15 +55,21 @@ class CheckoutManager {
     }
 
     handleAddressSelectionChange() {
-        const savedAddressId = document.getElementById('saved_address_id').value;
+        const savedAddressId = document.getElementById('saved_address_id')?.value;
         const newAddressInput = document.getElementById('new_address_input');
         const deliveryAddressTextarea = document.getElementById('delivery_address');
+        
+        if (!savedAddressId) return;
         
         if (savedAddressId === 'new') {
             newAddressInput.style.display = 'block';
             deliveryAddressTextarea.required = true;
             deliveryAddressTextarea.value = '';
-        } else if (savedAddressId) {
+            deliveryAddressTextarea.focus();
+            
+            // Скрываем превью адреса
+            this.hideAddressPreview();
+        } else {
             newAddressInput.style.display = 'none';
             deliveryAddressTextarea.required = false;
             
@@ -86,6 +95,7 @@ class CheckoutManager {
                 padding: 1rem;
                 margin-top: 0.5rem;
                 font-size: 0.9rem;
+                color: #333;
             `;
             
             const savedAddressSelect = document.getElementById('saved_address_id');
@@ -99,6 +109,14 @@ class CheckoutManager {
             ${address.contact_phone ? ` (${address.contact_phone})` : ''}
             ${address.notes ? `<br><em>${address.notes}</em>` : ''}
         `;
+        previewElement.style.display = 'block';
+    }
+
+    hideAddressPreview() {
+        const previewElement = document.getElementById('address_preview');
+        if (previewElement) {
+            previewElement.style.display = 'none';
+        }
     }
 
     updateDeliveryCost() {
@@ -114,14 +132,20 @@ class CheckoutManager {
             case 'delivery':
                 // Бесплатная доставка для заказов свыше 500 BYN
                 deliveryCost = this.baseCartTotal >= 500 ? 0 : 10;
-                deliveryCostElement.textContent = deliveryCost === 0 ? 
-                    'Бесплатно' : `${deliveryCost.toFixed(2)} BYN`;
+                if (deliveryCost === 0) {
+                    deliveryCostElement.textContent = 'Бесплатно (сумма ≥ 500 BYN)';
+                } else {
+                    deliveryCostElement.textContent = `${deliveryCost.toFixed(2)} BYN`;
+                }
                 break;
             case 'transport_company':
                 deliveryCost = 0;
                 deliveryCostElement.textContent = 'По согласованию';
                 break;
         }
+        
+        // Обновляем глобальную переменную для совместимости
+        window.deliveryCost = deliveryCost;
         
         return deliveryCost;
     }
@@ -137,6 +161,8 @@ class CheckoutManager {
             const totalCost = this.baseCartTotal + deliveryCost;
             totalCostElement.textContent = `${totalCost.toFixed(2)} BYN`;
         }
+        
+        console.log('Total cost updated to:', totalCostElement.textContent);
     }
 
     showDeliveryEstimate() {
@@ -177,17 +203,24 @@ class CheckoutManager {
             const addressId = option.value;
             if (addressId && addressId !== 'new') {
                 // Парсим данные из текста опции
-                const text = option.textContent;
-                const [title, address] = text.split(' - ');
+                const text = option.textContent.trim();
+                const parts = text.split(' - ');
                 
-                this.deliveryAddresses[addressId] = {
-                    id: addressId,
-                    title: title,
-                    full_address: address,
-                    // Дополнительные данные можно получить через AJAX при необходимости
-                };
+                if (parts.length >= 2) {
+                    const title = parts[0];
+                    const address = parts.slice(1).join(' - '); // На случай если в адресе есть дефисы
+                    
+                    this.deliveryAddresses[addressId] = {
+                        id: addressId,
+                        title: title,
+                        full_address: address,
+                        // Дополнительные данные можно получить через AJAX при необходимости
+                    };
+                }
             }
         });
+        
+        console.log('Loaded delivery addresses:', this.deliveryAddresses);
     }
 
     setRequiredFields(fieldNames, required) {
@@ -361,9 +394,9 @@ class CheckoutManager {
         fieldsToSave.forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field) {
-                // Восстанавливаем сохраненные данные
+                // Восстанавливаем сохраненные данные только если поле пустое
                 const savedValue = localStorage.getItem(`checkout_${fieldId}`);
-                if (savedValue && !field.value) {
+                if (savedValue && !field.value.trim()) {
                     field.value = savedValue;
                 }
                 
@@ -431,19 +464,32 @@ class CheckoutManager {
     }
 }
 
+// Глобальные функции для совместимости со встроенным JavaScript в шаблоне
+window.toggleDeliveryAddress = function() {
+    if (window.checkoutManager) {
+        window.checkoutManager.handleDeliveryMethodChange();
+    }
+};
+
+window.toggleAddressInput = function() {
+    if (window.checkoutManager) {
+        window.checkoutManager.handleAddressSelectionChange();
+    }
+};
+
+window.updateTotalCost = function() {
+    if (window.checkoutManager) {
+        window.checkoutManager.updateTotalCost();
+    }
+};
+
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('checkoutForm')) {
-        window.checkoutManager = new CheckoutManager();
-        
-        // Добавляем скрытое поле с базовой суммой корзины для JavaScript
-        const cartTotal = document.querySelector('.cart-total')?.textContent?.match(/[\d\.]+/)?.[0];
-        if (cartTotal && !document.getElementById('base_cart_total')) {
-            const hiddenInput = document.createElement('input');
-            hiddenInput.type = 'hidden';
-            hiddenInput.id = 'base_cart_total';
-            hiddenInput.value = cartTotal;
-            document.getElementById('checkoutForm').appendChild(hiddenInput);
-        }
+        // Ждем, пока загрузится основной скрипт шаблона
+        setTimeout(() => {
+            window.checkoutManager = new CheckoutManager();
+            console.log('CheckoutManager initialized successfully');
+        }, 100);
     }
 });

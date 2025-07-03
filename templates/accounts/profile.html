@@ -349,13 +349,13 @@
                                 <!-- Кнопки действий -->
                                 <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
                                     <a href="{% url 'orders:order_detail' number=order.number %}" 
-                                       class="btn btn-outline btn-sm">
+                                    class="btn btn-outline btn-sm">
                                         👁️ Подробнее
                                     </a>
                                     {% if order.status == 'pending' or order.status == 'confirmed' %}
-                                    <form method="post" action="{% url 'orders:cancel_order' order_number=order.number %}" 
-                                          style="display: inline;" 
-                                          onsubmit="return confirm('Вы уверены, что хотите отменить заказ?')">
+                                    <form method="post" action="{% url 'orders:cancel_order' number=order.number %}" 
+                                        style="display: inline;" 
+                                        onsubmit="return confirm('Вы уверены, что хотите отменить заказ?')">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-outline btn-sm" 
                                                 style="color: #dc3545; border-color: #dc3545;">

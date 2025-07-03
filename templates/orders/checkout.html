@@ -1,10 +1,54 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Оформление заказа - ОАО "ГЗЛиН"{% endblock %}
 
+{% block extra_css %}
+<!-- Дополнительные стили для checkout -->
+<style>
+/* Стили для формы оформления заказа */
+fieldset {
+    background: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+
+legend {
+    padding: 0 1rem;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(203, 65, 59, 0.1);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Стили для адаптивности */
+@media (max-width: 768px) {
+    .container > div {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    fieldset {
+        margin-bottom: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container" style="padding: 3rem 0;">
-    <h1 style="color: var(--primary-red); margin-bottom: 2rem;">Оформление заказа</h1>
+    <h1>Оформление заказа</h1>
     
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 3rem; margin-top: 2rem;">
         <!-- Форма заказа -->
@@ -181,7 +225,7 @@
                     <div style="padding-top: 1rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <span>Товары:</span>
-                            <span id="subtotal_cost">0.00 BYN</span>
+                            <span id="subtotal_cost">{{ cart.total_price }} BYN</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <span>Доставка:</span>
@@ -190,7 +234,7 @@
                         <hr style="margin: 1rem 0; border: none; border-top: 2px solid var(--light-gray);">
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
                             <span>Итого:</span>
-                            <span id="total_cost">0.00 BYN</span>
+                            <span id="total_cost">{{ cart.total_price }} BYN</span>
                         </div>
                     </div>
                 </div>
@@ -208,14 +252,6 @@
         </div>
     </div>
 </div>
-
-<!-- Скрытые данные для JavaScript -->
-<script type="application/json" id="checkout-data">
-{
-    "cart_total": "{% if cart.total_price %}{{ cart.total_price|floatformat:2 }}{% else %}0.00{% endif %}",
-    "has_default_address": {% if delivery_addresses and default_address %}true{% else %}false{% endif %}
-}
-</script>
 
 <style>
 /* Стили для формы оформления заказа */
@@ -258,227 +294,57 @@ input:focus, textarea:focus, select:focus {
 </style>
 
 <script>
-// Глобальные переменные для расчетов
-let cartSubtotal = 0;
+// Глобальные переменные для совместимости
+let cartSubtotal = {{ cart.total_price|default:0 }};
 let deliveryCost = 0;
-let checkoutData = {};
 
-// Загружаем данные из JSON
-function loadCheckoutData() {
-    try {
-        const dataElement = document.getElementById('checkout-data');
-        if (dataElement) {
-            checkoutData = JSON.parse(dataElement.textContent);
-            console.log('Checkout data loaded:', checkoutData);
-        }
-    } catch (error) {
-        console.error('Error loading checkout data:', error);
-        checkoutData = { cart_total: "0.00", has_default_address: false };
-    }
-}
-
-// Функция для расчета суммы товаров из DOM
-function calculateSubtotalFromDOM() {
-    let total = 0;
-    const cartItems = document.querySelectorAll('[data-item-total]');
-    
-    console.log('Calculating subtotal from DOM, found', cartItems.length, 'items');
-    
-    cartItems.forEach(item => {
-        const itemTotal = parseFloat(item.getAttribute('data-item-total')) || 0;
-        console.log('Item total:', itemTotal);
-        total += itemTotal;
-    });
-    
-    console.log('Calculated DOM subtotal:', total);
-    return total;
-}
-
-// Функция для получения суммы товаров
+// Простые функции для совместимости (будут переопределены CheckoutManager'ом)
 function getCartSubtotal() {
-    // Пытаемся получить сумму из загруженных данных
-    const djangoTotal = parseFloat(checkoutData.cart_total) || 0;
-    console.log('Django cart.total_price:', djangoTotal);
-    
-    if (djangoTotal > 0) {
-        cartSubtotal = djangoTotal;
-        console.log('Using Django total:', cartSubtotal);
-    } else {
-        // Если Django сумма = 0, считаем из DOM
-        cartSubtotal = calculateSubtotalFromDOM();
-        console.log('Using calculated total:', cartSubtotal);
-    }
-    
-    // ВСЕГДА обновляем отображение подытога
-    const subtotalElement = document.getElementById('subtotal_cost');
-    if (subtotalElement) {
-        subtotalElement.textContent = cartSubtotal.toFixed(2) + ' BYN';
-    }
-    
     return cartSubtotal;
 }
 
-// Функция для переключения отображения адреса доставки
 function toggleDeliveryAddress() {
-    const deliveryMethod = document.getElementById('delivery_method').value;
-    const addressSection = document.getElementById('delivery_address_section');
-    const deliveryCostElement = document.getElementById('delivery_cost');
-    
-    console.log('Delivery method changed to:', deliveryMethod);
-    console.log('Delivery cost element found:', deliveryCostElement);
-    
-    if (deliveryMethod === 'pickup') {
-        if (addressSection) {
-            addressSection.style.display = 'none';
-        }
-        deliveryCost = 0;
-        if (deliveryCostElement) {
-            deliveryCostElement.textContent = '0.00 BYN';
-            console.log('Set delivery cost element to: 0.00 BYN');
-        }
-    } else {
-        if (addressSection) {
-            addressSection.style.display = 'block';
-        }
-        
-        if (deliveryMethod === 'delivery') {
-            // Получаем актуальную сумму товаров для расчета доставки
-            const currentSubtotal = getCartSubtotal();
-            console.log('Checking delivery cost for subtotal:', currentSubtotal);
-            
-            // Бесплатная доставка для заказов свыше 500 BYN
-            if (currentSubtotal >= 500) {
-                deliveryCost = 0;
-                if (deliveryCostElement) {
-                    deliveryCostElement.textContent = 'Бесплатно (сумма ≥ 500 BYN)';
-                    console.log('Set delivery cost element to: Бесплатно (сумма ≥ 500 BYN)');
-                    console.log('Element content after setting:', deliveryCostElement.textContent);
-                }
-                console.log('Free delivery applied (order >= 500 BYN)');
-            } else {
-                deliveryCost = 10;
-                if (deliveryCostElement) {
-                    deliveryCostElement.textContent = '10.00 BYN';
-                    console.log('Set delivery cost element to: 10.00 BYN');
-                }
-                console.log('Paid delivery applied (order < 500 BYN)');
-            }
-        } else if (deliveryMethod === 'transport_company') {
-            deliveryCost = 0;
-            if (deliveryCostElement) {
-                deliveryCostElement.textContent = 'По согласованию';
-                console.log('Set delivery cost element to: По согласованию');
-            }
-            console.log('Transport company delivery selected');
-        }
-    }
-    
-    console.log('Global deliveryCost variable set to:', deliveryCost);
-    updateTotalCost();
+    console.log('Basic toggleDeliveryAddress called - CheckoutManager will override this');
 }
 
-// Функция для переключения между сохраненным и новым адресом
 function toggleAddressInput() {
-    const savedAddressId = document.getElementById('saved_address_id');
-    const newAddressInput = document.getElementById('new_address_input');
-    const deliveryAddressTextarea = document.getElementById('delivery_address');
-    
-    if (!savedAddressId) return;
-    
-    if (savedAddressId.value === 'new') {
-        if (newAddressInput) {
-            newAddressInput.style.display = 'block';
-        }
-        if (deliveryAddressTextarea) {
-            deliveryAddressTextarea.required = true;
-        }
-    } else {
-        if (newAddressInput) {
-            newAddressInput.style.display = 'none';
-        }
-        if (deliveryAddressTextarea) {
-            deliveryAddressTextarea.required = false;
-            deliveryAddressTextarea.value = '';
-        }
-    }
+    console.log('Basic toggleAddressInput called - CheckoutManager will override this');
 }
 
-// Функция для обновления общей стоимости
 function updateTotalCost() {
-    // ВСЕГДА получаем свежее значение суммы товаров
-    const currentSubtotal = getCartSubtotal();
-    const deliveryMethod = document.getElementById('delivery_method').value;
-    const totalCostElement = document.getElementById('total_cost');
-    
-    console.log('Updating total cost. Subtotal:', currentSubtotal, 'Delivery cost:', deliveryCost);
-    
-    if (!totalCostElement) {
-        console.error('Total cost element not found');
-        return;
-    }
-    
-    let totalCost = currentSubtotal + deliveryCost;
-    
-    if (deliveryMethod === 'transport_company') {
-        const totalText = currentSubtotal.toFixed(2) + ' BYN + доставка';
-        totalCostElement.textContent = totalText;
-    } else {
-        const totalText = totalCost.toFixed(2) + ' BYN';
-        totalCostElement.textContent = totalText;
-    }
-    
-    console.log('Total cost updated to:', totalCostElement.textContent);
+    console.log('Basic updateTotalCost called - CheckoutManager will override this');
 }
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded, initializing checkout...');
-    
-    // Загружаем данные
-    loadCheckoutData();
-    
-    // Получаем и устанавливаем начальную сумму
-    const initialSubtotal = getCartSubtotal();
-    console.log('Initial subtotal:', initialSubtotal);
+    console.log('Page loaded, cart subtotal:', cartSubtotal);
     
     // Если есть сохраненные адреса и есть адрес по умолчанию, скрываем поле ввода нового адреса
-    if (checkoutData.has_default_address) {
-        const newAddressInput = document.getElementById('new_address_input');
-        if (newAddressInput) {
-            newAddressInput.style.display = 'none';
-        }
+    {% if delivery_addresses and default_address %}
+    const newAddressInput = document.getElementById('new_address_input');
+    if (newAddressInput) {
+        newAddressInput.style.display = 'none';
     }
+    {% endif %}
     
-    // Устанавливаем начальную стоимость доставки
-    toggleDeliveryAddress();
-    
-    console.log('Checkout initialization complete');
-});
-
-// Валидация формы перед отправкой
-document.addEventListener('DOMContentLoaded', function() {
-    const checkoutForm = document.getElementById('checkoutForm');
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', function(e) {
-            const deliveryMethod = document.getElementById('delivery_method').value;
-            
-            if (deliveryMethod !== 'pickup') {
-                const savedAddressId = document.getElementById('saved_address_id');
-                const deliveryAddress = document.getElementById('delivery_address');
-                
-                // Проверяем, что выбран адрес или введен новый
-                if (savedAddressId && savedAddressId.value === 'new') {
-                    if (!deliveryAddress.value.trim()) {
-                        e.preventDefault();
-                        alert('Пожалуйста, укажите адрес доставки');
-                        return false;
-                    }
-                }
+    // Базовая валидация формы (будет дополнена CheckoutManager'ом)
+    const form = document.getElementById('checkoutForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Проверяем, что итоговая сумма больше 0
+            const finalSubtotal = getCartSubtotal();
+            if (finalSubtotal <= 0) {
+                e.preventDefault();
+                alert('Ошибка: сумма заказа равна нулю. Пожалуйста, обновите страницу или обратитесь в поддержку.');
+                return;
             }
-            
-            console.log('Form validation passed, submitting order...');
         });
     }
+    
+    console.log('Basic checkout initialization complete');
 });
 </script>
+
+<!-- Подключаем CheckoutManager -->
+<script src="{% static 'js/checkout_enhancements.js' %}"></script>
 {% endblock %}
