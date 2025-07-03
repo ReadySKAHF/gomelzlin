@@ -84,11 +84,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     list_display = ('company_name', 'phone', 'email', 'updated_at')
     
     def has_add_permission(self, request):
-        # Разрешаем создавать только если нет записей
         return not SiteSettings.objects.exists()
     
     def has_delete_permission(self, request, obj=None):
-        # Запрещаем удаление настроек
         return False
 
 @admin.register(ContactMessage)

@@ -11,7 +11,6 @@ import json
 from .models import User, UserProfile, CompanyProfile, DeliveryAddress
 from apps.orders.models import Wishlist, WishlistItem
 
-
 class LoginView(TemplateView):
     template_name = 'accounts/login.html'
     
@@ -29,7 +28,7 @@ class LoginView(TemplateView):
             if user:
                 login(request, user)
                 messages.success(request, 'Добро пожаловать!')
-                return redirect('accounts:profile')  # Перенаправляем в личный кабинет
+                return redirect('accounts:profile')
             else:
                 messages.error(request, 'Неверный email или пароль')
         else:
@@ -47,7 +46,6 @@ class RegisterView(TemplateView):
         return context
     
     def post(self, request):
-        # Получаем данные из формы
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
@@ -55,20 +53,17 @@ class RegisterView(TemplateView):
         organization = request.POST.get('organization')
         password = request.POST.get('password')
         
-        # Проверяем обязательные поля
         if not all([first_name, last_name, email, password]):
             messages.error(request, 'Заполните все обязательные поля')
             return render(request, self.template_name, self.get_context_data())
         
-        # Проверяем, не существует ли уже пользователь с таким email
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Пользователь с таким email уже существует')
             return render(request, self.template_name, self.get_context_data())
         
         try:
-            # Создаем пользователя
             user = User.objects.create_user(
-                username=email,  # Используем email как username
+                username=email,
                 email=email,
                 password=password,
                 first_name=first_name,
@@ -77,28 +72,25 @@ class RegisterView(TemplateView):
                 user_type='company' if organization else 'individual'
             )
             
-            # Создаем профиль пользователя
             profile = UserProfile.objects.create(
                 user=user,
-                city='',  # Пока оставляем пустым, пользователь заполнит позже
+                city='',
                 address='',
             )
             
-            # Если указана организация, создаем профиль компании
             if organization:
                 company_profile = CompanyProfile.objects.create(
                     user=user,
                     company_name=organization,
-                    legal_address='',  # Пользователь заполнит позже
-                    unp=''  # Пользователь заполнит позже
+                    legal_address='', 
+                    unp=''  
                 )
             
-            # Автоматически входим в систему после регистрации
             user = authenticate(request, username=email, password=password)
             if user:
                 login(request, user)
                 messages.success(request, 'Регистрация прошла успешно! Добро пожаловать!')
-                return redirect('accounts:profile')  # Перенаправляем в личный кабинет
+                return redirect('accounts:profile')  
             else:
                 messages.success(request, 'Регистрация прошла успешно! Теперь вы можете войти в систему.')
                 return redirect('accounts:login')
@@ -116,11 +108,6 @@ class ProfileView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Личный кабинет'
         
-        # Отладочная информация
-        print(f"DEBUG: User ID = {self.request.user.id}")
-        print(f"DEBUG: User = {self.request.user}")
-        
-        # Получаем или создаем профиль пользователя
         profile, created = UserProfile.objects.get_or_create(
             user=self.request.user,
             defaults={
@@ -131,7 +118,6 @@ class ProfileView(TemplateView):
         )
         context['profile'] = profile
         
-        # Если пользователь - юридическое лицо, получаем профиль компании
         if self.request.user.is_company:
             try:
                 context['company_profile'] = self.request.user.company_profile
@@ -144,26 +130,23 @@ class ProfileView(TemplateView):
                 )
                 context['company_profile'] = self.request.user.company_profile
         
-        # Добавляем адреса доставки
         context['delivery_addresses'] = DeliveryAddress.objects.filter(
             user=self.request.user,
             is_active=True
         ).order_by('-is_default', '-created_at')
         
-        # Добавляем информацию об избранных товарах
         try:
             wishlist = Wishlist.objects.get(user=self.request.user)
             context['wishlist_items'] = WishlistItem.objects.filter(
                 wishlist=wishlist
-            ).select_related('product').order_by('-added_at')[:6]  # Показываем последние 6
+            ).select_related('product').order_by('-added_at')[:6] 
             context['wishlist_count'] = WishlistItem.objects.filter(wishlist=wishlist).count()
         except Wishlist.DoesNotExist:
             context['wishlist_items'] = []
             context['wishlist_count'] = 0
         
-        # Добавляем заказы пользователя - ИСПРАВЛЕННАЯ ВЕРСИЯ
         try:
-            # Проверяем, какая модель Order доступна
+
             try:
                 from apps.orders.models import Order
                 print("DEBUG: Order model imported successfully")
@@ -173,20 +156,12 @@ class ProfileView(TemplateView):
                 context['orders_count'] = 0
                 return context
             
-            # Проверяем количество заказов
             total_orders = Order.objects.filter(user=self.request.user).count()
             print(f"DEBUG: Total orders for user: {total_orders}")
             
-            # Получаем заказы
             recent_orders = Order.objects.filter(
                 user=self.request.user
             ).prefetch_related('items__product').order_by('-created_at')[:10]
-            
-            print(f"DEBUG: Recent orders count: {recent_orders.count()}")
-            
-            # Отладка каждого заказа
-            for order in recent_orders:
-                print(f"DEBUG: Order {order.number}, status: {order.status}, total: {order.total_amount}")
             
             context['recent_orders'] = recent_orders
             context['orders_count'] = total_orders
@@ -200,19 +175,13 @@ class ProfileView(TemplateView):
             context['recent_orders'] = []
             context['orders_count'] = 0
         
-        # Отладочная информация о контексте
-        print(f"DEBUG: Context orders_count = {context.get('orders_count', 'NOT SET')}")
-        print(f"DEBUG: Context recent_orders length = {len(context.get('recent_orders', []))}")
-        
         return context
-
 
 @login_required
 @require_POST
 def add_delivery_address(request):
     """AJAX добавление адреса доставки"""
     try:
-        # Получаем данные из формы
         title = request.POST.get('title', '').strip()
         city = request.POST.get('city', '').strip()
         address = request.POST.get('address', '').strip()
@@ -222,14 +191,12 @@ def add_delivery_address(request):
         notes = request.POST.get('notes', '').strip()
         is_default = request.POST.get('is_default') == 'on'
         
-        # Валидация обязательных полей
         if not all([title, city, address]):
             return JsonResponse({
                 'success': False,
                 'message': 'Заполните обязательные поля: название, город, адрес'
             })
         
-        # Создаем адрес
         delivery_address = DeliveryAddress.objects.create(
             user=request.user,
             title=title,
@@ -271,7 +238,6 @@ def update_delivery_address(request, address_id):
             user=request.user
         )
         
-        # Обновляем данные
         address.title = request.POST.get('title', address.title).strip()
         address.city = request.POST.get('city', address.city).strip()
         address.address = request.POST.get('address', address.address).strip()
@@ -337,10 +303,8 @@ def set_default_address(request, address_id):
             user=request.user
         )
         
-        # Убираем флаг по умолчанию у всех адресов
         DeliveryAddress.objects.filter(user=request.user).update(is_default=False)
         
-        # Устанавливаем новый адрес по умолчанию
         address.is_default = True
         address.save()
         

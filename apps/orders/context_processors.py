@@ -1,4 +1,3 @@
-# apps/orders/context_processors.py
 def cart_context(request):
     """Контекстный процессор для отображения корзины в шаблонах"""
     cart_count = 0

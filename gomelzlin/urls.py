@@ -1,4 +1,3 @@
-# gomelzlin/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -38,12 +37,10 @@ urlpatterns = [
     path('admin-panel/', include('apps.admin_panel.urls')),
 ]
 
-# Add media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-# Настройка заголовков админки
 admin.site.site_header = 'ОАО "ГЗЛиН" - Административная панель'
 admin.site.site_title = 'ГЗЛиН Админ'
 admin.site.index_title = 'Управление сайтом'

@@ -25,7 +25,6 @@ class CompanyInfo(AbstractBaseModel, SeoModel):
         default='ГЗЛиН'
     )
     
-    # История
     founded_year = models.PositiveIntegerField(
         _('Год основания'),
         default=1965
@@ -35,7 +34,6 @@ class CompanyInfo(AbstractBaseModel, SeoModel):
         blank=True
     )
     
-    # Миссия и ценности
     mission = models.TextField(
         _('Миссия'),
         blank=True
@@ -50,7 +48,6 @@ class CompanyInfo(AbstractBaseModel, SeoModel):
         help_text=_('Каждая ценность с новой строки')
     )
     
-    # Описание деятельности
     description = models.TextField(
         _('Описание деятельности'),
         blank=True
@@ -61,7 +58,6 @@ class CompanyInfo(AbstractBaseModel, SeoModel):
         help_text=_('Каждый вид деятельности с новой строки')
     )
     
-    # Контакты
     phone = models.CharField(
         _('Телефон'),
         max_length=20,
@@ -81,7 +77,6 @@ class CompanyInfo(AbstractBaseModel, SeoModel):
         blank=True
     )
     
-    # Адрес
     legal_address = models.TextField(
         _('Юридический адрес'),
         default='246000, г. Гомель, ул. Промышленная, 15'
@@ -91,20 +86,17 @@ class CompanyInfo(AbstractBaseModel, SeoModel):
         blank=True
     )
     
-    # Режим работы
     working_hours = models.TextField(
         _('Режим работы'),
         default='Пн-Пт: 8:00-17:00\nСб-Вс: выходной'
     )
     
-    # Социальные сети
     facebook_url = models.URLField(_('Facebook'), blank=True)
     instagram_url = models.URLField(_('Instagram'), blank=True)
     youtube_url = models.URLField(_('YouTube'), blank=True)
     linkedin_url = models.URLField(_('LinkedIn'), blank=True)
     vk_url = models.URLField(_('ВКонтакте'), blank=True)
     
-    # Регистрационные данные
     unp = models.CharField(
         _('УНП'),
         max_length=9,
@@ -130,7 +122,6 @@ class CompanyInfo(AbstractBaseModel, SeoModel):
         return self.short_name
     
     def save(self, *args, **kwargs):
-        # Обеспечиваем единственность записи
         if not self.pk and CompanyInfo.objects.exists():
             raise ValueError('Может существовать только одна запись информации о компании')
         super().save(*args, **kwargs)
@@ -154,7 +145,6 @@ class Leader(AbstractBaseModel):
         ('specialist', _('Специалист')),
     ]
     
-    # Личная информация
     first_name = models.CharField(
         _('Имя'),
         max_length=50
@@ -169,7 +159,6 @@ class Leader(AbstractBaseModel):
         blank=True
     )
     
-    # Должность
     position = models.CharField(
         _('Должность'),
         max_length=100
@@ -186,7 +175,6 @@ class Leader(AbstractBaseModel):
         blank=True
     )
     
-    # Контакты
     email = models.EmailField(
         _('Email'),
         blank=True
@@ -197,13 +185,11 @@ class Leader(AbstractBaseModel):
         blank=True
     )
     
-    # Дополнительная информация
     bio = models.TextField(
         _('Биография'),
         blank=True
     )
     
-    # Фото
     photo = models.ImageField(
         _('Фотография'),
         upload_to='company/leaders/',
@@ -211,7 +197,6 @@ class Leader(AbstractBaseModel):
         null=True
     )
     
-    # Настройки отображения
     is_public = models.BooleanField(
         _('Показывать на сайте'),
         default=True
@@ -246,7 +231,6 @@ class Partner(AbstractBaseModel):
         ('technology', _('Технологический партнер')),
     ]
     
-    # Основная информация
     name = models.CharField(
         _('Название организации'),
         max_length=255
@@ -262,7 +246,6 @@ class Partner(AbstractBaseModel):
         help_text=_('Краткое описание партнерства или деятельности компании')
     )
     
-    # Тип партнерства
     partner_type = models.CharField(
         _('Тип партнерства'),
         max_length=20,
@@ -270,7 +253,6 @@ class Partner(AbstractBaseModel):
         default='strategic'
     )
     
-    # Контактная информация
     website = models.URLField(
         _('Веб-сайт'),
         blank=True
@@ -285,7 +267,6 @@ class Partner(AbstractBaseModel):
         blank=True
     )
     
-    # Логотип
     logo = models.ImageField(
         _('Логотип'),
         upload_to='company/partners/',
@@ -294,7 +275,6 @@ class Partner(AbstractBaseModel):
         help_text=_('Рекомендуемый размер: 300x200 пикселей')
     )
     
-    # Адрес
     country = models.CharField(
         _('Страна'),
         max_length=100,
@@ -310,7 +290,6 @@ class Partner(AbstractBaseModel):
         blank=True
     )
     
-    # Информация о сотрудничестве
     partnership_start_date = models.DateField(
         _('Дата начала сотрудничества'),
         blank=True,
@@ -322,7 +301,6 @@ class Partner(AbstractBaseModel):
         help_text=_('Описание основных направлений сотрудничества')
     )
     
-    # Настройки отображения
     is_featured = models.BooleanField(
         _('Рекомендуемый партнер'),
         default=False,

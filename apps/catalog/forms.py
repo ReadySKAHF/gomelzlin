@@ -1,4 +1,3 @@
-# apps/catalog/forms.py
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from .models import Category, Product
@@ -30,7 +29,7 @@ class ProductSearchForm(forms.Form):
     
     subcategory = forms.ModelChoiceField(
         label=_('Подкатегория'),
-        queryset=Category.objects.none(),  # Будет заполнено через JavaScript
+        queryset=Category.objects.none(),  
         required=False,
         empty_label=_('Все подкатегории'),
         widget=forms.Select(attrs={
@@ -100,7 +99,6 @@ class ProductSearchForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Если выбрана категория, загружаем подкатегории
         if self.data.get('category'):
             try:
                 category_id = int(self.data.get('category'))

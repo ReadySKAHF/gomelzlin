@@ -98,7 +98,6 @@ class PartnerAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related()
     
-    # Предпросмотр логотипа в админке
     def logo_preview(self, obj):
         if obj.logo:
             return f'<img src="{obj.logo.url}" style="max-height: 50px; max-width: 100px;">'

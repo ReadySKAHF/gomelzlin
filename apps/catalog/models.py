@@ -35,7 +35,6 @@ class Category(AbstractBaseModel, SeoModel):
     )
     description = models.TextField(_('Описание'), blank=True)
     
-    # Изображение категории
     image = models.ImageField(
         _('Изображение'),
         upload_to='categories/',
@@ -44,7 +43,6 @@ class Category(AbstractBaseModel, SeoModel):
         help_text=_('Изображение категории для каталога')
     )
     
-    # Иерархия категорий
     parent = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
@@ -53,8 +51,7 @@ class Category(AbstractBaseModel, SeoModel):
         blank=True,
         null=True
     )
-    
-    # Настройки отображения
+
     sort_order = models.PositiveIntegerField(
         _('Порядок сортировки'),
         default=0,
@@ -67,7 +64,6 @@ class Category(AbstractBaseModel, SeoModel):
         help_text=_('Отображать на главной странице')
     )
     
-    # Менеджер
     objects = CategoryManager()
     
     class Meta:
@@ -86,7 +82,6 @@ class Category(AbstractBaseModel, SeoModel):
         return self.name
     
     def save(self, *args, **kwargs):
-        # Автогенерация slug, если не задан
         if not self.slug:
             base_slug = slugify(self.name) if self.name else 'category'
             slug = base_slug
@@ -117,7 +112,6 @@ class Category(AbstractBaseModel, SeoModel):
         """Возвращает количество товаров в категории"""
         count = self.products.filter(is_active=True, is_published=True).count()
         
-        # Добавляем товары из подкатегорий
         for child in self.children.filter(is_active=True):
             count += child.products.filter(is_active=True, is_published=True).count()
         
@@ -125,14 +119,11 @@ class Category(AbstractBaseModel, SeoModel):
     
     def get_all_products(self):
         """Возвращает все товары категории включая подкатегории"""
-        # Если есть подкатегории, возвращаем товары из подкатегорий
         if self.children.filter(is_active=True).exists():
             product_ids = []
-            # Товары в самой категории
             product_ids.extend(
                 self.products.filter(is_active=True, is_published=True).values_list('id', flat=True)
             )
-            # Товары из подкатегорий
             for child in self.children.filter(is_active=True):
                 product_ids.extend(
                     child.products.filter(is_active=True, is_published=True).values_list('id', flat=True)
@@ -140,7 +131,6 @@ class Category(AbstractBaseModel, SeoModel):
             from .models import Product
             return Product.objects.filter(id__in=product_ids)
         else:
-            # Если подкатегорий нет, возвращаем товары самой категории
             return self.products.filter(is_active=True, is_published=True)
     
     def get_breadcrumbs(self):
@@ -209,7 +199,6 @@ class Product(AbstractBaseModel, SeoModel):
         ('archived', _('Архивный')),
     ]
     
-    # Основная информация
     name = models.CharField(_('Название'), max_length=255)
     slug = models.SlugField(_('URL'), max_length=255, unique=True)
     article = models.CharField(_('Артикул'), max_length=50, unique=True)
@@ -220,7 +209,6 @@ class Product(AbstractBaseModel, SeoModel):
         verbose_name=_('Категория')
     )
     
-    # Описание
     short_description = models.TextField(
         _('Краткое описание'),
         max_length=500,
@@ -229,7 +217,6 @@ class Product(AbstractBaseModel, SeoModel):
     description = models.TextField(_('Подробное описание'), blank=True)
     specifications = models.TextField(_('Технические характеристики'), blank=True)
     
-    # Цена и наличие
     price = models.DecimalField(
         _('Цена'),
         max_digits=10,
@@ -244,7 +231,6 @@ class Product(AbstractBaseModel, SeoModel):
         null=True
     )
     
-    # Склад
     stock_quantity = models.PositiveIntegerField(
         _('Количество на складе'),
         default=0
@@ -260,7 +246,6 @@ class Product(AbstractBaseModel, SeoModel):
         default='pcs'
     )
     
-    # Характеристики товара
     weight = models.DecimalField(
         _('Вес (кг)'),
         max_digits=8,
@@ -285,7 +270,6 @@ class Product(AbstractBaseModel, SeoModel):
         blank=True
     )
     
-    # Статус и настройки
     status = models.CharField(
         _('Статус'),
         max_length=20,
@@ -309,7 +293,6 @@ class Product(AbstractBaseModel, SeoModel):
         default=False
     )
     
-    # Метрики
     views_count = models.PositiveIntegerField(
         _('Количество просмотров'),
         default=0
@@ -319,7 +302,6 @@ class Product(AbstractBaseModel, SeoModel):
         default=0
     )
     
-    # Изображение (опционально)
     image = models.ImageField(
         _('Изображение'),
         upload_to='products/',
@@ -327,7 +309,6 @@ class Product(AbstractBaseModel, SeoModel):
         null=True
     )
     
-    # Даты
     published_at = models.DateTimeField(
         _('Дата публикации'),
         blank=True,
@@ -352,7 +333,6 @@ class Product(AbstractBaseModel, SeoModel):
         return f'{self.name} ({self.article})'
     
     def save(self, *args, **kwargs):
-        # Автогенерация slug, если не задан
         if not self.slug:
             base_slug = slugify(self.name) if self.name else 'product'
             slug = base_slug
@@ -364,9 +344,7 @@ class Product(AbstractBaseModel, SeoModel):
             
             self.slug = slug
         
-        # Автогенерация артикула, если не задан
         if not self.article:
-            # Генерируем артикул на основе категории и ID
             category_prefix = self.category.name[:3].upper() if self.category else 'PRD'
             self.article = f"{category_prefix}-{timezone.now().strftime('%Y%m%d')}-{self.pk or 1}"
         

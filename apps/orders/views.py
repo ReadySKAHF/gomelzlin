@@ -15,7 +15,6 @@ import json
 import logging
 from decimal import Decimal
 
-# Импортируем модели аккаунтов
 from apps.accounts.models import UserProfile, CompanyProfile, DeliveryAddress
 
 from apps.catalog.models import Product
@@ -26,7 +25,6 @@ from .models import (
 
 logger = logging.getLogger(__name__)
 
-# Попытаемся импортировать Product, если он существует
 try:
     from apps.catalog.models import Product
 except ImportError:
@@ -81,7 +79,6 @@ def add_to_cart(request):
                 'message': 'Количество должно быть больше 0'
             })
         
-        # Получаем товар
         try:
             product = Product.objects.get(
                 id=product_id,
@@ -95,7 +92,6 @@ def add_to_cart(request):
                 'message': 'Товар не найден или недоступен'
             })
         
-        # Получаем или создаем корзину
         cart = get_cart_for_request(request)
         
         if not cart:
@@ -105,7 +101,6 @@ def add_to_cart(request):
                 'message': 'Не удалось создать корзину'
             })
         
-        # Добавляем товар в корзину
         try:
             cart_item = cart.add_product(product, quantity)
             
@@ -146,7 +141,7 @@ def update_cart_item(request):
 
     try:
         item_id = request.POST.get('item_id')
-        change = request.POST.get('change')  # 'increase' или 'decrease'
+        change = request.POST.get('change') 
         
         if not item_id or not change:
             return JsonResponse({
@@ -154,10 +149,8 @@ def update_cart_item(request):
                 'message': 'Неверные параметры'
             })
         
-        # Получаем корзину
         cart = get_cart_for_request(request)
         
-        # Получаем элемент корзины
         try:
             cart_item = cart.items.get(id=item_id)
         except CartItem.DoesNotExist:
@@ -166,7 +159,6 @@ def update_cart_item(request):
                 'message': 'Товар не найден в корзине'
             })
         
-        # Обновляем количество
         if change == 'increase':
             cart_item.increase_quantity()
             
@@ -184,7 +176,6 @@ def update_cart_item(request):
             updated_item = cart_item.decrease_quantity()
             
             if updated_item is None:
-                # Товар был удален
                 return JsonResponse({
                     'success': True,
                     'message': 'Товар удален из корзины',
@@ -233,10 +224,8 @@ def update_cart_quantity(request):
                 'message': 'Количество не может быть отрицательным'
             })
         
-        # Получаем корзину
         cart = get_cart_for_request(request)
         
-        # Получаем элемент корзины
         try:
             cart_item = cart.items.get(id=item_id)
         except CartItem.DoesNotExist:
@@ -245,7 +234,6 @@ def update_cart_quantity(request):
                 'message': 'Товар не найден в корзине'
             })
         
-        # Обновляем количество
         if quantity == 0:
             cart_item.delete()
             return JsonResponse({
@@ -292,10 +280,8 @@ def remove_from_cart(request):
                 'message': 'Не указан товар'
             })
         
-        # Получаем корзину
         cart = get_cart_for_request(request)
         
-        # Удаляем элемент корзины
         try:
             cart_item = cart.items.get(id=item_id)
             product_name = cart_item.product.name
@@ -351,10 +337,8 @@ def get_cart_count(request):
 def clear_cart(request):
     """AJAX очистка корзины"""
     try:
-        # Получаем корзину
         cart = get_cart_for_request(request)
         
-        # Очищаем корзину
         cart.clear()
         
         return JsonResponse({
@@ -378,8 +362,7 @@ class CheckoutView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Оформление заказа'
-        
-        # Получаем корзину для расчета итоговой суммы
+
         cart = get_or_create_cart(user=self.request.user)
         if cart and cart.items.exists():
             context['cart'] = cart
@@ -387,28 +370,24 @@ class CheckoutView(TemplateView):
         else:
             messages.error(self.request, 'Ваша корзина пуста')
             return redirect('cart:cart')
-        
-        # Получаем профиль пользователя для автозаполнения
+
         try:
             profile = self.request.user.profile
             context['profile'] = profile
         except UserProfile.DoesNotExist:
             context['profile'] = None
-        
-        # Если пользователь - юридическое лицо, получаем профиль компании
+
         if self.request.user.is_company:
             try:
                 context['company_profile'] = self.request.user.company_profile
             except CompanyProfile.DoesNotExist:
                 context['company_profile'] = None
-        
-        # Получаем сохраненные адреса доставки
+
         context['delivery_addresses'] = DeliveryAddress.objects.filter(
             user=self.request.user,
             is_active=True
         ).order_by('-is_default', '-created_at')
-        
-        # Получаем адрес по умолчанию
+
         default_address = DeliveryAddress.objects.filter(
             user=self.request.user,
             is_default=True,
@@ -426,8 +405,7 @@ class CheckoutView(TemplateView):
             if not cart or not cart.items.exists():
                 messages.error(request, 'Корзина пуста')
                 return redirect('cart:cart')
-            
-            # Получаем IP-адрес клиента
+
             def get_client_ip():
                 x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
                 if x_forwarded_for:
@@ -435,16 +413,13 @@ class CheckoutView(TemplateView):
                 else:
                     ip = request.META.get('REMOTE_ADDR')
                 return ip
-            
-            # Получаем адрес доставки
+
             delivery_address_text = ''
             delivery_method = request.POST.get('delivery_method', 'pickup')
             
             if delivery_method != 'pickup':
-                # Проверяем, выбран ли сохраненный адрес или введен новый
                 saved_address_id = request.POST.get('saved_address_id')
                 if saved_address_id and saved_address_id != 'new':
-                    # Используем сохраненный адрес
                     try:
                         saved_address = DeliveryAddress.objects.get(
                             id=saved_address_id,
@@ -462,44 +437,35 @@ class CheckoutView(TemplateView):
                         messages.error(request, 'Выбранный адрес не найден')
                         return redirect('orders:checkout')
                 else:
-                    # Используем новый адрес
                     delivery_address_text = request.POST.get('delivery_address', '').strip()
                     if not delivery_address_text:
                         messages.error(request, 'Укажите адрес доставки')
                         return redirect('orders:checkout')
             
-            # Подготавливаем данные заказа с правильными значениями
             order_data = {
                 'user': request.user,
                 'session_key': request.session.session_key or '',
                 
-                # Контактная информация (автозаполнение из профиля)
                 'customer_name': request.POST.get('customer_name', '').strip() or request.user.get_full_name(),
                 'customer_email': request.POST.get('customer_email', request.user.email).strip(),
                 'customer_phone': request.POST.get('customer_phone', '').strip() or request.user.phone,
                 
-                # Информация о компании (автозаполнение из профиля компании)
                 'company_name': request.POST.get('company_name', '').strip(),
                 'company_unp': request.POST.get('company_unp', '').strip(),
                 'company_address': request.POST.get('company_address', '').strip(),
                 
-                # Доставка
                 'delivery_method': delivery_method,
                 'delivery_address': delivery_address_text,
-                'delivery_cost': Decimal('0.00'),  # Будет рассчитано позже
+                'delivery_cost': Decimal('0.00'), 
                 
-                # Оплата
                 'payment_method': request.POST.get('payment_method', 'cash'),
                 
-                # Дополнительная информация
                 'notes': request.POST.get('notes', '').strip(),
                 
-                # Метаинформация
                 'ip_address': get_client_ip(),
-                'user_agent': request.META.get('HTTP_USER_AGENT', '')[:500],  # Ограничиваем длину
+                'user_agent': request.META.get('HTTP_USER_AGENT', '')[:500],  
             }
             
-            # Автозаполнение данных компании из профиля
             if request.user.is_company:
                 try:
                     company_profile = request.user.company_profile
@@ -510,9 +476,8 @@ class CheckoutView(TemplateView):
                     if not order_data['company_address'] and company_profile.legal_address:
                         order_data['company_address'] = company_profile.legal_address
                 except:
-                    pass  # Игнорируем ошибки, если профиль компании не найден
+                    pass  
             
-            # Валидация обязательных полей
             required_fields = ['customer_name', 'customer_email', 'customer_phone']
             for field in required_fields:
                 if not order_data.get(field):
@@ -523,15 +488,14 @@ class CheckoutView(TemplateView):
                     }
                     messages.error(request, f'Поле "{field_names[field]}" обязательно для заполнения')
                     return redirect('orders:checkout')
-            
-            # Создаем заказ
+
             order = create_order_from_cart(cart, order_data)
             
             messages.success(request, f'Заказ №{order.number} успешно создан! Наш менеджер свяжется с вами в ближайшее время.')
             return redirect('orders:order_detail', number=order.number)
                 
         except Exception as e:
-            print(f"Ошибка создания заказа: {e}")  # Для отладки
+            print(f"Ошибка создания заказа: {e}") 
             messages.error(request, 'Произошла ошибка при создании заказа. Попробуйте еще раз.')
             return redirect('orders:checkout')
 
@@ -593,12 +557,10 @@ def cancel_order(request, number):
             messages.error(request, 'Заказ нельзя отменить на текущем этапе')
             return redirect('orders:order_detail', number=number)
         
-        # Отменяем заказ
         old_status = order.status
         order.status = 'cancelled'
         order.save()
         
-        # Записываем в историю
         OrderStatusHistory.objects.create(
             order=order,
             old_status=old_status,
@@ -614,7 +576,6 @@ def cancel_order(request, number):
         messages.error(request, 'Произошла ошибка при отмене заказа')
         return redirect('accounts:profile')
 
-# Middleware для объединения корзин при входе в систему
 class CartMergeMiddleware:
     """Middleware для объединения корзин при входе пользователя"""
     
@@ -623,8 +584,7 @@ class CartMergeMiddleware:
     
     def __call__(self, request):
         response = self.get_response(request)
-        
-        # Проверяем, если пользователь только что вошел в систему
+
         if (hasattr(request, 'user') and 
             request.user.is_authenticated and 
             request.session.get('just_logged_in')):
@@ -632,23 +592,17 @@ class CartMergeMiddleware:
             session_key = request.session.session_key
             if session_key:
                 try:
-                    # Получаем сессионную корзину
                     session_cart = Cart.objects.get(session_key=session_key)
                     user_cart = get_or_create_cart(user=request.user)
                     
-                    # Объединяем корзины
                     merge_carts(session_cart, user_cart)
                     
                 except Cart.DoesNotExist:
                     pass
-            
-            # Удаляем флаг из сессии
+
             del request.session['just_logged_in']
         
         return response
-
-
-# Дополнительные вспомогательные представления
 
 def cart_preview_ajax(request):
     """AJAX получение превью корзины для отображения в хедере"""
@@ -665,14 +619,14 @@ def cart_preview_ajax(request):
             })
         
         items_data = []
-        for item in cart.items.all()[:5]:  # Показываем только первые 5 товаров
+        for item in cart.items.all()[:5]:  
             items_data.append({
                 'id': item.id,
                 'product_name': item.product.name,
                 'quantity': item.quantity,
                 'unit_price': str(item.product.price),
                 'total_price': str(item.get_total_price()),
-                'product_url': '#'  # Здесь можно добавить URL товара
+                'product_url': '#' 
             })
         
         return JsonResponse({
@@ -702,7 +656,6 @@ def quick_add_to_cart(request):
                 'message': 'Не указан товар'
             })
         
-        # Получаем товар
         try:
             product = Product.objects.get(
                 id=product_id,
@@ -715,10 +668,8 @@ def quick_add_to_cart(request):
                 'message': 'Товар не найден'
             })
         
-        # Получаем корзину
         cart = get_cart_for_request(request)
         
-        # Добавляем товар
         cart_item = cart.add_product(product, 1)
         
         return JsonResponse({
@@ -733,7 +684,6 @@ def quick_add_to_cart(request):
             'message': 'Ошибка добавления товара'
         })
 
-# Context processor для корзины
 def cart_context(request):
     """Контекстный процессор для отображения корзины в шаблонах"""
     cart_count = 0
@@ -765,20 +715,17 @@ def add_to_wishlist(request):
         
         product = get_object_or_404(Product, id=product_id, is_active=True, is_published=True)
         
-        # Получаем или создаем основной список желаний пользователя
         wishlist, created = Wishlist.objects.get_or_create(
             user=request.user,
             name='Основной список',
             defaults={'is_public': False}
         )
         
-        # Проверяем, есть ли товар уже в списке
         try:
             wishlist_item = WishlistItem.objects.get(
                 wishlist=wishlist,
                 product=product
             )
-            # Товар уже в избранном - удаляем его
             wishlist_item.delete()
             wishlist_count = wishlist.items.count()
             
@@ -790,7 +737,6 @@ def add_to_wishlist(request):
             })
             
         except WishlistItem.DoesNotExist:
-            # Товара нет в избранном - добавляем
             WishlistItem.objects.create(
                 wishlist=wishlist,
                 product=product
@@ -829,15 +775,13 @@ def remove_from_wishlist(request):
             })
         
         product = get_object_or_404(Product, id=product_id)
-        
-        # Получаем основной список желаний пользователя
+
         try:
             wishlist = Wishlist.objects.get(
                 user=request.user,
                 name='Основной список'
             )
-            
-            # Удаляем товар из списка
+
             wishlist_item = WishlistItem.objects.get(
                 wishlist=wishlist,
                 product=product
@@ -879,8 +823,7 @@ def get_wishlist_status(request):
         
         if not product_id:
             return JsonResponse({'in_wishlist': False})
-        
-        # Проверяем, есть ли товар в избранном
+
         try:
             wishlist = Wishlist.objects.get(
                 user=request.user,

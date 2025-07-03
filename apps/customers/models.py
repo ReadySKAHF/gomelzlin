@@ -46,8 +46,7 @@ class Customer(AbstractBaseModel):
         ('percentage', _('Процент')),
         ('fixed', _('Фиксированная сумма')),
     ]
-    
-    # Связь с пользователем
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -56,8 +55,7 @@ class Customer(AbstractBaseModel):
         null=True,
         blank=True
     )
-    
-    # Основная информация
+
     customer_type = models.CharField(
         _('Тип клиента'),
         max_length=20,
@@ -70,8 +68,7 @@ class Customer(AbstractBaseModel):
         choices=STATUS_CHOICES,
         default='new'
     )
-    
-    # Контактная информация (может отличаться от пользователя)
+
     contact_name = models.CharField(
         _('Контактное лицо'),
         max_length=100
@@ -94,8 +91,7 @@ class Customer(AbstractBaseModel):
         max_length=13,
         blank=True
     )
-    
-    # Адресная информация
+
     country = models.CharField(
         _('Страна'),
         max_length=50,
@@ -118,8 +114,7 @@ class Customer(AbstractBaseModel):
         max_length=10,
         blank=True
     )
-    
-    # Коммерческая информация
+
     discount_type = models.CharField(
         _('Тип скидки'),
         max_length=20,
@@ -144,8 +139,7 @@ class Customer(AbstractBaseModel):
         default=0,
         help_text=_('Количество дней для оплаты счета')
     )
-    
-    # Метрики
+
     total_orders = models.PositiveIntegerField(
         _('Всего заказов'),
         default=0
@@ -167,8 +161,7 @@ class Customer(AbstractBaseModel):
         blank=True,
         null=True
     )
-    
-    # Дополнительная информация
+
     source = models.CharField(
         _('Источник'),
         max_length=100,
@@ -189,8 +182,7 @@ class Customer(AbstractBaseModel):
         blank=True,
         help_text=_('Внутренние заметки для администрации')
     )
-    
-    # Настройки уведомлений
+
     email_notifications = models.BooleanField(
         _('Email уведомления'),
         default=True
@@ -239,12 +231,11 @@ class Customer(AbstractBaseModel):
         
         if self.discount_type == 'percentage':
             return amount * (self.discount_value / 100)
-        else:  # fixed
+        else: 
             return min(self.discount_value, amount)
     
     def update_metrics(self):
         """Обновляет метрики клиента"""
-        # Импортируем здесь, чтобы избежать циркулярного импорта
         from apps.orders.models import Order
         
         orders = Order.objects.filter(customer_email=self.email, status__in=['paid', 'completed'])
@@ -256,7 +247,6 @@ class Customer(AbstractBaseModel):
             self.average_order_value = self.total_spent / self.total_orders
             self.last_order_date = orders.latest('created_at').created_at
         
-        # Автоматическое присвоение VIP статуса
         if self.total_spent >= 50000 or self.total_orders >= 20:
             if self.status != 'vip':
                 self.status = 'vip'
@@ -349,7 +339,7 @@ class CustomerNote(AbstractBaseModel):
     customer = models.ForeignKey(
         Customer,
         on_delete=models.CASCADE,
-        related_name='customer_notes',  # Изменили related_name, чтобы избежать конфликта
+        related_name='customer_notes',
         verbose_name=_('Клиент')
     )
     note_type = models.CharField(

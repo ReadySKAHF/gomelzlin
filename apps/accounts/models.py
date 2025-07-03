@@ -12,7 +12,7 @@ class UserManager(BaseUserManager):
             raise ValueError('Email обязателен')
         
         email = self.normalize_email(email)
-        extra_fields.setdefault('username', email)  # Устанавливаем username = email
+        extra_fields.setdefault('username', email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -110,7 +110,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
     
-    objects = UserManager()  # Используем наш пользовательский менеджер
+    objects = UserManager()
     
     class Meta:
         verbose_name = _('Пользователь')
@@ -155,7 +155,6 @@ class UserProfile(models.Model):
         verbose_name=_('Пользователь')
     )
     
-    # Персональная информация
     middle_name = models.CharField(
         _('Отчество'),
         max_length=50,
@@ -172,7 +171,6 @@ class UserProfile(models.Model):
         blank=True
     )
     
-    # Адресная информация
     country = models.CharField(
         _('Страна'),
         max_length=50,
@@ -193,7 +191,6 @@ class UserProfile(models.Model):
         blank=True
     )
     
-    # Дополнительные контакты
     additional_phone = models.CharField(
         _('Дополнительный телефон'),
         max_length=13,
@@ -210,7 +207,6 @@ class UserProfile(models.Model):
         blank=True
     )
     
-    # Настройки профиля
     language = models.CharField(
         _('Язык'),
         max_length=10,
@@ -226,7 +222,6 @@ class UserProfile(models.Model):
         default='Europe/Minsk'
     )
     
-    # Настройки уведомлений
     order_status_notifications = models.BooleanField(
         _('Уведомления о статусе заказа'),
         default=True
@@ -240,14 +235,12 @@ class UserProfile(models.Model):
         default=True
     )
     
-    # Метаинформация
     notes = models.TextField(
         _('Заметки'),
         blank=True,
         help_text=_('Внутренние заметки для администрации')
     )
     
-    # Даты
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
     
@@ -278,7 +271,6 @@ class CompanyProfile(models.Model):
         verbose_name=_('Пользователь')
     )
     
-    # Основная информация о компании
     company_name = models.CharField(
         _('Название организации'),
         max_length=255
@@ -297,7 +289,6 @@ class CompanyProfile(models.Model):
         default='OOO'
     )
     
-    # Регистрационные данные
     unp = models.CharField(
         _('УНП'),
         max_length=9,
@@ -320,7 +311,6 @@ class CompanyProfile(models.Model):
         blank=True
     )
     
-    # Банковские реквизиты
     bank_account = models.CharField(
         _('Расчетный счет'),
         max_length=28,
@@ -337,7 +327,6 @@ class CompanyProfile(models.Model):
         blank=True
     )
     
-    # Контактная информация
     legal_address = models.TextField(
         _('Юридический адрес')
     )
@@ -350,7 +339,6 @@ class CompanyProfile(models.Model):
         blank=True
     )
     
-    # Налоговая информация
     vat_payer = models.BooleanField(
         _('Плательщик НДС'),
         default=True
@@ -361,7 +349,6 @@ class CompanyProfile(models.Model):
         blank=True
     )
     
-    # Дополнительная информация
     activity_type = models.CharField(
         _('Вид деятельности'),
         max_length=255,
@@ -380,7 +367,6 @@ class CompanyProfile(models.Model):
         null=True
     )
     
-    # Контактное лицо компании
     contact_person = models.CharField(
         _('Контактное лицо'),
         max_length=100,
@@ -396,14 +382,12 @@ class CompanyProfile(models.Model):
         blank=True
     )
     
-    # Заметки
     notes = models.TextField(
         _('Заметки'),
         blank=True,
         help_text=_('Внутренние заметки для администрации')
     )
     
-    # Даты
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
     
@@ -429,15 +413,13 @@ class DeliveryAddress(models.Model):
         related_name='delivery_addresses',
         verbose_name=_('Пользователь')
     )
-    
-    # Основная информация об адресе
+
     title = models.CharField(
         _('Название адреса'),
         max_length=100,
         help_text=_('Например: "Офис", "Склад", "Дом"')
     )
     
-    # Адресная информация
     country = models.CharField(
         _('Страна'),
         max_length=50,
@@ -456,8 +438,7 @@ class DeliveryAddress(models.Model):
         max_length=10,
         blank=True
     )
-    
-    # Контактная информация для доставки
+
     contact_person = models.CharField(
         _('Контактное лицо'),
         max_length=100,
@@ -469,15 +450,13 @@ class DeliveryAddress(models.Model):
         max_length=13,
         blank=True
     )
-    
-    # Дополнительная информация
+
     notes = models.TextField(
         _('Примечания'),
         blank=True,
         help_text=_('Дополнительная информация для курьера (этаж, код домофона и т.д.)')
     )
-    
-    # Настройки
+
     is_default = models.BooleanField(
         _('Адрес по умолчанию'),
         default=False
@@ -486,8 +465,7 @@ class DeliveryAddress(models.Model):
         _('Активен'),
         default=True
     )
-    
-    # Даты
+
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
     
@@ -507,7 +485,6 @@ class DeliveryAddress(models.Model):
         return f'{self.title} - {self.city}, {self.address[:50]}'
     
     def save(self, *args, **kwargs):
-        # Если это адрес по умолчанию, убираем флаг у других адресов пользователя
         if self.is_default:
             DeliveryAddress.objects.filter(
                 user=self.user, 

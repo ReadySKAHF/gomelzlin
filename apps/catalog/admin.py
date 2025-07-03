@@ -1,4 +1,3 @@
-# apps/catalog/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
@@ -17,7 +16,6 @@ def russian_pluralize(number, forms):
     try:
         num = int(number)
         
-        # Особые случаи для 11-14
         if 10 <= num % 100 <= 14:
             return forms_list[2]
         
@@ -42,13 +40,13 @@ class CategoryAdmin(admin.ModelAdmin):
         'parent', 
         'product_count', 
         'sort_order',
-        'is_featured_display',  # Обновляем для красивого отображения
+        'is_featured_display', 
         'is_active',
         'created_at'
     ]
     list_filter = [
         'is_active', 
-        'is_featured',  # Добавляем фильтр по популярности
+        'is_featured',  
         'parent',
         'created_at'
     ]
@@ -57,7 +55,6 @@ class CategoryAdmin(admin.ModelAdmin):
     
     readonly_fields = ['product_count']
     
-    # Группировка полей для удобства
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'slug', 'description')
@@ -79,7 +76,6 @@ class CategoryAdmin(admin.ModelAdmin):
         })
     )
     
-    # Действия для массового управления
     actions = ['make_featured', 'make_not_featured', 'activate_categories', 'deactivate_categories']
     
     def product_count(self, obj):
@@ -87,13 +83,11 @@ class CategoryAdmin(admin.ModelAdmin):
         try:
             count = obj.products.filter(is_active=True, is_published=True).count()
             
-            # Добавляем товары из подкатегорий
             for child in obj.children.filter(is_active=True):
                 count += child.products.filter(is_active=True, is_published=True).count()
             
             if count > 0:
                 url = reverse('admin:catalog_product_changelist') + f'?category__id__exact={obj.id}'
-                # ИСПРАВЛЕНО: правильное склонение
                 word = russian_pluralize(count, "товар,товара,товаров")
                 return format_html(
                     '<a href="{}" style="color: #007cba; font-weight: bold;">{} {}</a>',
@@ -112,7 +106,7 @@ class CategoryAdmin(admin.ModelAdmin):
     is_featured_display.short_description = "Популярность"
     is_featured_display.admin_order_field = 'is_featured'
     
-    # Массовые действия
+
     def make_featured(self, request, queryset):
         """Отметить как популярные"""
         count = queryset.update(is_featured=True)
@@ -154,7 +148,7 @@ class ProductAdmin(admin.ModelAdmin):
         'category',
         'price',
         'stock_quantity',
-        'is_featured_display',  # Добавляем отображение рекомендуемых товаров
+        'is_featured_display', 
         'is_published',
         'is_active',
         'created_at'
@@ -164,7 +158,7 @@ class ProductAdmin(admin.ModelAdmin):
         'category',
         'is_active',
         'is_published',
-        'is_featured',  # Добавляем фильтр по рекомендуемым товарам
+        'is_featured',  
         'unit',
         'created_at',
     ]
@@ -185,7 +179,7 @@ class ProductAdmin(admin.ModelAdmin):
         'is_active'
     ]
     
-    # Обновленные fieldsets с поддержкой is_featured
+
     fieldsets = (
         ('Основная информация', {
             'fields': (
@@ -213,13 +207,12 @@ class ProductAdmin(admin.ModelAdmin):
             'fields': (
                 'is_active',
                 'is_published',
-                'is_featured',  # Добавляем поле рекомендуемых товаров
+                'is_featured', 
             ),
             'description': 'is_featured - отображать в рекомендуемых товарах на главной странице'
         }),
     )
     
-    # Действия для товаров
     actions = [
         'publish_products', 
         'unpublish_products',
@@ -273,17 +266,14 @@ class ProductAdmin(admin.ModelAdmin):
         self.message_user(request, f'{count} товаров деактивировано.')
     deactivate_products.short_description = "❌ Деактивировать товары"
 
-# Инлайн для подкатегорий в категориях
 class SubCategoryInline(admin.TabularInline):
     model = Category
     extra = 0
     fields = ['name', 'slug', 'sort_order', 'is_featured', 'is_active']
     prepopulated_fields = {'slug': ('name',)}
 
-# Инлайн к CategoryAdmin
 CategoryAdmin.inlines = [SubCategoryInline]
 
-# Дополнительные настройки админки
 admin.site.site_header = 'ОАО "ГЗЛиН" - Администрирование'
 admin.site.site_title = 'ГЗЛиН Админ'
 admin.site.index_title = 'Панель управления'

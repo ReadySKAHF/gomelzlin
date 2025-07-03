@@ -124,7 +124,6 @@ class SystemLog(AbstractBaseModel):
         max_length=50,
         choices=ACTION_TYPES
     )
-    # Используем строковую ссылку на User модель вместо прямого импорта
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -181,7 +180,6 @@ class SiteSettings(models.Model):
         blank=True
     )
     
-    # Контактная информация
     phone = models.CharField(
         _('Телефон'),
         max_length=20,
@@ -196,18 +194,15 @@ class SiteSettings(models.Model):
         default='246000, г. Гомель, ул. Промышленная, 15'
     )
     
-    # Режим работы
     working_hours = models.TextField(
         _('Режим работы'),
         default='Пн-Пт: 8:00-17:00\nСб-Вс: выходной'
     )
     
-    # Социальные сети
     facebook_url = models.URLField(_('Facebook'), blank=True)
     instagram_url = models.URLField(_('Instagram'), blank=True)
     youtube_url = models.URLField(_('YouTube'), blank=True)
     
-    # Настройки корзины
     min_order_amount = models.DecimalField(
         _('Минимальная сумма заказа'),
         max_digits=10,
@@ -219,7 +214,6 @@ class SiteSettings(models.Model):
         default=60
     )
     
-    # Настройки уведомлений
     order_notification_email = models.EmailField(
         _('Email для уведомлений о заказах'),
         default='orders@gomelzlin.by'
@@ -229,7 +223,6 @@ class SiteSettings(models.Model):
         default='admin@gomelzlin.by'
     )
     
-    # SEO настройки
     site_keywords = models.TextField(
         _('Ключевые слова сайта'),
         blank=True,
@@ -246,7 +239,6 @@ class SiteSettings(models.Model):
         blank=True
     )
     
-    # Техническое обслуживание
     maintenance_mode = models.BooleanField(
         _('Режим технического обслуживания'),
         default=False
@@ -268,7 +260,6 @@ class SiteSettings(models.Model):
         return self.company_name
     
     def save(self, *args, **kwargs):
-        # Обеспечиваем, что существует только одна запись настроек
         if not self.pk and SiteSettings.objects.exists():
             raise ValueError('Может существовать только одна запись настроек сайта')
         super().save(*args, **kwargs)
@@ -378,7 +369,6 @@ class News(AbstractBaseModel, SeoModel):
         return self.title
     
     def save(self, *args, **kwargs):
-        # Автогенерация slug из заголовка
         if not self.slug:
             from django.utils.text import slugify
             
@@ -386,7 +376,6 @@ class News(AbstractBaseModel, SeoModel):
             if not base_slug:
                 base_slug = 'news'
             
-            # Проверяем уникальность slug
             slug = base_slug
             counter = 1
             while News.objects.filter(slug=slug).exclude(pk=self.pk).exists():
@@ -395,7 +384,6 @@ class News(AbstractBaseModel, SeoModel):
             
             self.slug = slug
         
-        # Автоматическая установка даты публикации
         if self.status == 'published' and not self.published_at:
             from django.utils import timezone
             self.published_at = timezone.now()
@@ -410,7 +398,6 @@ class News(AbstractBaseModel, SeoModel):
         """Возвращает краткое описание без HTML тегов для мета-тегов"""
         if self.short_description:
             import re
-            # Убираем HTML теги
             clean_content = re.sub(r'<[^>]+>', '', self.short_description)
             return clean_content
         return ''
@@ -420,7 +407,6 @@ class News(AbstractBaseModel, SeoModel):
         if self.short_description:
             return self.short_description
         
-        # Если краткого описания нет, берем первые 150 символов из контента
         if self.content:
             import re
             clean_content = re.sub(r'<[^>]+>', '', self.content)

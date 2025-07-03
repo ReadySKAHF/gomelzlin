@@ -18,16 +18,14 @@ def get_user_order_defaults(user):
         'delivery_address': '',
         'default_address_id': None,
     }
-    
-    # Получаем профиль пользователя
+
     try:
         profile = user.profile
         if profile.city and profile.address:
             defaults['delivery_address'] = profile.get_full_address()
     except UserProfile.DoesNotExist:
         pass
-    
-    # Если пользователь - юридическое лицо, получаем данные компании
+
     if user.is_company:
         try:
             company_profile = user.company_profile
@@ -39,7 +37,6 @@ def get_user_order_defaults(user):
         except CompanyProfile.DoesNotExist:
             pass
     
-    # Получаем адрес доставки по умолчанию
     try:
         default_address = DeliveryAddress.objects.get(
             user=user,
@@ -60,13 +57,12 @@ def calculate_delivery_cost(delivery_method, delivery_address=None, cart_total=N
     """
     delivery_costs = {
         'pickup': Decimal('0.00'),
-        'delivery': Decimal('10.00'),  # Доставка по городу
-        'transport_company': Decimal('0.00'),  # По согласованию
+        'delivery': Decimal('10.00'),  
+        'transport_company': Decimal('0.00'), 
     }
     
     base_cost = delivery_costs.get(delivery_method, Decimal('0.00'))
-    
-    # Бесплатная доставка для заказов свыше определенной суммы
+
     if cart_total and cart_total >= Decimal('500.00') and delivery_method == 'delivery':
         return Decimal('0.00')
     
@@ -78,8 +74,7 @@ def validate_order_data(order_data):
     Валидирует данные заказа перед созданием
     """
     errors = []
-    
-    # Проверяем обязательные поля
+
     required_fields = {
         'customer_name': 'Имя заказчика',
         'customer_email': 'Email заказчика',
@@ -89,24 +84,20 @@ def validate_order_data(order_data):
     for field, label in required_fields.items():
         if not order_data.get(field, '').strip():
             errors.append(f'Поле "{label}" обязательно для заполнения')
-    
-    # Проверяем email
+
     import re
     email = order_data.get('customer_email', '').strip()
     if email and not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
         errors.append('Некорректный email адрес')
-    
-    # Проверяем телефон
+
     phone = order_data.get('customer_phone', '').strip()
     if phone and not re.match(r'^\+?[\d\s\-\(\)]{7,}$', phone):
         errors.append('Некорректный номер телефона')
     
-    # Проверяем УНП для юридических лиц
     unp = order_data.get('company_unp', '').strip()
     if unp and not re.match(r'^\d{9}$', unp):
         errors.append('УНП должен содержать 9 цифр')
-    
-    # Проверяем адрес доставки для доставки
+
     delivery_method = order_data.get('delivery_method', 'pickup')
     if delivery_method != 'pickup':
         delivery_address = order_data.get('delivery_address', '').strip()
@@ -177,16 +168,13 @@ def can_cancel_order(order, user=None):
     """
     Проверяет, можно ли отменить заказ
     """
-    # Заказ может отменить только его создатель
     if user and order.user != user:
         return False
     
-    # Заказ можно отменить только в определенных статусах
     cancellable_statuses = ['pending', 'confirmed']
     if order.status not in cancellable_statuses:
         return False
     
-    # Нельзя отменить оплаченный заказ (требует дополнительных процедур)
     if order.is_paid:
         return False
     
@@ -205,7 +193,6 @@ def get_delivery_time_estimate(delivery_method, city=None):
     
     base_estimate = estimates.get(delivery_method, 'Срок доставки уточняется')
     
-    # Можно добавить логику для разных городов
     if city and city.lower() not in ['минск', 'гомель']:
         if delivery_method == 'delivery':
             base_estimate = 'Доставка в другие города в течение 5-10 рабочих дней'
@@ -230,7 +217,6 @@ def create_order_analytics_data(order):
         'source': 'website',
     }
     
-    # Добавляем информацию о товарах
     categories = set()
     for item in order.items.all():
         if hasattr(item.product, 'category') and item.product.category:

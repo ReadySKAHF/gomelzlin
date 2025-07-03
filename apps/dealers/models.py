@@ -37,7 +37,6 @@ class DealerCenter(AbstractBaseModel):
         ('minsk_city', _('г. Минск')),
     ]
     
-    # Основная информация
     name = models.CharField(
         _('Название'),
         max_length=255
@@ -60,7 +59,6 @@ class DealerCenter(AbstractBaseModel):
         blank=True
     )
     
-    # Контактная информация
     contact_person = models.CharField(
         _('Контактное лицо'),
         max_length=100
@@ -107,7 +105,6 @@ class DealerCenter(AbstractBaseModel):
         blank=True
     )
     
-    # Координаты для карты
     latitude = models.DecimalField(
         _('Широта'),
         max_digits=10,
@@ -131,19 +128,16 @@ class DealerCenter(AbstractBaseModel):
         ]
     )
     
-    # Режим работы
     working_hours = models.TextField(
         _('Режим работы'),
         default='Пн-Пт: 9:00-18:00\nСб: 9:00-15:00\nВс: выходной'
     )
     
-    # Описание
     description = models.TextField(
         _('Описание'),
         blank=True
     )
     
-    # Настройки отображения
     is_featured = models.BooleanField(
         _('Рекомендуемый'),
         default=False,
@@ -175,7 +169,6 @@ class DealerCenter(AbstractBaseModel):
         return f'{self.name} ({self.city})'
     
     def save(self, *args, **kwargs):
-        # Автоматическая генерация кода дилера
         if not self.dealer_code:
             self.dealer_code = self.generate_dealer_code()
         super().save(*args, **kwargs)
@@ -185,17 +178,14 @@ class DealerCenter(AbstractBaseModel):
         import random
         import string
         
-        # Формат: регион(2 символа) + город(2 символа) + номер(3 цифры)
         region_code = self.region[:2].upper()
         city_code = self.city[:2].upper()
         
-        # Ищем свободный номер
         for i in range(1, 1000):
             code = f'{region_code}{city_code}{i:03d}'
             if not DealerCenter.objects.filter(dealer_code=code).exists():
                 return code
         
-        # Если все номера заняты, добавляем случайные символы
         random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
         return f'{region_code}{city_code}{random_part}'
     

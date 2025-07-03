@@ -16,21 +16,18 @@ class HomeView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'ОАО "ГЗЛиН" - Главная страница'
         
-        # Получаем рекомендуемые новости для главной страницы
         try:
             context['featured_news'] = News.get_featured(limit=3)
         except:
             context['featured_news'] = []
         
-        # ПОПУЛЯРНЫЕ КАТЕГОРИИ
         featured_categories = []
         try:
             from apps.catalog.models import Category
             
             categories = Category.objects.filter(is_featured=True, is_active=True)
             
-            for category in categories:  # Убираем ограничение [:6]
-                # Правильный подсчет товаров
+            for category in categories: 
                 product_count = self.count_products_in_category(category)
                 
                 featured_categories.append({
@@ -46,7 +43,6 @@ class HomeView(TemplateView):
         
         context['featured_categories'] = featured_categories
         
-        # ПОПУЛЯРНЫЕ ТОВАРЫ
         try:
             from apps.catalog.models import Product
             context['featured_products'] = Product.objects.filter(
@@ -64,7 +60,6 @@ class HomeView(TemplateView):
         try:
             count = category.products.filter(is_active=True, is_published=True).count()
             
-            # Добавляем товары из подкатегорий
             for child in category.children.filter(is_active=True):
                 count += self.count_products_in_category(child)
             
@@ -120,7 +115,6 @@ class NewsDetailView(DetailView):
         """Получаем объект и увеличиваем счетчик просмотров"""
         obj = super().get_object(queryset)
         
-        # Увеличиваем счетчик просмотров (один раз за сессию)
         session_key = f'news_viewed_{obj.pk}'
         if not self.request.session.get(session_key, False):
             obj.increment_views()
@@ -132,7 +126,6 @@ class NewsDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['title'] = self.object.title
         
-        # Получаем похожие новости (последние 3, исключая текущую)
         context['related_news'] = News.get_published().exclude(
             pk=self.object.pk
         ).order_by('-published_at')[:3]

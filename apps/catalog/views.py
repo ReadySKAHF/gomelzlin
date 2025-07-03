@@ -1,4 +1,3 @@
-# apps/catalog/views.py
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView
 from django.core.paginator import Paginator
@@ -19,7 +18,6 @@ class ProductListView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Каталог товаров'
         
-        # Получаем только родительские категории (без parent)
         main_categories = Category.objects.filter(
             parent__isnull=True,
             is_active=True
@@ -27,10 +25,8 @@ class ProductListView(TemplateView):
         
         categories_with_counts = []
         for category in main_categories:
-            # Подсчитываем общее количество товаров в категории и подкатегориях
             total_products = self.get_category_product_count(category)
             
-            # Определяем изображение категории (эмодзи)
             category_image = self.get_category_image(category.name)
             
             categories_with_counts.append({
@@ -43,10 +39,8 @@ class ProductListView(TemplateView):
                 'absolute_url': category.get_absolute_url() if hasattr(category, 'get_absolute_url') else f'/catalog/category/{category.slug}/',
             })
         
-        # ИСПРАВЛЕНО: Завершаем присвоение categories
         context['categories'] = categories_with_counts
         
-        # Получаем рекомендуемые товары
         try:
             featured_products = Product.objects.filter(
                 is_active=True,
@@ -63,10 +57,8 @@ class ProductListView(TemplateView):
     def get_category_product_count(self, category):
         """Подсчитывает количество товаров в категории и подкатегориях"""
         try:
-            # Товары в самой категории
             count = category.products.filter(is_active=True, is_published=True).count()
             
-            # Товары в подкатегориях
             for child in category.children.filter(is_active=True):
                 count += child.products.filter(is_active=True, is_published=True).count()
             
@@ -104,10 +96,8 @@ class CategoryDetailView(TemplateView):
             context['category'] = category
             context['title'] = category.name
             
-            # Получаем подкатегории
             subcategories = category.children.filter(is_active=True).order_by('sort_order', 'name')
             
-            # Получаем товары категории
             products = Product.objects.filter(
                 category=category,
                 is_active=True,
@@ -118,7 +108,6 @@ class CategoryDetailView(TemplateView):
             context['products'] = products
             context['has_subcategories'] = subcategories.exists()
             
-            # Добавляем информацию о количестве товаров для подкатегорий
             subcategories_with_counts = []
             for subcat in subcategories:
                 subcategories_with_counts.append({
@@ -126,8 +115,7 @@ class CategoryDetailView(TemplateView):
                     'product_count': subcat.products.filter(is_active=True, is_published=True).count()
                 })
             context['subcategories_with_counts'] = subcategories_with_counts
-            
-            # Добавляем тип отображения (плитка/список)
+
             view_type = self.request.GET.get('view', 'grid')
             context['view_type'] = view_type
             
@@ -152,7 +140,6 @@ class ProductDetailView(DetailView):
     
     def get_object(self):
         obj = super().get_object()
-        # Увеличиваем счетчик просмотров
         if hasattr(obj, 'increment_views'):
             obj.increment_views()
         return obj
@@ -162,7 +149,6 @@ class ProductDetailView(DetailView):
         product = self.get_object()
         context['title'] = product.name
         
-        # Получаем похожие товары из той же категории
         similar_products = Product.objects.filter(
             category=product.category,
             is_active=True,
@@ -171,7 +157,6 @@ class ProductDetailView(DetailView):
         
         context['similar_products'] = similar_products
         
-        # Проверяем, есть ли изображения
         if hasattr(product, 'images'):
             context['product_images'] = product.images.filter(is_active=True).order_by('sort_order')
         
@@ -190,7 +175,6 @@ class ProductSearchView(ListView):
         if not query:
             return Product.objects.none()
         
-        # Поиск по названию, описанию и артикулу
         queryset = Product.objects.filter(
             Q(name__icontains=query) |
             Q(short_description__icontains=query) |
@@ -200,7 +184,6 @@ class ProductSearchView(ListView):
             is_published=True
         ).select_related('category').distinct()
         
-        # Сортировка по релевантности
         queryset = queryset.order_by('-is_featured', 'name')
         
         return queryset
@@ -211,11 +194,9 @@ class ProductSearchView(ListView):
         context['query'] = query
         context['title'] = f'Поиск: {query}' if query else 'Поиск товаров'
         
-        # Добавляем тип отображения
         view_type = self.request.GET.get('view', 'grid')
         context['view_type'] = view_type
         
-        # Добавляем категории, которые соответствуют поисковому запросу
         if query:
             matching_categories = Category.objects.filter(
                 Q(name__icontains=query) |
@@ -236,17 +217,14 @@ def quick_search_ajax(request):
     
     results = []
     
-    # Поиск по категориям
     categories = Category.objects.filter(
         Q(name__icontains=query) | Q(description__icontains=query),
         is_active=True
     ).order_by('name')[:5]
     
     for category in categories:
-        # Подсчет товаров в категории
         product_count = category.products.filter(is_active=True, is_published=True).count()
         
-        # Добавляем товары из подкатегорий
         for child in category.children.filter(is_active=True):
             product_count += child.products.filter(is_active=True, is_published=True).count()
         
@@ -259,8 +237,7 @@ def quick_search_ajax(request):
             'product_count': product_count,
             'url': category.get_absolute_url() if hasattr(category, 'get_absolute_url') else f'/catalog/category/{category.slug}/',
         })
-    
-    # Поиск по товарам
+
     products = Product.objects.filter(
         Q(name__icontains=query) |
         Q(article__icontains=query) |
@@ -280,7 +257,6 @@ def quick_search_ajax(request):
             'url': product.get_absolute_url() if hasattr(product, 'get_absolute_url') else f'/catalog/product/{product.slug}/',
         })
     
-    # Ограничиваем общее количество результатов
     results = results[:10]
     
     return JsonResponse({'results': results})
@@ -300,10 +276,8 @@ def category_search_ajax(request):
     
     results = []
     for category in categories:
-        # Подсчет товаров в категории
         product_count = category.products.filter(is_active=True, is_published=True).count()
         
-        # Добавляем товары из подкатегорий
         for child in category.children.filter(is_active=True):
             product_count += child.products.filter(is_active=True, is_published=True).count()
         
@@ -327,7 +301,6 @@ def product_search_ajax(request):
     if len(query) < 2:
         return JsonResponse({'results': []})
     
-    # Базовый запрос
     queryset = Product.objects.filter(
         Q(name__icontains=query) |
         Q(article__icontains=query) |
@@ -336,11 +309,9 @@ def product_search_ajax(request):
         is_published=True
     ).select_related('category')
     
-    # Фильтр по категории
     if category_id:
         try:
             category = Category.objects.get(id=category_id, is_active=True)
-            # Включаем товары из данной категории и всех её подкатегорий
             category_ids = [category.id]
             category_ids.extend(category.children.filter(is_active=True).values_list('id', flat=True))
             queryset = queryset.filter(category_id__in=category_ids)
@@ -364,7 +335,6 @@ def product_search_ajax(request):
     return JsonResponse({'results': results})
 
 
-# Представления для главной страницы
 class HomeView(TemplateView):
     """Главная страница с категориями"""
     template_name = 'pages/home.html'
@@ -372,16 +342,15 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Популярные категории для главной страницы
         featured_categories = []
         categories = Category.objects.filter(
             parent__isnull=True,
             is_active=True,
             is_featured=True
-        ).order_by('sort_order', 'name')[:6]  # Показываем только 6 основных
+        ).order_by('sort_order', 'name')[:6] 
         
         for category in categories:
-            if category.slug:  # Только категории с валидным slug
+            if category.slug:  
                 product_count = self.count_products_in_category(category)
                 featured_categories.append({
                     'id': category.id,
@@ -393,7 +362,6 @@ class HomeView(TemplateView):
         
         context['featured_categories'] = featured_categories
         
-        # Популярные товары
         context['featured_products'] = Product.objects.filter(
             is_active=True,
             is_published=True,
@@ -406,7 +374,6 @@ class HomeView(TemplateView):
         """Подсчитывает количество товаров в категории и всех её подкатегориях"""
         count = category.products.filter(is_active=True, is_published=True).count()
         
-        # Добавляем товары из подкатегорий
         for child in category.children.filter(is_active=True):
             count += self.count_products_in_category(child)
         

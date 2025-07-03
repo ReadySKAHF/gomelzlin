@@ -9,13 +9,11 @@ class AboutView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'О компании'
         
-        # Загружаем данные партнёров из базы данных
         context['partners'] = Partner.objects.filter(
             is_public=True,
             is_active=True
         ).order_by('-is_featured', 'sort_order', 'name')
         
-        # Загружаем данные руководства из базы данных
         context['leaders'] = Leader.objects.filter(
             is_public=True, 
             is_active=True
@@ -30,7 +28,6 @@ class LeadershipView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Руководство'
         
-        # Загружаем данные руководства из базы данных
         context['leaders'] = Leader.objects.filter(
             is_public=True,
             is_active=True
@@ -45,13 +42,11 @@ class PartnersView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Партнёры'
         
-        # Загружаем данные партнёров из базы данных
         context['partners'] = Partner.objects.filter(
             is_public=True,
             is_active=True
         ).order_by('-is_featured', 'sort_order', 'name')
         
-        # Разделяем на рекомендуемых и обычных партнеров
         context['featured_partners'] = context['partners'].filter(is_featured=True)
         context['regular_partners'] = context['partners'].filter(is_featured=False)
         

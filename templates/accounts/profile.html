@@ -245,7 +245,17 @@
                                     ⭐ Сделать основным
                                 </button>
                                 {% endif %}
-                                <button onclick="editAddress({{ address.id }})" class="btn btn-outline btn-sm">
+                                <button onclick="editAddressWithData({{ address.id }}, {
+                                    id: {{ address.id }},
+                                    title: '{{ address.title|escapejs }}',
+                                    city: '{{ address.city|escapejs }}',
+                                    address: '{{ address.address|escapejs }}',
+                                    postal_code: '{{ address.postal_code|escapejs }}',
+                                    contact_person: '{{ address.contact_person|escapejs }}',
+                                    contact_phone: '{{ address.contact_phone|escapejs }}',
+                                    notes: '{{ address.notes|escapejs }}',
+                                    is_default: {{ address.is_default|yesno:"true,false" }}
+                                })" class="btn btn-outline btn-sm">
                                     ✏️ Редактировать
                                 </button>
                                 <button onclick="deleteAddress({{ address.id }})" class="btn btn-outline btn-sm" style="color: #dc3545; border-color: #dc3545;">
@@ -658,26 +668,20 @@
 </style>
 
 <script>
-// Функции для управления вкладками
 function showTab(tabName) {
-    // Скрываем все вкладки
     document.querySelectorAll('.tab-content').forEach(tab => {
         tab.classList.remove('active');
     });
     
-    // Убираем активный класс у всех кнопок
     document.querySelectorAll('.profile-tab').forEach(btn => {
         btn.classList.remove('active');
     });
     
-    // Показываем нужную вкладку
     document.getElementById(tabName + '-tab').classList.add('active');
     
-    // Активируем нужную кнопку
     document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
 }
 
-// Функции для управления адресами
 function showAddAddressForm() {
     document.getElementById('addressModalTitle').textContent = 'Добавить адрес доставки';
     document.getElementById('addressSubmitText').textContent = '💾 Сохранить адрес';
@@ -691,11 +695,26 @@ function closeAddressModal() {
 }
 
 function editAddress(addressId) {
-    // Здесь должна быть логика загрузки данных адреса для редактирования
-    // Пока что просто показываем форму
     document.getElementById('addressModalTitle').textContent = 'Редактировать адрес';
     document.getElementById('addressSubmitText').textContent = '💾 Обновить адрес';
     document.getElementById('addressId').value = addressId;
+    document.getElementById('addressModal').style.display = 'flex';
+}
+
+function editAddressWithData(addressId, addressData) {
+    document.getElementById('addressModalTitle').textContent = 'Редактировать адрес';
+    document.getElementById('addressSubmitText').textContent = '💾 Обновить адрес';
+    document.getElementById('addressId').value = addressId;
+    
+    document.getElementById('addressTitle').value = addressData.title || '';
+    document.getElementById('addressCity').value = addressData.city || '';
+    document.getElementById('addressFull').value = addressData.address || '';
+    document.getElementById('addressPostal').value = addressData.postal_code || '';
+    document.getElementById('addressContact').value = addressData.contact_person || '';
+    document.getElementById('addressPhone').value = addressData.contact_phone || '';
+    document.getElementById('addressNotes').value = addressData.notes || '';
+    document.getElementById('addressDefault').checked = addressData.is_default || false;
+    
     document.getElementById('addressModal').style.display = 'flex';
 }
 

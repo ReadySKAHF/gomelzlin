@@ -16,7 +16,7 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('user_type', 'is_verified', 'is_active', 'is_staff', 'date_joined')
     search_fields = ('email', 'username', 'first_name', 'last_name')
     ordering = ('-date_joined',)
-    inlines = [DeliveryAddressInline]  # Перенесли сюда, так как DeliveryAddress связана с User
+    inlines = [DeliveryAddressInline] 
     
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Дополнительная информация', {
@@ -44,7 +44,6 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_filter = ('country', 'language', 'created_at')
     search_fields = ('user__email', 'user__first_name', 'user__last_name', 'city')
     readonly_fields = ('created_at', 'updated_at')
-    # Убрали DeliveryAddressInline отсюда
     
     fieldsets = (
         ('Основная информация', {
@@ -140,7 +139,6 @@ class DeliveryAddressAdmin(admin.ModelAdmin):
     get_short_address.short_description = 'Адрес'
     
     def save_model(self, request, obj, form, change):
-        # Если устанавливается адрес по умолчанию, убираем флаг у других адресов пользователя
         if obj.is_default:
             DeliveryAddress.objects.filter(
                 user=obj.user, 
@@ -152,12 +150,11 @@ class DeliveryAddressAdmin(admin.ModelAdmin):
     
     def make_default(self, request, queryset):
         for address in queryset:
-            # Убираем флаг по умолчанию у других адресов пользователя
             DeliveryAddress.objects.filter(
                 user=address.user, 
                 is_default=True
             ).update(is_default=False)
-            # Устанавливаем новый адрес по умолчанию
+
             address.is_default = True
             address.save()
         self.message_user(request, f"Установлено {queryset.count()} адресов по умолчанию.")

@@ -24,7 +24,6 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    # Пока отключим, добавим позже когда основное заработает
     # 'crispy_forms',
     # 'crispy_tailwind', 
     # 'mptt',
@@ -92,13 +91,12 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gomelzlin_dev',
         'USER': 'postgres',
-        'PASSWORD': 'qwerty123',  # Замените на ваш пароль от PostgreSQL
+        'PASSWORD': 'qwerty123', 
         'HOST': 'localhost',
         'PORT': '5432',
     }
 }
 
-# Если хотите пока использовать SQLite для простоты, раскомментируйте это:
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
@@ -230,7 +228,6 @@ LOGGING = {
     },
 }
 
-# Упрощенная конфигурация для небольших полей
 TINYMCE_MINIMAL_CONFIG = {
     'height': 200,
     'width': '100%',
