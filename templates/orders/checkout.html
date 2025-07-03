@@ -1,76 +1,91 @@
 {% extends 'base.html' %}
-{% load static %}
 
 {% block title %}Оформление заказа - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 2rem 0;">
+<div class="container" style="padding: 3rem 0;">
     <h1>Оформление заказа</h1>
     
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2rem;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 3rem; margin-top: 2rem;">
         <!-- Форма заказа -->
         <div>
-            <h2>Информация о заказчике</h2>
-            <form method="post">
+            <form method="post" id="checkoutForm">
                 {% csrf_token %}
                 
+                <!-- Контактная информация -->
                 <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
-                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Контактные данные *</legend>
+                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Контактная информация *</legend>
                     
-                    <div style="margin-bottom: 1rem;">
-                        <label for="customer_name" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">ФИО *</label>
-                        <input type="text" id="customer_name" name="customer_name" required 
-                               placeholder="Введите полное ФИО"
-                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <label for="customer_name" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">ФИО *</label>
+                            <input type="text" id="customer_name" name="customer_name" required
+                                   value="{{ user.get_full_name }}"
+                                   placeholder="Введите ваше полное имя"
+                                   style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                        </div>
+                        
+                        <div>
+                            <label for="customer_phone" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Телефон *</label>
+                            <input type="tel" id="customer_phone" name="customer_phone" required
+                                   value="{{ user.phone }}"
+                                   placeholder="+375 (XX) XXX-XX-XX"
+                                   style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                        </div>
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
                         <label for="customer_email" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Email *</label>
-                        <input type="email" id="customer_email" name="customer_email" 
-                               value="{{ user.email }}" required
-                               placeholder="example@domain.com"
-                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
-                    </div>
-                    
-                    <div style="margin-bottom: 1rem;">
-                        <label for="customer_phone" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Телефон *</label>
-                        <input type="tel" id="customer_phone" name="customer_phone" required
-                               placeholder="+375 (XX) XXX-XX-XX"
+                        <input type="email" id="customer_email" name="customer_email" required
+                               value="{{ user.email }}"
+                               placeholder="your@email.com"
                                style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
                     </div>
                 </fieldset>
                 
+                {% if user.is_company %}
+                <!-- Данные организации (для юридических лиц) -->
                 <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
-                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Информация о компании (для юр. лиц)</legend>
+                    <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Данные организации (для юридических лиц)</legend>
                     
                     <div style="margin-bottom: 1rem;">
                         <label for="company_name" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Название организации</label>
                         <input type="text" id="company_name" name="company_name"
+                               value="{{ company_profile.company_name|default:'' }}"
                                placeholder="ООО «Название компании»"
                                style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
                     </div>
                     
-                    <div style="margin-bottom: 1rem;">
-                        <label for="company_unp" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">УНП</label>
-                        <input type="text" id="company_unp" name="company_unp"
-                               placeholder="123456789"
-                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <label for="company_unp" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">УНП</label>
+                            <input type="text" id="company_unp" name="company_unp"
+                                   value="{{ company_profile.unp|default:'' }}"
+                                   placeholder="123456789" maxlength="9"
+                                   style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                        </div>
+                        
+                        <div>
+                            <!-- Пустая колонка для выравнивания -->
+                        </div>
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
                         <label for="company_address" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Юридический адрес</label>
                         <textarea id="company_address" name="company_address" rows="3"
                                   placeholder="Адрес регистрации организации"
-                                  style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                                  style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;">{{ company_profile.legal_address|default:'' }}</textarea>
                     </div>
                 </fieldset>
+                {% endif %}
                 
+                <!-- Доставка -->
                 <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
                     <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Доставка *</legend>
                     
                     <div style="margin-bottom: 1rem;">
                         <label for="delivery_method" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Способ доставки *</label>
-                        <select id="delivery_method" name="delivery_method" required
+                        <select id="delivery_method" name="delivery_method" required onchange="toggleDeliveryAddress()"
                                 style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
                             <option value="pickup">Самовывоз (бесплатно)</option>
                             <option value="delivery">Доставка по городу</option>
@@ -78,15 +93,39 @@
                         </select>
                     </div>
                     
-                    <div style="margin-bottom: 1rem;">
-                        <label for="delivery_address" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Адрес доставки</label>
-                        <textarea id="delivery_address" name="delivery_address" rows="3"
-                                  placeholder="Укажите точный адрес доставки (если не самовывоз)"
-                                  style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
-                        <small style="color: var(--secondary-gray);">При самовывозе оставьте поле пустым</small>
+                    <div id="delivery_address_section" style="display: none;">
+                        <!-- Выбор сохраненного адреса или ввод нового -->
+                        {% if delivery_addresses %}
+                        <div style="margin-bottom: 1rem;">
+                            <label for="saved_address_id" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Выберите адрес доставки</label>
+                            <select id="saved_address_id" name="saved_address_id" onchange="toggleAddressInput()"
+                                    style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;">
+                                {% if default_address %}
+                                    <option value="{{ default_address.id }}" selected>{{ default_address.title }} - {{ default_address.get_short_address }}</option>
+                                {% endif %}
+                                {% for address in delivery_addresses %}
+                                    {% if not address.is_default %}
+                                    <option value="{{ address.id }}">{{ address.title }} - {{ address.get_short_address }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value="new">➕ Ввести новый адрес</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                        
+                        <div id="new_address_input" style="{% if delivery_addresses and default_address %}display: none;{% endif %}">
+                            <label for="delivery_address" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Адрес доставки {% if not delivery_addresses %}*{% endif %}</label>
+                            <textarea id="delivery_address" name="delivery_address" rows="3"
+                                      placeholder="Укажите точный адрес доставки с указанием города, улицы, дома, квартиры/офиса"
+                                      style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                            <small style="color: var(--secondary-gray);">
+                                💡 Совет: Добавьте этот адрес в <a href="{% url 'accounts:profile' %}#addresses" target="_blank" style="color: var(--primary-red);">личном кабинете</a> для быстрого выбора в будущем
+                            </small>
+                        </div>
                     </div>
                 </fieldset>
                 
+                <!-- Оплата -->
                 <fieldset style="border: none; padding: 0; margin-bottom: 2rem;">
                     <legend style="font-weight: bold; font-size: 1.1rem; color: var(--primary-red); margin-bottom: 1rem;">Оплата *</legend>
                     
@@ -97,18 +136,22 @@
                             <option value="cash">Наличный расчет</option>
                             <option value="bank_transfer">Банковский перевод</option>
                             <option value="card">Банковская карта</option>
+                            {% if user.is_company %}
                             <option value="invoice">По счету (для юр. лиц)</option>
+                            {% endif %}
                         </select>
                     </div>
                 </fieldset>
                 
+                <!-- Комментарий -->
                 <div style="margin-bottom: 2rem;">
-                    <label for="notes" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Комментарий к заказу</label>
+                    <label for="notes" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Комментарий к заказу</label>
                     <textarea id="notes" name="notes" rows="4"
                               placeholder="Дополнительная информация к заказу, пожелания по доставке и т.д."
                               style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
                 </div>
                 
+                <!-- Кнопка оформления -->
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
                     📝 Оформить заказ
                 </button>
@@ -121,57 +164,57 @@
                 <h2>Ваш заказ</h2>
                 <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem;">
                     {% for item in cart_items %}
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--light-gray);">
-                        <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem 0; border-bottom: 1px solid var(--light-gray);" 
+                         data-item-price="{{ item.product.price }}" data-item-quantity="{{ item.quantity }}" data-item-total="{{ item.get_total_price }}">
+                        <div style="flex: 1; margin-right: 1rem;">
                             <div style="font-weight: bold; margin-bottom: 0.25rem;">{{ item.product.name }}</div>
                             <div style="font-size: 0.9rem; color: var(--secondary-gray);">
                                 {{ item.product.price }} BYN × {{ item.quantity }}
                             </div>
                         </div>
-                        <div style="font-weight: bold; color: var(--primary-red);">
+                        <div style="font-weight: bold; color: var(--primary-red); white-space: nowrap;">
                             {{ item.get_total_price }} BYN
                         </div>
                     </div>
                     {% endfor %}
                     
-                    <div style="padding: 1rem 0;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span>Товары ({{ cart.items_count }} позиций):</span>
-                            <span style="font-weight: bold;">{{ cart.total_price }} BYN</span>
+                    <div style="padding-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span>Товары:</span>
+                            <span id="subtotal_cost">
+                                {% if cart.total_price > 0 %}
+                                    {{ cart.total_price }} BYN
+                                {% else %}
+                                    <span id="calculated_subtotal">0.00 BYN</span>
+                                {% endif %}
+                            </span>
                         </div>
-                        
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <span>Доставка:</span>
-                            <span style="font-weight: bold; color: #28a745;">Уточняется</span>
+                            <span id="delivery_cost">0.00 BYN</span>
                         </div>
-                        
-                        <hr style="margin: 1rem 0; border: 1px solid var(--light-gray);">
-                        
-                        <div style="display: flex; justify-content: space-between; font-size: 1.3rem; font-weight: bold; color: var(--primary-red);">
+                        <hr style="margin: 1rem 0; border: none; border-top: 2px solid var(--light-gray);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
                             <span>Итого:</span>
-                            <span>{{ cart.total_price }} BYN</span>
+                            <span id="total_cost">
+                                {% if cart.total_price > 0 %}
+                                    {{ cart.total_price }} BYN
+                                {% else %}
+                                    <span id="calculated_total">0.00 BYN</span>
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
                 
-                <div style="background: #e8f4fd; padding: 1.5rem; border-radius: var(--radius); border-left: 4px solid var(--primary-red);">
-                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">ℹ️ Важная информация</h3>
-                    <ul style="margin: 0; padding-left: 1.5rem; color: var(--dark-gray);">
-                        <li style="margin-bottom: 0.5rem;">После оформления заказа наш менеджер свяжется с вами для подтверждения</li>
-                        <li style="margin-bottom: 0.5rem;">Стоимость доставки рассчитывается индивидуально</li>
-                        <li style="margin-bottom: 0.5rem;">Сроки изготовления уточняются при подтверждении заказа</li>
-                        <li>Возможна оплата наличными при получении или безналичным расчетом</li>
+                <!-- Информация о безопасности -->
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: var(--radius); border-left: 4px solid var(--primary-red);">
+                    <h4 style="margin-bottom: 1rem; color: var(--primary-red);">🔒 Безопасность</h4>
+                    <ul style="margin: 0; padding-left: 1.5rem; font-size: 0.9rem; color: var(--secondary-gray);">
+                        <li>Ваши данные защищены SSL-шифрованием</li>
+                        <li>Мы не передаем информацию третьим лицам</li>
+                        <li>Оплата производится через защищенные системы</li>
                     </ul>
-                </div>
-                
-                <div style="background: white; padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 1rem;">
-                    <h3 style="color: var(--primary-red); margin-bottom: 1rem;">📞 Контакты</h3>
-                    <div style="color: var(--dark-gray);">
-                        <div style="margin-bottom: 0.5rem;"><strong>Телефон:</strong> +375 (232) 47-82-15</div>
-                        <div style="margin-bottom: 0.5rem;"><strong>Email:</strong> info@gzlin.by</div>
-                        <div style="margin-bottom: 0.5rem;"><strong>Адрес:</strong> г. Гомель, ул. Промышленная, 15</div>
-                        <div style="font-size: 0.9rem; color: var(--secondary-gray);">Пн-Пт: 8:00-17:00, Сб-Вс: выходной</div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -179,129 +222,241 @@
 </div>
 
 <style>
-label {
-    color: var(--dark-gray);
-}
-
-input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--primary-red) !important;
-    box-shadow: 0 0 0 3px rgba(203, 65, 59, 0.1);
-}
-
-input[required]:invalid {
-    border-color: #dc3545;
-}
-
-input[required]:valid {
-    border-color: #28a745;
-}
-
+/* Стили для формы оформления заказа */
 fieldset {
-    background: #f8f9fa;
+    background: white;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
     padding: 1.5rem;
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
 }
 
 legend {
-    padding: 0 0.5rem;
+    padding: 0 1rem;
 }
 
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(203, 65, 59, 0.1);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Стили для адаптивности */
 @media (max-width: 768px) {
     .container > div {
-        grid-template-columns: 1fr !important;
-        gap: 2rem !important;
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
     
-    .sticky-summary {
-        position: static !important;
+    fieldset {
+        margin-bottom: 1rem;
     }
-}
-
-/* Анимация при отправке формы */
-.btn-primary:active {
-    transform: scale(0.98);
-}
-
-.form-submitting {
-    pointer-events: none;
-    opacity: 0.7;
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 
 <script>
-// Улучшения формы
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    const deliveryMethod = document.getElementById('delivery_method');
-    const deliveryAddress = document.getElementById('delivery_address');
-    const paymentMethod = document.getElementById('payment_method');
-    const companyFields = ['company_name', 'company_unp', 'company_address'];
+// Глобальные переменные для расчетов
+let cartSubtotal = 0;
+let deliveryCost = 0;
+
+// Функция для расчета суммы товаров из DOM
+function calculateSubtotalFromDOM() {
+    let total = 0;
+    const cartItems = document.querySelectorAll('[data-item-total]');
     
-    // Управление полем адреса доставки
-    function toggleDeliveryAddress() {
-        if (deliveryMethod.value === 'pickup') {
-            deliveryAddress.disabled = true;
-            deliveryAddress.style.background = '#f8f9fa';
-            deliveryAddress.placeholder = 'При самовывозе адрес не требуется';
-        } else {
-            deliveryAddress.disabled = false;
-            deliveryAddress.style.background = '';
-            deliveryAddress.placeholder = 'Укажите точный адрес доставки';
-        }
-    }
+    console.log('Calculating subtotal from DOM, found', cartItems.length, 'items');
     
-    deliveryMethod.addEventListener('change', toggleDeliveryAddress);
-    toggleDeliveryAddress(); // Инициализация
+    cartItems.forEach(item => {
+        const itemTotal = parseFloat(item.getAttribute('data-item-total')) || 0;
+        console.log('Item total:', itemTotal);
+        total += itemTotal;
+    });
     
-    // Управление полями компании в зависимости от способа оплаты
-    function toggleCompanyFields() {
-        const isInvoice = paymentMethod.value === 'invoice';
-        companyFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (isInvoice) {
-                field.required = true;
-                field.style.borderColor = '#ffc107';
-            } else {
-                field.required = false;
-                field.style.borderColor = '';
-            }
-        });
-    }
+    console.log('Calculated DOM subtotal:', total);
+    return total;
+}
+
+// Функция для получения суммы товаров
+function getCartSubtotal() {
+    // Пытаемся получить сумму из Django переменной
+    const djangoTotal = {{ cart.total_price|default:0 }};
+    console.log('Django cart.total_price:', djangoTotal);
     
-    paymentMethod.addEventListener('change', toggleCompanyFields);
-    
-    // Предотвращение повторной отправки формы
-    form.addEventListener('submit', function() {
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ Оформляем заказ...';
-        form.classList.add('form-submitting');
+    if (djangoTotal > 0) {
+        cartSubtotal = djangoTotal;
+        console.log('Using Django total:', cartSubtotal);
+    } else {
+        // Если Django сумма = 0, считаем из DOM
+        cartSubtotal = calculateSubtotalFromDOM();
+        console.log('Using calculated total:', cartSubtotal);
         
-        // Восстанавливаем кнопку через 10 секунд (на случай ошибки)
-        setTimeout(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '📝 Оформить заказ';
-            form.classList.remove('form-submitting');
-        }, 10000);
-    });
-    
-    // Форматирование телефона
-    const phoneInput = document.getElementById('customer_phone');
-    phoneInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.startsWith('375')) {
-            value = '+375 (' + value.slice(3, 5) + ') ' + value.slice(5, 8) + '-' + value.slice(8, 10) + '-' + value.slice(10, 12);
+        // Обновляем отображение подытога
+        const subtotalElement = document.getElementById('calculated_subtotal');
+        if (subtotalElement) {
+            subtotalElement.textContent = cartSubtotal.toFixed(2) + ' BYN';
         }
-        e.target.value = value;
-    });
+    }
     
-    // Валидация УНП
-    const unpInput = document.getElementById('company_unp');
-    unpInput.addEventListener('input', function(e) {
-        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 9);
-    });
+    return cartSubtotal;
+}
+
+// Функция для переключения отображения адреса доставки
+function toggleDeliveryAddress() {
+    const deliveryMethod = document.getElementById('delivery_method').value;
+    const addressSection = document.getElementById('delivery_address_section');
+    const deliveryCostElement = document.getElementById('delivery_cost');
+    
+    console.log('Delivery method changed to:', deliveryMethod);
+    
+    if (deliveryMethod === 'pickup') {
+        addressSection.style.display = 'none';
+        deliveryCost = 0;
+        deliveryCostElement.textContent = '0.00 BYN';
+    } else {
+        addressSection.style.display = 'block';
+        
+        if (deliveryMethod === 'delivery') {
+            // Бесплатная доставка для заказов свыше 500 BYN
+            const subtotal = getCartSubtotal();
+            if (subtotal >= 500) {
+                deliveryCost = 0;
+                deliveryCostElement.textContent = 'Бесплатно (сумма ≥ 500 BYN)';
+            } else {
+                deliveryCost = 10;
+                deliveryCostElement.textContent = '10.00 BYN';
+            }
+        } else if (deliveryMethod === 'transport_company') {
+            deliveryCost = 0;
+            deliveryCostElement.textContent = 'По согласованию';
+        }
+    }
+    
+    console.log('Delivery cost set to:', deliveryCost);
+    updateTotalCost();
+}
+
+// Функция для переключения между сохраненным и новым адресом
+function toggleAddressInput() {
+    const savedAddressId = document.getElementById('saved_address_id');
+    const newAddressInput = document.getElementById('new_address_input');
+    const deliveryAddressTextarea = document.getElementById('delivery_address');
+    
+    if (!savedAddressId) return;
+    
+    if (savedAddressId.value === 'new') {
+        newAddressInput.style.display = 'block';
+        deliveryAddressTextarea.required = true;
+    } else {
+        newAddressInput.style.display = 'none';
+        deliveryAddressTextarea.required = false;
+        deliveryAddressTextarea.value = '';
+    }
+}
+
+// Функция для обновления общей стоимости
+function updateTotalCost() {
+    const subtotal = getCartSubtotal();
+    const deliveryMethod = document.getElementById('delivery_method').value;
+    const totalCostElement = document.getElementById('total_cost');
+    
+    console.log('Updating total cost. Subtotal:', subtotal, 'Delivery cost:', deliveryCost);
+    
+    let totalCost = subtotal + deliveryCost;
+    
+    if (deliveryMethod === 'transport_company') {
+        const totalText = subtotal.toFixed(2) + ' BYN + доставка';
+        totalCostElement.textContent = totalText;
+    } else {
+        const totalText = totalCost.toFixed(2) + ' BYN';
+        totalCostElement.textContent = totalText;
+        
+        // Если используем расчетный итог, обновляем и его
+        const calculatedTotalElement = document.getElementById('calculated_total');
+        if (calculatedTotalElement) {
+            calculatedTotalElement.textContent = totalText;
+        }
+    }
+    
+    console.log('Total cost updated to:', totalCostElement.textContent);
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, initializing checkout...');
+    
+    // Получаем и устанавливаем начальную сумму
+    const initialSubtotal = getCartSubtotal();
+    console.log('Initial subtotal:', initialSubtotal);
+    
+    // Если есть сохраненные адреса и есть адрес по умолчанию, скрываем поле ввода нового адреса
+    {% if delivery_addresses and default_address %}
+    const newAddressInput = document.getElementById('new_address_input');
+    if (newAddressInput) {
+        newAddressInput.style.display = 'none';
+    }
+    {% endif %}
+    
+    // Устанавливаем начальную стоимость доставки
+    toggleDeliveryAddress();
+    updateTotalCost();
+    
+    console.log('Checkout initialization complete');
+});
+
+// Валидация формы перед отправкой
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    const deliveryMethod = document.getElementById('delivery_method').value;
+    
+    if (deliveryMethod !== 'pickup') {
+        const savedAddressId = document.getElementById('saved_address_id');
+        const deliveryAddress = document.getElementById('delivery_address');
+        
+        // Проверяем, что выбран адрес или введен новый
+        if (savedAddressId && savedAddressId.value === 'new') {
+            if (!deliveryAddress.value.trim()) {
+                e.preventDefault();
+                alert('Пожалуйста, укажите адрес доставки');
+                deliveryAddress.focus();
+                return;
+            }
+        } else if (!savedAddressId || !savedAddressId.value) {
+            if (!deliveryAddress.value.trim()) {
+                e.preventDefault();
+                alert('Пожалуйста, укажите адрес доставки');
+                deliveryAddress.focus();
+                return;
+            }
+        }
+    }
+    
+    // Дополнительная валидация обязательных полей
+    const requiredFields = ['customer_name', 'customer_email', 'customer_phone'];
+    for (let fieldId of requiredFields) {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            e.preventDefault();
+            alert(`Пожалуйста, заполните поле "${field.previousElementSibling.textContent}"`);
+            field.focus();
+            return;
+        }
+    }
+    
+    // Проверяем, что итоговая сумма больше 0
+    const finalSubtotal = getCartSubtotal();
+    if (finalSubtotal <= 0) {
+        e.preventDefault();
+        alert('Ошибка: сумма заказа равна нулю. Пожалуйста, обновите страницу или обратитесь в поддержку.');
+        return;
+    }
+    
+    console.log('Form validation passed, submitting order...');
 });
 </script>
 {% endblock %}

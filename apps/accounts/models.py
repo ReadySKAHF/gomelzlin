@@ -3,7 +3,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator
 
-
 class UserManager(BaseUserManager):
     """Менеджер для пользовательской модели User"""
     
@@ -31,7 +30,6 @@ class UserManager(BaseUserManager):
             raise ValueError('Суперпользователь должен иметь is_superuser=True.')
         
         return self.create_user(email, password, **extra_fields)
-
 
 class User(AbstractUser):
     """
@@ -145,7 +143,6 @@ class User(AbstractUser):
     def is_admin_user(self):
         """Проверяет, является ли пользователь администратором"""
         return self.user_type in ['admin', 'manager'] or self.is_staff
-
 
 class UserProfile(models.Model):
     """
@@ -270,7 +267,6 @@ class UserProfile(models.Model):
         ]
         return ', '.join(filter(None, address_parts))
 
-
 class CompanyProfile(models.Model):
     """
     Профиль компании для юридических лиц
@@ -384,6 +380,29 @@ class CompanyProfile(models.Model):
         null=True
     )
     
+    # Контактное лицо компании
+    contact_person = models.CharField(
+        _('Контактное лицо'),
+        max_length=100,
+        blank=True
+    )
+    contact_phone = models.CharField(
+        _('Контактный телефон'),
+        max_length=13,
+        blank=True
+    )
+    contact_email = models.EmailField(
+        _('Контактный email'),
+        blank=True
+    )
+    
+    # Заметки
+    notes = models.TextField(
+        _('Заметки'),
+        blank=True,
+        help_text=_('Внутренние заметки для администрации')
+    )
+    
     # Даты
     created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
@@ -399,3 +418,113 @@ class CompanyProfile(models.Model):
     def full_company_name(self):
         """Возвращает полное название компании с организационно-правовой формой"""
         return f'{self.get_legal_form_display()} "{self.company_name}"'
+    
+class DeliveryAddress(models.Model):
+    """
+    Адреса доставки пользователя
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='delivery_addresses',
+        verbose_name=_('Пользователь')
+    )
+    
+    # Основная информация об адресе
+    title = models.CharField(
+        _('Название адреса'),
+        max_length=100,
+        help_text=_('Например: "Офис", "Склад", "Дом"')
+    )
+    
+    # Адресная информация
+    country = models.CharField(
+        _('Страна'),
+        max_length=50,
+        default='Беларусь'
+    )
+    city = models.CharField(
+        _('Город'),
+        max_length=50
+    )
+    address = models.TextField(
+        _('Полный адрес'),
+        help_text=_('Улица, дом, квартира/офис')
+    )
+    postal_code = models.CharField(
+        _('Почтовый индекс'),
+        max_length=10,
+        blank=True
+    )
+    
+    # Контактная информация для доставки
+    contact_person = models.CharField(
+        _('Контактное лицо'),
+        max_length=100,
+        blank=True,
+        help_text=_('Кто будет принимать заказ по этому адресу')
+    )
+    contact_phone = models.CharField(
+        _('Телефон контактного лица'),
+        max_length=13,
+        blank=True
+    )
+    
+    # Дополнительная информация
+    notes = models.TextField(
+        _('Примечания'),
+        blank=True,
+        help_text=_('Дополнительная информация для курьера (этаж, код домофона и т.д.)')
+    )
+    
+    # Настройки
+    is_default = models.BooleanField(
+        _('Адрес по умолчанию'),
+        default=False
+    )
+    is_active = models.BooleanField(
+        _('Активен'),
+        default=True
+    )
+    
+    # Даты
+    created_at = models.DateTimeField(_('Дата создания'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Дата обновления'), auto_now=True)
+    
+    class Meta:
+        verbose_name = _('Адрес доставки')
+        verbose_name_plural = _('Адреса доставки')
+        ordering = ['-is_default', '-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(is_default=True),
+                name='unique_default_address_per_user'
+            )
+        ]
+    
+    def __str__(self):
+        return f'{self.title} - {self.city}, {self.address[:50]}'
+    
+    def save(self, *args, **kwargs):
+        # Если это адрес по умолчанию, убираем флаг у других адресов пользователя
+        if self.is_default:
+            DeliveryAddress.objects.filter(
+                user=self.user, 
+                is_default=True
+            ).exclude(pk=self.pk).update(is_default=False)
+        
+        super().save(*args, **kwargs)
+    
+    def get_full_address(self):
+        """Возвращает полный адрес"""
+        address_parts = [
+            self.postal_code,
+            self.city,
+            self.address
+        ]
+        return ', '.join(filter(None, address_parts))
+    
+    def get_short_address(self):
+        """Возвращает краткий адрес для отображения в списках"""
+        return f'{self.city}, {self.address[:30]}{"..." if len(self.address) > 30 else ""}'

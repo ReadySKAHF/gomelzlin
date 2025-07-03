@@ -1,4 +1,3 @@
-# apps/orders/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
@@ -15,6 +14,9 @@ from django.utils import timezone
 import json
 import logging
 from decimal import Decimal
+
+# Импортируем модели аккаунтов
+from apps.accounts.models import UserProfile, CompanyProfile, DeliveryAddress
 
 from apps.catalog.models import Product
 from .models import (
@@ -386,6 +388,34 @@ class CheckoutView(TemplateView):
             messages.error(self.request, 'Ваша корзина пуста')
             return redirect('orders:cart')
         
+        # Получаем профиль пользователя для автозаполнения
+        try:
+            profile = self.request.user.profile
+            context['profile'] = profile
+        except UserProfile.DoesNotExist:
+            context['profile'] = None
+        
+        # Если пользователь - юридическое лицо, получаем профиль компании
+        if self.request.user.is_company:
+            try:
+                context['company_profile'] = self.request.user.company_profile
+            except CompanyProfile.DoesNotExist:
+                context['company_profile'] = None
+        
+        # Получаем сохраненные адреса доставки
+        context['delivery_addresses'] = DeliveryAddress.objects.filter(
+            user=self.request.user,
+            is_active=True
+        ).order_by('-is_default', '-created_at')
+        
+        # Получаем адрес по умолчанию
+        default_address = DeliveryAddress.objects.filter(
+            user=self.request.user,
+            is_default=True,
+            is_active=True
+        ).first()
+        context['default_address'] = default_address
+        
         return context
     
     def post(self, request):
@@ -406,24 +436,56 @@ class CheckoutView(TemplateView):
                     ip = request.META.get('REMOTE_ADDR')
                 return ip
             
+            # Получаем адрес доставки
+            delivery_address_text = ''
+            delivery_method = request.POST.get('delivery_method', 'pickup')
+            
+            if delivery_method != 'pickup':
+                # Проверяем, выбран ли сохраненный адрес или введен новый
+                saved_address_id = request.POST.get('saved_address_id')
+                if saved_address_id and saved_address_id != 'new':
+                    # Используем сохраненный адрес
+                    try:
+                        saved_address = DeliveryAddress.objects.get(
+                            id=saved_address_id,
+                            user=request.user,
+                            is_active=True
+                        )
+                        delivery_address_text = saved_address.get_full_address()
+                        if saved_address.contact_person:
+                            delivery_address_text += f"\nКонтактное лицо: {saved_address.contact_person}"
+                        if saved_address.contact_phone:
+                            delivery_address_text += f"\nТелефон: {saved_address.contact_phone}"
+                        if saved_address.notes:
+                            delivery_address_text += f"\nПримечания: {saved_address.notes}"
+                    except DeliveryAddress.DoesNotExist:
+                        messages.error(request, 'Выбранный адрес не найден')
+                        return redirect('orders:checkout')
+                else:
+                    # Используем новый адрес
+                    delivery_address_text = request.POST.get('delivery_address', '').strip()
+                    if not delivery_address_text:
+                        messages.error(request, 'Укажите адрес доставки')
+                        return redirect('orders:checkout')
+            
             # Подготавливаем данные заказа с правильными значениями
             order_data = {
                 'user': request.user,
                 'session_key': request.session.session_key or '',
                 
-                # Контактная информация
-                'customer_name': request.POST.get('customer_name', '').strip(),
+                # Контактная информация (автозаполнение из профиля)
+                'customer_name': request.POST.get('customer_name', '').strip() or request.user.get_full_name(),
                 'customer_email': request.POST.get('customer_email', request.user.email).strip(),
-                'customer_phone': request.POST.get('customer_phone', '').strip(),
+                'customer_phone': request.POST.get('customer_phone', '').strip() or request.user.phone,
                 
-                # Информация о компании
+                # Информация о компании (автозаполнение из профиля компании)
                 'company_name': request.POST.get('company_name', '').strip(),
                 'company_unp': request.POST.get('company_unp', '').strip(),
                 'company_address': request.POST.get('company_address', '').strip(),
                 
                 # Доставка
-                'delivery_method': request.POST.get('delivery_method', 'pickup'),
-                'delivery_address': request.POST.get('delivery_address', '').strip(),
+                'delivery_method': delivery_method,
+                'delivery_address': delivery_address_text,
                 'delivery_cost': Decimal('0.00'),  # Будет рассчитано позже
                 
                 # Оплата
@@ -437,11 +499,29 @@ class CheckoutView(TemplateView):
                 'user_agent': request.META.get('HTTP_USER_AGENT', '')[:500],  # Ограничиваем длину
             }
             
+            # Автозаполнение данных компании из профиля
+            if request.user.is_company:
+                try:
+                    company_profile = request.user.company_profile
+                    if not order_data['company_name'] and company_profile.company_name:
+                        order_data['company_name'] = company_profile.company_name
+                    if not order_data['company_unp'] and company_profile.unp:
+                        order_data['company_unp'] = company_profile.unp
+                    if not order_data['company_address'] and company_profile.legal_address:
+                        order_data['company_address'] = company_profile.legal_address
+                except:
+                    pass  # Игнорируем ошибки, если профиль компании не найден
+            
             # Валидация обязательных полей
             required_fields = ['customer_name', 'customer_email', 'customer_phone']
             for field in required_fields:
                 if not order_data.get(field):
-                    messages.error(request, f'Поле "{field}" обязательно для заполнения')
+                    field_names = {
+                        'customer_name': 'Имя',
+                        'customer_email': 'Email',
+                        'customer_phone': 'Телефон'
+                    }
+                    messages.error(request, f'Поле "{field_names[field]}" обязательно для заполнения')
                     return redirect('orders:checkout')
             
             # Создаем заказ

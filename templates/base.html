@@ -592,5 +592,9 @@
             }
         }
     </script>
+    <script src="{% static 'js/address_management.js' %}"></script>
+    {% if 'checkout' in request.resolver_match.url_name %}
+        <script src="{% static 'js/checkout_enhancements.js' %}"></script>
+    {% endif %}
 </body>
 </html>
