@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container" style="padding: 3rem 0;">
-    <h1>Оформление заказа</h1>
+    <h1 style="color: var(--primary-red); margin-bottom: 2rem;">Оформление заказа</h1>
     
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 3rem; margin-top: 2rem;">
         <!-- Форма заказа -->
@@ -181,13 +181,7 @@
                     <div style="padding-top: 1rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <span>Товары:</span>
-                            <span id="subtotal_cost">
-                                {% if cart.total_price > 0 %}
-                                    {{ cart.total_price }} BYN
-                                {% else %}
-                                    <span id="calculated_subtotal">0.00 BYN</span>
-                                {% endif %}
-                            </span>
+                            <span id="subtotal_cost">0.00 BYN</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                             <span>Доставка:</span>
@@ -196,13 +190,7 @@
                         <hr style="margin: 1rem 0; border: none; border-top: 2px solid var(--light-gray);">
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
                             <span>Итого:</span>
-                            <span id="total_cost">
-                                {% if cart.total_price > 0 %}
-                                    {{ cart.total_price }} BYN
-                                {% else %}
-                                    <span id="calculated_total">0.00 BYN</span>
-                                {% endif %}
-                            </span>
+                            <span id="total_cost">0.00 BYN</span>
                         </div>
                     </div>
                 </div>
@@ -220,6 +208,14 @@
         </div>
     </div>
 </div>
+
+<!-- Скрытые данные для JavaScript -->
+<script type="application/json" id="checkout-data">
+{
+    "cart_total": "{% if cart.total_price %}{{ cart.total_price|floatformat:2 }}{% else %}0.00{% endif %}",
+    "has_default_address": {% if delivery_addresses and default_address %}true{% else %}false{% endif %}
+}
+</script>
 
 <style>
 /* Стили для формы оформления заказа */
@@ -265,6 +261,21 @@ input:focus, textarea:focus, select:focus {
 // Глобальные переменные для расчетов
 let cartSubtotal = 0;
 let deliveryCost = 0;
+let checkoutData = {};
+
+// Загружаем данные из JSON
+function loadCheckoutData() {
+    try {
+        const dataElement = document.getElementById('checkout-data');
+        if (dataElement) {
+            checkoutData = JSON.parse(dataElement.textContent);
+            console.log('Checkout data loaded:', checkoutData);
+        }
+    } catch (error) {
+        console.error('Error loading checkout data:', error);
+        checkoutData = { cart_total: "0.00", has_default_address: false };
+    }
+}
 
 // Функция для расчета суммы товаров из DOM
 function calculateSubtotalFromDOM() {
@@ -285,8 +296,8 @@ function calculateSubtotalFromDOM() {
 
 // Функция для получения суммы товаров
 function getCartSubtotal() {
-    // Пытаемся получить сумму из Django переменной
-    const djangoTotal = {{ cart.total_price|default:0 }};
+    // Пытаемся получить сумму из загруженных данных
+    const djangoTotal = parseFloat(checkoutData.cart_total) || 0;
     console.log('Django cart.total_price:', djangoTotal);
     
     if (djangoTotal > 0) {
@@ -296,12 +307,12 @@ function getCartSubtotal() {
         // Если Django сумма = 0, считаем из DOM
         cartSubtotal = calculateSubtotalFromDOM();
         console.log('Using calculated total:', cartSubtotal);
-        
-        // Обновляем отображение подытога
-        const subtotalElement = document.getElementById('calculated_subtotal');
-        if (subtotalElement) {
-            subtotalElement.textContent = cartSubtotal.toFixed(2) + ' BYN';
-        }
+    }
+    
+    // ВСЕГДА обновляем отображение подытога
+    const subtotalElement = document.getElementById('subtotal_cost');
+    if (subtotalElement) {
+        subtotalElement.textContent = cartSubtotal.toFixed(2) + ' BYN';
     }
     
     return cartSubtotal;
@@ -314,31 +325,55 @@ function toggleDeliveryAddress() {
     const deliveryCostElement = document.getElementById('delivery_cost');
     
     console.log('Delivery method changed to:', deliveryMethod);
+    console.log('Delivery cost element found:', deliveryCostElement);
     
     if (deliveryMethod === 'pickup') {
-        addressSection.style.display = 'none';
+        if (addressSection) {
+            addressSection.style.display = 'none';
+        }
         deliveryCost = 0;
-        deliveryCostElement.textContent = '0.00 BYN';
+        if (deliveryCostElement) {
+            deliveryCostElement.textContent = '0.00 BYN';
+            console.log('Set delivery cost element to: 0.00 BYN');
+        }
     } else {
-        addressSection.style.display = 'block';
+        if (addressSection) {
+            addressSection.style.display = 'block';
+        }
         
         if (deliveryMethod === 'delivery') {
+            // Получаем актуальную сумму товаров для расчета доставки
+            const currentSubtotal = getCartSubtotal();
+            console.log('Checking delivery cost for subtotal:', currentSubtotal);
+            
             // Бесплатная доставка для заказов свыше 500 BYN
-            const subtotal = getCartSubtotal();
-            if (subtotal >= 500) {
+            if (currentSubtotal >= 500) {
                 deliveryCost = 0;
-                deliveryCostElement.textContent = 'Бесплатно (сумма ≥ 500 BYN)';
+                if (deliveryCostElement) {
+                    deliveryCostElement.textContent = 'Бесплатно (сумма ≥ 500 BYN)';
+                    console.log('Set delivery cost element to: Бесплатно (сумма ≥ 500 BYN)');
+                    console.log('Element content after setting:', deliveryCostElement.textContent);
+                }
+                console.log('Free delivery applied (order >= 500 BYN)');
             } else {
                 deliveryCost = 10;
-                deliveryCostElement.textContent = '10.00 BYN';
+                if (deliveryCostElement) {
+                    deliveryCostElement.textContent = '10.00 BYN';
+                    console.log('Set delivery cost element to: 10.00 BYN');
+                }
+                console.log('Paid delivery applied (order < 500 BYN)');
             }
         } else if (deliveryMethod === 'transport_company') {
             deliveryCost = 0;
-            deliveryCostElement.textContent = 'По согласованию';
+            if (deliveryCostElement) {
+                deliveryCostElement.textContent = 'По согласованию';
+                console.log('Set delivery cost element to: По согласованию');
+            }
+            console.log('Transport company delivery selected');
         }
     }
     
-    console.log('Delivery cost set to:', deliveryCost);
+    console.log('Global deliveryCost variable set to:', deliveryCost);
     updateTotalCost();
 }
 
@@ -351,37 +386,45 @@ function toggleAddressInput() {
     if (!savedAddressId) return;
     
     if (savedAddressId.value === 'new') {
-        newAddressInput.style.display = 'block';
-        deliveryAddressTextarea.required = true;
+        if (newAddressInput) {
+            newAddressInput.style.display = 'block';
+        }
+        if (deliveryAddressTextarea) {
+            deliveryAddressTextarea.required = true;
+        }
     } else {
-        newAddressInput.style.display = 'none';
-        deliveryAddressTextarea.required = false;
-        deliveryAddressTextarea.value = '';
+        if (newAddressInput) {
+            newAddressInput.style.display = 'none';
+        }
+        if (deliveryAddressTextarea) {
+            deliveryAddressTextarea.required = false;
+            deliveryAddressTextarea.value = '';
+        }
     }
 }
 
 // Функция для обновления общей стоимости
 function updateTotalCost() {
-    const subtotal = getCartSubtotal();
+    // ВСЕГДА получаем свежее значение суммы товаров
+    const currentSubtotal = getCartSubtotal();
     const deliveryMethod = document.getElementById('delivery_method').value;
     const totalCostElement = document.getElementById('total_cost');
     
-    console.log('Updating total cost. Subtotal:', subtotal, 'Delivery cost:', deliveryCost);
+    console.log('Updating total cost. Subtotal:', currentSubtotal, 'Delivery cost:', deliveryCost);
     
-    let totalCost = subtotal + deliveryCost;
+    if (!totalCostElement) {
+        console.error('Total cost element not found');
+        return;
+    }
+    
+    let totalCost = currentSubtotal + deliveryCost;
     
     if (deliveryMethod === 'transport_company') {
-        const totalText = subtotal.toFixed(2) + ' BYN + доставка';
+        const totalText = currentSubtotal.toFixed(2) + ' BYN + доставка';
         totalCostElement.textContent = totalText;
     } else {
         const totalText = totalCost.toFixed(2) + ' BYN';
         totalCostElement.textContent = totalText;
-        
-        // Если используем расчетный итог, обновляем и его
-        const calculatedTotalElement = document.getElementById('calculated_total');
-        if (calculatedTotalElement) {
-            calculatedTotalElement.textContent = totalText;
-        }
     }
     
     console.log('Total cost updated to:', totalCostElement.textContent);
@@ -391,72 +434,51 @@ function updateTotalCost() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page loaded, initializing checkout...');
     
+    // Загружаем данные
+    loadCheckoutData();
+    
     // Получаем и устанавливаем начальную сумму
     const initialSubtotal = getCartSubtotal();
     console.log('Initial subtotal:', initialSubtotal);
     
     // Если есть сохраненные адреса и есть адрес по умолчанию, скрываем поле ввода нового адреса
-    {% if delivery_addresses and default_address %}
-    const newAddressInput = document.getElementById('new_address_input');
-    if (newAddressInput) {
-        newAddressInput.style.display = 'none';
+    if (checkoutData.has_default_address) {
+        const newAddressInput = document.getElementById('new_address_input');
+        if (newAddressInput) {
+            newAddressInput.style.display = 'none';
+        }
     }
-    {% endif %}
     
     // Устанавливаем начальную стоимость доставки
     toggleDeliveryAddress();
-    updateTotalCost();
     
     console.log('Checkout initialization complete');
 });
 
 // Валидация формы перед отправкой
-document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-    const deliveryMethod = document.getElementById('delivery_method').value;
-    
-    if (deliveryMethod !== 'pickup') {
-        const savedAddressId = document.getElementById('saved_address_id');
-        const deliveryAddress = document.getElementById('delivery_address');
-        
-        // Проверяем, что выбран адрес или введен новый
-        if (savedAddressId && savedAddressId.value === 'new') {
-            if (!deliveryAddress.value.trim()) {
-                e.preventDefault();
-                alert('Пожалуйста, укажите адрес доставки');
-                deliveryAddress.focus();
-                return;
+document.addEventListener('DOMContentLoaded', function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            const deliveryMethod = document.getElementById('delivery_method').value;
+            
+            if (deliveryMethod !== 'pickup') {
+                const savedAddressId = document.getElementById('saved_address_id');
+                const deliveryAddress = document.getElementById('delivery_address');
+                
+                // Проверяем, что выбран адрес или введен новый
+                if (savedAddressId && savedAddressId.value === 'new') {
+                    if (!deliveryAddress.value.trim()) {
+                        e.preventDefault();
+                        alert('Пожалуйста, укажите адрес доставки');
+                        return false;
+                    }
+                }
             }
-        } else if (!savedAddressId || !savedAddressId.value) {
-            if (!deliveryAddress.value.trim()) {
-                e.preventDefault();
-                alert('Пожалуйста, укажите адрес доставки');
-                deliveryAddress.focus();
-                return;
-            }
-        }
+            
+            console.log('Form validation passed, submitting order...');
+        });
     }
-    
-    // Дополнительная валидация обязательных полей
-    const requiredFields = ['customer_name', 'customer_email', 'customer_phone'];
-    for (let fieldId of requiredFields) {
-        const field = document.getElementById(fieldId);
-        if (!field.value.trim()) {
-            e.preventDefault();
-            alert(`Пожалуйста, заполните поле "${field.previousElementSibling.textContent}"`);
-            field.focus();
-            return;
-        }
-    }
-    
-    // Проверяем, что итоговая сумма больше 0
-    const finalSubtotal = getCartSubtotal();
-    if (finalSubtotal <= 0) {
-        e.preventDefault();
-        alert('Ошибка: сумма заказа равна нулю. Пожалуйста, обновите страницу или обратитесь в поддержку.');
-        return;
-    }
-    
-    console.log('Form validation passed, submitting order...');
 });
 </script>
 {% endblock %}
