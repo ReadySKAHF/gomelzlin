@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from django.db.models import Q  
 from django.core.exceptions import ValidationError
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.utils import timezone
 import json
@@ -521,31 +522,52 @@ class OrderDetailView(LoginRequiredMixin, TemplateView):
         return context
 
 class OrderListView(LoginRequiredMixin, TemplateView):
-    """Список заказов пользователя"""
+    """Список заказов пользователя с поиском и пагинацией"""
     template_name = 'orders/order_list.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Мои заказы'
         
+        search_query = self.request.GET.get('search', '').strip()
+        status_filter = self.request.GET.get('status', '')
+        
         orders = Order.objects.filter(
             user=self.request.user
         ).prefetch_related('items').order_by('-created_at')
         
-        # Пагинация
-        paginator = Paginator(orders, 10)
+        if search_query:
+            from django.db.models import Q
+            orders = orders.filter(
+                Q(number__icontains=search_query) |
+                Q(customer_name__icontains=search_query) |
+                Q(customer_email__icontains=search_query) |
+                Q(customer_phone__icontains=search_query)
+            )
+        
+        if status_filter:
+            orders = orders.filter(status=status_filter)
+        
+        from django.core.paginator import Paginator
+        paginator = Paginator(orders, 4) 
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
         context['orders'] = page_obj
         context['page_obj'] = page_obj
+        context['search_query'] = search_query
+        context['status_filter'] = status_filter
+        
+        context['status_choices'] = Order.STATUS_CHOICES
+        
+        context['total_orders_count'] = Order.objects.filter(user=self.request.user).count()
         
         return context
 
 @login_required
 @require_POST
 def cancel_order(request, number):
-    """Отмена заказа пользователем"""
+    """Отмена заказа пользователем с поддержкой AJAX"""
     try:
         order = get_object_or_404(
             Order,
@@ -554,27 +576,56 @@ def cancel_order(request, number):
         )
         
         if not order.can_be_cancelled:
-            messages.error(request, 'Заказ нельзя отменить на текущем этапе')
-            return redirect('orders:order_detail', number=number)
+            error_message = 'Заказ нельзя отменить на текущем этапе'
+
+            if request.headers.get('Content-Type') == 'application/json':
+                return JsonResponse({
+                    'success': False,
+                    'message': error_message
+                })
+            else:
+                messages.error(request, error_message)
+                return redirect('orders:order_detail', number=number)
         
         old_status = order.status
         order.status = 'cancelled'
         order.save()
+
+        try:
+            from .models import OrderStatusHistory
+            OrderStatusHistory.objects.create(
+                order=order,
+                old_status=old_status,
+                new_status='cancelled',
+                comment='Заказ отменен пользователем'
+            )
+        except:
+            pass  
         
-        OrderStatusHistory.objects.create(
-            order=order,
-            old_status=old_status,
-            new_status='cancelled',
-            comment='Заказ отменен пользователем'
-        )
-        
-        messages.success(request, f'Заказ №{order.number} успешно отменен')
-        return redirect('accounts:profile')
+        success_message = f'Заказ №{order.number} успешно отменен'
+
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({
+                'success': True,
+                'message': success_message,
+                'order_status': 'cancelled'
+            })
+        else:
+            messages.success(request, success_message)
+            return redirect('accounts:profile')
         
     except Exception as e:
+        error_message = 'Произошла ошибка при отмене заказа'
         print(f"Ошибка отмены заказа: {e}")
-        messages.error(request, 'Произошла ошибка при отмене заказа')
-        return redirect('accounts:profile')
+
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({
+                'success': False,
+                'message': error_message
+            })
+        else:
+            messages.error(request, error_message)
+            return redirect('accounts:profile')
 
 class CartMergeMiddleware:
     """Middleware для объединения корзин при входе пользователя"""
@@ -877,4 +928,89 @@ def wishlist_count(request):
         return JsonResponse({
             'success': False,
             'message': f'Ошибка: {str(e)}'
+        })
+
+@login_required
+@require_POST
+def reorder_items(request, number):
+    """Повторный заказ - добавление товаров из заказа в корзину"""
+    try:
+        order = get_object_or_404(
+            Order,
+            number=number,
+            user=request.user
+        )
+
+        cart = get_cart_for_request(request)
+        
+        added_items = 0
+        unavailable_items = []
+
+        for order_item in order.items.all():
+            try:
+                product = order_item.product
+
+                if not product.is_active:
+                    unavailable_items.append(product.name)
+                    continue
+
+                cart_item, created = CartItem.objects.get_or_create(
+                    cart=cart,
+                    product=product,
+                    defaults={'quantity': order_item.quantity}
+                )
+                
+                if not created:
+                    cart_item.quantity += order_item.quantity
+                    cart_item.save()
+                
+                added_items += 1
+                
+            except Exception as e:
+                print(f"Ошибка при добавлении товара {order_item.product.name}: {e}")
+                unavailable_items.append(order_item.product.name)
+                continue
+
+        if added_items > 0:
+            cart_count = cart.items_count if hasattr(cart, 'items_count') else cart.items.count()
+            
+            message = f"Добавлено {added_items} товар"
+            if added_items == 1:
+                message += " в корзину"
+            elif added_items in [2, 3, 4]:
+                message += "а в корзину"
+            else:
+                message += "ов в корзину"
+            
+            if unavailable_items:
+                message += f". Недоступно: {len(unavailable_items)} товар"
+                if len(unavailable_items) in [2, 3, 4]:
+                    message += "а"
+                elif len(unavailable_items) > 4:
+                    message += "ов"
+            
+            return JsonResponse({
+                'success': True,
+                'message': message,
+                'added_items': added_items,
+                'unavailable_items': len(unavailable_items),
+                'cart_count': cart_count
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Ни один товар из заказа не удалось добавить в корзину. Возможно, все товары недоступны.'
+            })
+            
+    except Order.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Заказ не найден'
+        })
+        
+    except Exception as e:
+        print(f"Ошибка при повторном заказе: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Произошла ошибка при добавлении товаров в корзину'
         })

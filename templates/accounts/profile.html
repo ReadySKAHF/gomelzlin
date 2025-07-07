@@ -280,124 +280,221 @@
             <!-- Мои заказы -->
             <div id="orders-tab" class="tab-content">
                 <div style="background: white; border-radius: 10px; box-shadow: var(--shadow); padding: 2rem;">
+                    
+                    <!-- Заголовок и счетчик -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                         <h2>Мои заказы ({{ orders_count }})</h2>
-                        {% if orders_count > 10 %}
                         <a href="{% url 'orders:order_list' %}" class="btn btn-outline">
-                            📋 Все заказы
+                            📋 Расширенный поиск
                         </a>
-                        {% endif %}
                     </div>
                     
-                    {% if recent_orders %}
+                    <!-- Форма поиска -->
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                        <form method="get" style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+                            <input type="hidden" name="tab" value="orders">
+                            
+                            <div style="flex: 2; min-width: 200px;">
+                                <label for="search" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">
+                                    🔍 Поиск
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="search" 
+                                    name="search" 
+                                    value="{{ search_query }}"
+                                    placeholder="Номер заказа, имя, email..."
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;"
+                                >
+                            </div>
+                            
+                            <div style="flex: 1; min-width: 150px;">
+                                <label for="status" style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem;">
+                                    📊 Статус
+                                </label>
+                                <select 
+                                    id="status" 
+                                    name="status"
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;"
+                                >
+                                    <option value="">Все</option>
+                                    {% for status_code, status_name in status_choices %}
+                                        <option value="{{ status_code }}" {% if status_filter == status_code %}selected{% endif %}>
+                                            {{ status_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                    Найти
+                                </button>
+                                
+                                {% if search_query or status_filter %}
+                                    <a href="?tab=orders" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                                        Сбросить
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Результаты поиска -->
+                    {% if search_query or status_filter %}
+                        <div style="margin-bottom: 1rem; padding: 0.75rem; background: #e3f2fd; border-radius: 6px; font-size: 0.9rem;">
+                            {% if orders_page_obj.paginator.count > 0 %}
+                                📋 Найдено: <strong>{{ orders_page_obj.paginator.count }}</strong> заказ{{ orders_page_obj.paginator.count|pluralize:",ов" }}
+                                {% if search_query %}по запросу "<strong>{{ search_query }}</strong>"{% endif %}
+                                {% if status_filter %}со статусом "<strong>{{ status_filter }}</strong>"{% endif %}
+                            {% else %}
+                                🔍 По вашему запросу ничего не найдено
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Список заказов -->
+                    {% if recent_orders and orders_page_obj.object_list %}
                         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                            {% for order in recent_orders %}
-                            <div class="order-card">
+                            {% for order in orders_page_obj.object_list %}
+                            <div class="order-card" style="border: 1px solid #e9ecef; border-radius: 8px; padding: 1.5rem; transition: box-shadow 0.2s; background: #fff;">
+                                
+                                <!-- Заголовок заказа -->
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                                     <div>
                                         <h4 style="margin: 0 0 0.5rem 0; color: var(--primary-red);">
                                             📦 Заказ №{{ order.number }}
                                         </h4>
-                                        <div style="display: flex; gap: 1rem; font-size: 0.9rem; color: var(--secondary-gray);">
+                                        <div style="display: flex; gap: 1rem; font-size: 0.9rem; color: var(--secondary-gray); flex-wrap: wrap;">
                                             <span>📅 {{ order.created_at|date:"d.m.Y H:i" }}</span>
                                             <span>💰 {{ order.total_amount }} BYN</span>
+                                            <span>📦 {{ order.items_count }} товар{{ order.items_count|pluralize:",ов" }}</span>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Статус заказа -->
                                     <div style="text-align: right;">
-                                        <span class="order-status order-status-{{ order.status }}" style="
-                                            padding: 0.25rem 0.75rem; 
+                                        <span style="
+                                            padding: 0.5rem 1rem; 
                                             border-radius: 15px; 
-                                            font-size: 0.8rem; 
-                                            font-weight: 600;
+                                            font-size: 0.85rem; 
+                                            font-weight: bold;
+                                            display: inline-block;
                                             {% if order.status == 'pending' %}background: #fff3cd; color: #856404;{% endif %}
                                             {% if order.status == 'confirmed' %}background: #d1ecf1; color: #0c5460;{% endif %}
-                                            {% if order.status == 'processing' %}background: #cce5ff; color: #004085;{% endif %}
+                                            {% if order.status == 'processing' %}background: #e2e3e5; color: #383d41;{% endif %}
+                                            {% if order.status == 'paid' %}background: #cce5ff; color: #004085;{% endif %}
                                             {% if order.status == 'shipped' %}background: #d4edda; color: #155724;{% endif %}
                                             {% if order.status == 'delivered' %}background: #d4edda; color: #155724;{% endif %}
                                             {% if order.status == 'completed' %}background: #c3e6cb; color: #155724;{% endif %}
                                             {% if order.status == 'cancelled' %}background: #f8d7da; color: #721c24;{% endif %}
                                             {% if order.status == 'returned' %}background: #ffeaa7; color: #856404;{% endif %}
                                         ">
-                                            {% if order.status == 'pending' %}⏳ Ожидает обработки{% endif %}
+                                            {% if order.status == 'pending' %}⏳ Ожидает{% endif %}
                                             {% if order.status == 'confirmed' %}✅ Подтвержден{% endif %}
                                             {% if order.status == 'processing' %}🔄 В обработке{% endif %}
+                                            {% if order.status == 'paid' %}💳 Оплачен{% endif %}
                                             {% if order.status == 'shipped' %}🚚 Отправлен{% endif %}
                                             {% if order.status == 'delivered' %}📦 Доставлен{% endif %}
-                                            {% if order.status == 'completed' %}🎉 Завершён{% endif %}
+                                            {% if order.status == 'completed' %}🎉 Завершен{% endif %}
                                             {% if order.status == 'cancelled' %}❌ Отменен{% endif %}
                                             {% if order.status == 'returned' %}↩️ Возвращен{% endif %}
                                         </span>
                                     </div>
                                 </div>
                                 
-                                <!-- Товары в заказе -->
+                                <!-- Товары -->
                                 <div style="margin-bottom: 1rem;">
-                                    <strong>Товары:</strong>
+                                    <strong style="color: var(--dark-gray); font-size: 0.9rem;">Товары:</strong>
                                     <div style="margin-top: 0.5rem;">
-                                        {% for item in order.items.all|slice:":3" %}
-                                            <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.9rem;">
+                                        {% for item in order.items.all|slice:":2" %}
+                                            <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.85rem; border-bottom: 1px solid #f0f0f0;">
                                                 <span>{{ item.product.name }} × {{ item.quantity }}</span>
-                                                <span>{{ item.get_total_price }} BYN</span>
+                                                <span style="font-weight: bold;">{{ item.get_total_price }} BYN</span>
                                             </div>
                                         {% endfor %}
-                                        {% if order.items.count > 3 %}
-                                            <div style="font-size: 0.8rem; color: var(--secondary-gray); margin-top: 0.25rem;">
-                                                ... и еще {{ order.items.count|add:"-3" }} товар{{ order.items.count|add:"-3"|pluralize:"а,ов" }}
+                                        {% if order.items.count > 2 %}
+                                            <div style="color: var(--secondary-gray); font-size: 0.8rem; margin-top: 0.25rem; font-style: italic;">
+                                                ... и еще {{ order.items.count|add:"-2" }} позиц{{ order.items.count|add:"-2"|pluralize:"ия,ии,ий" }}
                                             </div>
                                         {% endif %}
                                     </div>
                                 </div>
-                                
-                                <!-- Информация о доставке -->
-                                {% if order.delivery_method != 'pickup' %}
-                                <div style="margin-bottom: 1rem; font-size: 0.9rem;">
-                                    <strong>Доставка:</strong> 
-                                    {% if order.delivery_method == 'delivery' %}🚚 Доставка по городу{% endif %}
-                                    {% if order.delivery_method == 'transport_company' %}🚛 Транспортная компания{% endif %}
-                                    {% if order.delivery_address %}
-                                        <br><span style="color: var(--secondary-gray);">{{ order.delivery_address|truncatechars:50 }}</span>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                                
+
                                 <!-- Кнопки действий -->
-                                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                                    <a href="{% url 'orders:order_detail' number=order.number %}" 
-                                    class="btn btn-outline btn-sm">
-                                        👁️ Подробнее
+                                <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                                    <a href="{{ order.get_absolute_url }}" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                        📄 Подробнее
                                     </a>
+                                    
                                     {% if order.status == 'pending' or order.status == 'confirmed' %}
-                                    <form method="post" action="{% url 'orders:cancel_order' number=order.number %}" 
-                                        style="display: inline;" 
-                                        onsubmit="return confirm('Вы уверены, что хотите отменить заказ?')">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-outline btn-sm" 
-                                                style="color: #dc3545; border-color: #dc3545;">
+                                        <button class="btn btn-danger" onclick="cancelOrder('{{ order.number }}')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
                                             ❌ Отменить
                                         </button>
-                                    </form>
+                                    {% endif %}
+                                    
+                                    {% if order.status == 'delivered' or order.status == 'completed' %}
+                                        <button class="btn btn-primary" onclick="reorderItems('{{ order.number }}')" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">
+                                            🔄 Повторить
+                                        </button>
                                     {% endif %}
                                 </div>
                             </div>
                             {% endfor %}
                         </div>
+
+                        <!-- Пагинация -->
+                        {% if orders_page_obj.has_other_pages %}
+                        <div style="display: flex; justify-content: center; margin-top: 2rem;">
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                {% if orders_page_obj.has_previous %}
+                                    <a href="?tab=orders&page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                                    class="btn btn-outline" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">« Первая</a>
+                                    <a href="?tab=orders&page={{ orders_page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                                    class="btn btn-outline" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">‹ Пред</a>
+                                {% endif %}
+
+                                <span style="padding: 0.5rem 1rem; background: var(--primary-red); color: white; border-radius: 6px; font-weight: bold; font-size: 0.85rem;">
+                                    {{ orders_page_obj.number }} из {{ orders_page_obj.paginator.num_pages }}
+                                </span>
+
+                                {% if orders_page_obj.has_next %}
+                                    <a href="?tab=orders&page={{ orders_page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                                    class="btn btn-outline" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">След ›</a>
+                                    <a href="?tab=orders&page={{ orders_page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                                    class="btn btn-outline" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;">Последняя »</a>
+                                {% endif %}
+                            </div>
+                        </div>
                         
-                        {% if orders_count > 10 %}
-                        <div style="text-align: center; margin-top: 2rem;">
-                            <a href="{% url 'orders:order_list' %}" class="btn btn-primary">
-                                📋 Показать все заказы ({{ orders_count }})
-                            </a>
+                        <!-- Информация о результатах -->
+                        <div style="text-align: center; margin-top: 1rem; color: var(--secondary-gray); font-size: 0.85rem;">
+                            Показано {{ orders_page_obj.start_index }}–{{ orders_page_obj.end_index }} из {{ orders_page_obj.paginator.count }} заказов
                         </div>
                         {% endif %}
-                        
+
                     {% else %}
-                        <div style="text-align: center; padding: 3rem; color: var(--secondary-gray);">
-                            <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
-                            <h3 style="margin-bottom: 1rem;">У вас пока нет заказов</h3>
-                            <p style="margin-bottom: 2rem;">Оформите первый заказ, чтобы увидеть его здесь</p>
-                            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">
-                                🛍️ Перейти к покупкам
-                            </a>
+                        <!-- Пустое состояние -->
+                        <div style="text-align: center; padding: 3rem 0;">
+                            {% if search_query or status_filter %}
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                                <h3 style="color: var(--secondary-gray); margin-bottom: 1rem;">Заказы не найдены</h3>
+                                <p style="color: var(--secondary-gray); margin-bottom: 1.5rem;">
+                                    По вашему запросу ничего не найдено
+                                </p>
+                                <a href="?tab=orders" class="btn btn-outline">
+                                    Сбросить фильтры
+                                </a>
+                            {% else %}
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+                                <h3 style="color: var(--secondary-gray); margin-bottom: 1rem;">У вас пока нет заказов</h3>
+                                <p style="color: var(--secondary-gray); margin-bottom: 1.5rem;">
+                                    Перейдите в каталог и сделайте первый заказ
+                                </p>
+                                <a href="{% url 'catalog:category_list' %}" class="btn btn-primary">
+                                    🛍️ Перейти к покупкам
+                                </a>
+                            {% endif %}
                         </div>
                     {% endif %}
                 </div>
@@ -669,6 +766,299 @@
 .order-item:last-child {
     border-bottom: none;
 }
+
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(3px);
+}
+
+.custom-alert-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-alert {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.8) translateY(20px);
+    transition: all 0.3s ease;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.custom-alert-overlay.show .custom-alert {
+    transform: scale(1) translateY(0);
+}
+
+@keyframes slideIn {
+    from {
+        transform: scale(0.8) translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.custom-alert-header {
+    padding: 2rem 2rem 1rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.custom-alert-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.custom-alert-icon.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.custom-alert-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.custom-alert-body {
+    padding: 1rem 2rem 2rem 2rem;
+}
+
+.custom-alert-message {
+    font-size: 1.1rem;
+    color: #34495e;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.custom-alert-submessage {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    margin: 0 0 2rem 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.custom-alert-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.custom-alert-btn {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    position: relative;
+    overflow: hidden;
+}
+
+.custom-alert-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.custom-alert-btn:active {
+    transform: translateY(0);
+}
+
+.custom-alert-btn.cancel {
+    background: #ecf0f1;
+    color: #7f8c8d;
+    border: 1px solid #bdc3c7;
+}
+
+.custom-alert-btn.cancel:hover {
+    background: #d5dbdb;
+    color: #2c3e50;
+}
+
+.custom-alert-btn.confirm {
+    background: linear-gradient(135deg, var(--primary-red, #cb413b) 0%, #e74c3c 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+}
+
+.custom-alert-btn.confirm:hover {
+    background: linear-gradient(135deg, #b73e38 0%, #c0392b 100%);
+    box-shadow: 0 6px 20px rgba(203, 65, 59, 0.4);
+}
+
+/* Стили для загрузки */
+.custom-alert.loading {
+    pointer-events: none;
+}
+
+.custom-alert.loading .custom-alert-header {
+    border-bottom: none;
+}
+
+.custom-alert.loading .custom-alert-body {
+    padding-bottom: 2rem;
+}
+
+/* Стили для уведомлений */
+.reorder-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    animation: slideInRight 0.3s ease forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.reorder-notification.fade-out {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 1.25rem;
+    position: relative;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.notification-subtitle {
+    font-size: 0.875rem;
+    color: #7f8c8d;
+    line-height: 1.3;
+}
+
+.notification-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #bdc3c7;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.notification-close:hover {
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+/* Цветовые варианты уведомлений */
+.reorder-notification.success {
+    border-left: 4px solid #27ae60;
+}
+
+.reorder-notification.error {
+    border-left: 4px solid #e74c3c;
+}
+
+.reorder-notification.warning {
+    border-left: 4px solid #f39c12;
+}
+
+.reorder-notification.info {
+    border-left: 4px solid #3498db;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .custom-alert {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .custom-alert-actions {
+        flex-direction: column;
+    }
+    
+    .custom-alert-btn {
+        width: 100%;
+    }
+    
+    .reorder-notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        top: 10px;
+    }
+}
+
 </style>
 
 <script>
@@ -734,7 +1124,7 @@ function setDefaultAddress(addressId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload(); // Перезагружаем страницу для обновления интерфейса
+                location.reload(); 
             } else {
                 alert('Ошибка: ' + data.message);
             }
@@ -759,7 +1149,6 @@ function deleteAddress(addressId) {
         .then(data => {
             if (data.success) {
                 document.querySelector(`[data-address-id="${addressId}"]`).remove();
-                // Если адресов не осталось, показываем заглушку
                 if (!document.querySelectorAll('.address-card').length) {
                     location.reload();
                 }
@@ -774,7 +1163,6 @@ function deleteAddress(addressId) {
     }
 }
 
-// Обработка формы адреса
 document.getElementById('addressForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -796,7 +1184,7 @@ document.getElementById('addressForm').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             closeAddressModal();
-            location.reload(); // Перезагружаем страницу для обновления списка адресов
+            location.reload(); 
         } else {
             alert('Ошибка: ' + data.message);
         }
@@ -807,11 +1195,469 @@ document.getElementById('addressForm').addEventListener('submit', function(e) {
     });
 });
 
-// Закрытие модального окна при клике вне его
 document.getElementById('addressModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeAddressModal();
     }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab');
+    
+    if (activeTab) {
+        showTab(activeTab);
+    }
+});
+
+function cancelOrder(orderNumber) {
+    if (confirm('Вы уверены, что хотите отменить заказ?')) {
+        fetch(`/orders/${orderNumber}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Не удалось отменить заказ');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при отмене заказа');
+        });
+    }
+}
+
+function reorderItems(orderNumber) {
+    if (confirm('Добавить товары из этого заказа в корзину?')) {
+        alert('Функция повторного заказа будет реализована позже');
+    }
+}
+
+function showReorderDialog(orderNumber) {
+    if (!document.getElementById('reorderAlert')) {
+        const alertHTML = `
+            <div id="reorderAlert" class="custom-alert-overlay">
+                <div class="custom-alert">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon">🔄</span>
+                        <h3 class="custom-alert-title">Повторить заказ?</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Добавить товары из заказа №${orderNumber} в корзину?</p>
+                        <p class="custom-alert-submessage">Все товары из заказа будут добавлены в вашу текущую корзину</p>
+                        <div class="custom-alert-actions">
+                            <button class="custom-alert-btn cancel" onclick="hideReorderDialog()">
+                                Отмена
+                            </button>
+                            <button class="custom-alert-btn confirm" onclick="confirmReorder('${orderNumber}')">
+                                Добавить в корзину
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHTML);
+    }
+
+    const alertOverlay = document.getElementById('reorderAlert');
+    alertOverlay.classList.add('show');
+    
+    document.body.style.overflow = 'hidden';
+
+    window.handleReorderEscapeKey = (e) => {
+        if (e.key === 'Escape') {
+            hideReorderDialog();
+        }
+    };
+    document.addEventListener('keydown', window.handleReorderEscapeKey);
+
+    alertOverlay.addEventListener('click', (e) => {
+        if (e.target === alertOverlay) {
+            hideReorderDialog();
+        }
+    });
+}
+
+function hideReorderDialog() {
+    const alertOverlay = document.getElementById('reorderAlert');
+    if (alertOverlay) {
+        alertOverlay.classList.remove('show');
+    }
+    
+    document.body.style.overflow = '';
+    
+    if (window.handleReorderEscapeKey) {
+        document.removeEventListener('keydown', window.handleReorderEscapeKey);
+        window.handleReorderEscapeKey = null;
+    }
+}
+
+async function confirmReorder(orderNumber) {
+    hideReorderDialog();
+
+    showReorderLoading();
+    
+    try {
+        const response = await fetch(`/orders/${orderNumber}/reorder/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        
+        hideReorderLoading();
+
+        if (data.success) {
+            showReorderSuccessMessage(`Товары из заказа №${orderNumber} добавлены в корзину`, data.added_items || 0);
+
+            if (window.cartManager && data.cart_count) {
+                window.cartManager.updateCartCount(data.cart_count);
+            }
+        } else {
+            showReorderMessage(data.message || 'Не удалось добавить товары в корзину', 'error');
+        }
+    } catch (error) {
+        console.error('Reorder error:', error);
+        hideReorderLoading();
+        showReorderMessage('Произошла ошибка при добавлении товаров в корзину', 'error');
+    }
+}
+
+function showReorderLoading() {
+    if (!document.getElementById('reorderLoading')) {
+        const loadingHTML = `
+            <div id="reorderLoading" class="custom-alert-overlay">
+                <div class="custom-alert loading">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon loading-spinner">⏳</span>
+                        <h3 class="custom-alert-title">Добавляем товары...</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Пожалуйста, подождите</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+    }
+
+    const loadingOverlay = document.getElementById('reorderLoading');
+    loadingOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideReorderLoading() {
+    const loadingOverlay = document.getElementById('reorderLoading');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('show');
+        setTimeout(() => {
+            loadingOverlay.remove();
+        }, 300);
+    }
+    document.body.style.overflow = '';
+}
+
+function showReorderSuccessMessage(text, itemsCount) {
+    showReorderNotification(
+        text, 
+        'success',
+        itemsCount ? `Добавлено позиций: ${itemsCount}` : null
+    );
+}
+
+function showReorderMessage(text, type = 'info') {
+    showReorderNotification(text, type);
+}
+
+function showReorderNotification(text, type = 'info', subtitle = null) {
+    const existingNotifications = document.querySelectorAll('.reorder-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `reorder-notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${icon}</span>
+            <div class="notification-text">
+                <div class="notification-title">${text}</div>
+                ${subtitle ? `<div class="notification-subtitle">${subtitle}</div>` : ''}
+            </div>
+            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+function reorderItems(orderNumber) {
+    showReorderDialog(orderNumber);
+}
+
+function getCSRFToken() {
+    const metaToken = document.querySelector('meta[name="csrf-token"]');
+    if (metaToken) {
+        return metaToken.getAttribute('content');
+    }
+    
+    const hiddenToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (hiddenToken) {
+        return hiddenToken.value;
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    return getCookie('csrftoken');
+}
+
+function showCancelDialog(orderNumber) {
+    if (!document.getElementById('cancelAlert')) {
+        const alertHTML = `
+            <div id="cancelAlert" class="custom-alert-overlay">
+                <div class="custom-alert">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon">⚠️</span>
+                        <h3 class="custom-alert-title">Отменить заказ?</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Вы уверены, что хотите отменить заказ №${orderNumber}?</p>
+                        <p class="custom-alert-submessage">Это действие нельзя будет отменить. Заказ будет переведен в статус "Отменен"</p>
+                        <div class="custom-alert-actions">
+                            <button class="custom-alert-btn cancel" onclick="hideCancelDialog()">
+                                Не отменять
+                            </button>
+                            <button class="custom-alert-btn confirm danger" onclick="confirmCancel('${orderNumber}')">
+                                Да, отменить заказ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHTML);
+    } else {
+        const messageElement = document.querySelector('#cancelAlert .custom-alert-message');
+        if (messageElement) {
+            messageElement.textContent = `Вы уверены, что хотите отменить заказ №${orderNumber}?`;
+        }
+        const confirmBtn = document.querySelector('#cancelAlert .custom-alert-btn.confirm');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => confirmCancel(orderNumber);
+        }
+    }
+
+    const alertOverlay = document.getElementById('cancelAlert');
+    alertOverlay.classList.add('show');
+    
+    document.body.style.overflow = 'hidden';
+    
+    window.handleCancelEscapeKey = (e) => {
+        if (e.key === 'Escape') {
+            hideCancelDialog();
+        }
+    };
+    document.addEventListener('keydown', window.handleCancelEscapeKey);
+    
+    alertOverlay.addEventListener('click', (e) => {
+        if (e.target === alertOverlay) {
+            hideCancelDialog();
+        }
+    });
+}
+
+function hideCancelDialog() {
+    const alertOverlay = document.getElementById('cancelAlert');
+    if (alertOverlay) {
+        alertOverlay.classList.remove('show');
+    }
+    
+    document.body.style.overflow = '';
+    
+    if (window.handleCancelEscapeKey) {
+        document.removeEventListener('keydown', window.handleCancelEscapeKey);
+        window.handleCancelEscapeKey = null;
+    }
+}
+
+async function confirmCancel(orderNumber) {
+    hideCancelDialog();
+    showCancelLoading();
+    
+    try {
+        const csrfToken = getCSRFToken();
+        
+        if (!csrfToken) {
+            throw new Error('CSRF токен не найден');
+        }
+        
+        const response = await fetch(`/orders/${orderNumber}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        
+        hideCancelLoading();
+
+        if (data.success) {
+            showCancelSuccessMessage(`Заказ №${orderNumber} успешно отменен`);
+            setTimeout(() => {
+                location.reload(); // Перезагружаем страницу для обновления списка заказов
+            }, 2000);
+        } else {
+            showCancelMessage(data.message || 'Не удалось отменить заказ', 'error');
+        }
+    } catch (error) {
+        console.error('Cancel error:', error);
+        hideCancelLoading();
+        showCancelMessage('Произошла ошибка при отмене заказа', 'error');
+    }
+}
+
+function showCancelLoading() {
+    if (!document.getElementById('cancelLoading')) {
+        const loadingHTML = `
+            <div id="cancelLoading" class="custom-alert-overlay">
+                <div class="custom-alert loading">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon loading-spinner">⏳</span>
+                        <h3 class="custom-alert-title">Отменяем заказ...</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Пожалуйста, подождите</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+    }
+
+    const loadingOverlay = document.getElementById('cancelLoading');
+    loadingOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideCancelLoading() {
+    const loadingOverlay = document.getElementById('cancelLoading');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('show');
+        setTimeout(() => {
+            loadingOverlay.remove();
+        }, 300);
+    }
+    document.body.style.overflow = '';
+}
+
+function showCancelSuccessMessage(text) {
+    showCancelNotification(text, 'success');
+}
+
+function showCancelMessage(text, type = 'info') {
+    showCancelNotification(text, type);
+}
+
+function showCancelNotification(text, type = 'info', subtitle = null) {
+    const existingNotifications = document.querySelectorAll('.cancel-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `cancel-notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${icon}</span>
+            <div class="notification-text">
+                <div class="notification-title">${text}</div>
+                ${subtitle ? `<div class="notification-subtitle">${subtitle}</div>` : ''}
+            </div>
+            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+function cancelOrder(orderNumber) {
+    console.log('cancelOrder called for:', orderNumber); // Для отладки
+    showCancelDialog(orderNumber);
+}
+
+// Перехватываем все клики по кнопкам отмены
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+        if (e.target.textContent.includes('Отменить') && e.target.tagName === 'BUTTON') {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const onclickContent = e.target.getAttribute('onclick');
+            if (onclickContent && onclickContent.includes('cancelOrder')) {
+                const orderMatch = onclickContent.match(/cancelOrder\(['"]([^'"]+)['"]\)/);
+                if (orderMatch) {
+                    const orderNumber = orderMatch[1];
+                    showCancelDialog(orderNumber);
+                }
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

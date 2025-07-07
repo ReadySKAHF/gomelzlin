@@ -320,39 +320,769 @@
             </button>
             
             {% if order.can_be_cancelled %}
-            <form method="post" action="{% url 'orders:cancel_order' order.number %}" style="display: inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn" style="background: #dc3545; color: white;" 
-                        onclick="return confirm('Вы уверены, что хотите отменить заказ?')">
-                    ❌ Отменить заказ
-                </button>
-            </form>
+            <!-- ОБНОВЛЕННАЯ кнопка отмены с красивым диалогом -->
+            <button class="btn" style="background: #dc3545; color: white;" onclick="cancelOrder('{{ order.number }}')">
+                ❌ Отменить заказ
+            </button>
             {% endif %}
         </div>
     </div>
 </div>
 
 <script>
-function downloadPDF() {
-    // Здесь можно добавить логику генерации PDF
-    alert('Функция генерации PDF будет добавлена позже');
+function getCSRFToken() {
+    const metaToken = document.querySelector('meta[name="csrf-token"]');
+    if (metaToken) {
+        return metaToken.getAttribute('content');
+    }
+
+    const hiddenToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (hiddenToken) {
+        return hiddenToken.value;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    return getCookie('csrftoken');
 }
 
-function repeatOrder() {
-    if (confirm('Добавить все товары из этого заказа в корзину?')) {
-        // Логика повторения заказа
-        {% for item in order_items %}
-        addToCart({{ item.product.id }}, '{{ item.product_name|escapejs }}', {{ item.price }});
-        {% endfor %}
-    }
+function downloadPDF() {
+    alert('Функция генерации PDF будет добавлена позже');
 }
 
 function contactSupport() {
     window.location.href = 'mailto:info@gzlin.by?subject=Вопрос по заказу №{{ order.number }}';
 }
+
+function showReorderDialog(orderNumber) {
+    if (!document.getElementById('reorderAlert')) {
+        const alertHTML = `
+            <div id="reorderAlert" class="custom-alert-overlay">
+                <div class="custom-alert">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon">🔄</span>
+                        <h3 class="custom-alert-title">Повторить заказ?</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Добавить товары из заказа №${orderNumber} в корзину?</p>
+                        <p class="custom-alert-submessage">Все товары из заказа будут добавлены в вашу текущую корзину</p>
+                        <div class="custom-alert-actions">
+                            <button class="custom-alert-btn cancel" onclick="hideReorderDialog()">
+                                Отмена
+                            </button>
+                            <button class="custom-alert-btn confirm" onclick="confirmReorder('${orderNumber}')">
+                                Добавить в корзину
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHTML);
+    } else {
+        const messageElement = document.querySelector('#reorderAlert .custom-alert-message');
+        if (messageElement) {
+            messageElement.textContent = `Добавить товары из заказа №${orderNumber} в корзину?`;
+        }
+        const confirmBtn = document.querySelector('#reorderAlert .custom-alert-btn.confirm');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => confirmReorder(orderNumber);
+        }
+    }
+
+    const alertOverlay = document.getElementById('reorderAlert');
+    alertOverlay.classList.add('show');
+    
+    document.body.style.overflow = 'hidden';
+
+    window.handleReorderEscapeKey = (e) => {
+        if (e.key === 'Escape') {
+            hideReorderDialog();
+        }
+    };
+    document.addEventListener('keydown', window.handleReorderEscapeKey);
+
+    alertOverlay.addEventListener('click', (e) => {
+        if (e.target === alertOverlay) {
+            hideReorderDialog();
+        }
+    });
+}
+
+function hideReorderDialog() {
+    const alertOverlay = document.getElementById('reorderAlert');
+    if (alertOverlay) {
+        alertOverlay.classList.remove('show');
+    }
+    
+    document.body.style.overflow = '';
+    
+    if (window.handleReorderEscapeKey) {
+        document.removeEventListener('keydown', window.handleReorderEscapeKey);
+        window.handleReorderEscapeKey = null;
+    }
+}
+
+async function confirmReorder(orderNumber) {
+    hideReorderDialog();
+
+    showReorderLoading();
+    
+    try {
+        const csrfToken = getCSRFToken();
+        
+        if (!csrfToken) {
+            throw new Error('CSRF токен не найден');
+        }
+        
+        const response = await fetch(`/orders/${orderNumber}/reorder/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        
+        hideReorderLoading();
+
+        if (data.success) {
+            showReorderSuccessMessage(`Товары из заказа №${orderNumber} добавлены в корзину`, data.added_items || 0);
+
+            if (window.cartManager && data.cart_count) {
+                window.cartManager.updateCartCount(data.cart_count);
+            }
+        } else {
+            showReorderMessage(data.message || 'Не удалось добавить товары в корзину', 'error');
+        }
+    } catch (error) {
+        console.error('Reorder error:', error);
+        hideReorderLoading();
+        showReorderMessage('Произошла ошибка при добавлении товаров в корзину', 'error');
+    }
+}
+
+function showReorderLoading() {
+    if (!document.getElementById('reorderLoading')) {
+        const loadingHTML = `
+            <div id="reorderLoading" class="custom-alert-overlay">
+                <div class="custom-alert loading">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon loading-spinner">⏳</span>
+                        <h3 class="custom-alert-title">Добавляем товары...</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Пожалуйста, подождите</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+    }
+
+    const loadingOverlay = document.getElementById('reorderLoading');
+    loadingOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideReorderLoading() {
+    const loadingOverlay = document.getElementById('reorderLoading');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('show');
+        setTimeout(() => {
+            loadingOverlay.remove();
+        }, 300);
+    }
+    document.body.style.overflow = '';
+}
+
+function showReorderSuccessMessage(text, itemsCount) {
+    showReorderNotification(
+        text, 
+        'success',
+        itemsCount ? `Добавлено позиций: ${itemsCount}` : null
+    );
+}
+
+function showReorderMessage(text, type = 'info') {
+    showReorderNotification(text, type);
+}
+
+function showReorderNotification(text, type = 'info', subtitle = null) {
+    const existingNotifications = document.querySelectorAll('.reorder-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `reorder-notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${icon}</span>
+            <div class="notification-text">
+                <div class="notification-title">${text}</div>
+                ${subtitle ? `<div class="notification-subtitle">${subtitle}</div>` : ''}
+            </div>
+            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+function repeatOrder() {
+    console.log('repeatOrder called'); 
+    showReorderDialog('{{ order.number }}');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, repeatOrder function:', typeof repeatOrder);
+});
+
+function showCancelDialog(orderNumber) {
+    if (!document.getElementById('cancelAlert')) {
+        const alertHTML = `
+            <div id="cancelAlert" class="custom-alert-overlay">
+                <div class="custom-alert">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon">⚠️</span>
+                        <h3 class="custom-alert-title">Отменить заказ?</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Вы уверены, что хотите отменить заказ №${orderNumber}?</p>
+                        <p class="custom-alert-submessage">Это действие нельзя будет отменить. Заказ будет переведен в статус "Отменен"</p>
+                        <div class="custom-alert-actions">
+                            <button class="custom-alert-btn cancel" onclick="hideCancelDialog()">
+                                Не отменять
+                            </button>
+                            <button class="custom-alert-btn confirm danger" onclick="confirmCancel('${orderNumber}')">
+                                Да, отменить заказ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHTML);
+    } else {
+        const messageElement = document.querySelector('#cancelAlert .custom-alert-message');
+        if (messageElement) {
+            messageElement.textContent = `Вы уверены, что хотите отменить заказ №${orderNumber}?`;
+        }
+        const confirmBtn = document.querySelector('#cancelAlert .custom-alert-btn.confirm');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => confirmCancel(orderNumber);
+        }
+    }
+
+    const alertOverlay = document.getElementById('cancelAlert');
+    alertOverlay.classList.add('show');
+    
+    document.body.style.overflow = 'hidden';
+    
+    window.handleCancelEscapeKey = (e) => {
+        if (e.key === 'Escape') {
+            hideCancelDialog();
+        }
+    };
+    document.addEventListener('keydown', window.handleCancelEscapeKey);
+    
+    alertOverlay.addEventListener('click', (e) => {
+        if (e.target === alertOverlay) {
+            hideCancelDialog();
+        }
+    });
+}
+
+function hideCancelDialog() {
+    const alertOverlay = document.getElementById('cancelAlert');
+    if (alertOverlay) {
+        alertOverlay.classList.remove('show');
+    }
+    
+    document.body.style.overflow = '';
+    
+    if (window.handleCancelEscapeKey) {
+        document.removeEventListener('keydown', window.handleCancelEscapeKey);
+        window.handleCancelEscapeKey = null;
+    }
+}
+
+async function confirmCancel(orderNumber) {
+    hideCancelDialog();
+    showCancelLoading();
+    
+    try {
+        const csrfToken = getCSRFToken();
+        
+        if (!csrfToken) {
+            throw new Error('CSRF токен не найден');
+        }
+        
+        const response = await fetch(`/orders/${orderNumber}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        
+        hideCancelLoading();
+
+        if (data.success) {
+            showCancelSuccessMessage(`Заказ №${orderNumber} успешно отменен`);
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showCancelMessage(data.message || 'Не удалось отменить заказ', 'error');
+        }
+    } catch (error) {
+        console.error('Cancel error:', error);
+        hideCancelLoading();
+        showCancelMessage('Произошла ошибка при отмене заказа', 'error');
+    }
+}
+
+function showCancelLoading() {
+    if (!document.getElementById('cancelLoading')) {
+        const loadingHTML = `
+            <div id="cancelLoading" class="custom-alert-overlay">
+                <div class="custom-alert loading">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon loading-spinner">⏳</span>
+                        <h3 class="custom-alert-title">Отменяем заказ...</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Пожалуйста, подождите</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+    }
+
+    const loadingOverlay = document.getElementById('cancelLoading');
+    loadingOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideCancelLoading() {
+    const loadingOverlay = document.getElementById('cancelLoading');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('show');
+        setTimeout(() => {
+            loadingOverlay.remove();
+        }, 300);
+    }
+    document.body.style.overflow = '';
+}
+
+function showCancelSuccessMessage(text) {
+    showCancelNotification(text, 'success');
+}
+
+function showCancelMessage(text, type = 'info') {
+    showCancelNotification(text, type);
+}
+
+function showCancelNotification(text, type = 'info', subtitle = null) {
+    const existingNotifications = document.querySelectorAll('.cancel-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `cancel-notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${icon}</span>
+            <div class="notification-text">
+                <div class="notification-title">${text}</div>
+                ${subtitle ? `<div class="notification-subtitle">${subtitle}</div>` : ''}
+            </div>
+            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+function cancelOrder(orderNumber) {
+    showCancelDialog(orderNumber);
+}
 </script>
 
 <style>
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(3px);
+}
+
+.custom-alert-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-alert {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.8) translateY(20px);
+    transition: all 0.3s ease;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.custom-alert-overlay.show .custom-alert {
+    transform: scale(1) translateY(0);
+}
+
+@keyframes slideIn {
+    from {
+        transform: scale(0.8) translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.custom-alert-header {
+    padding: 2rem 2rem 1rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.custom-alert-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.custom-alert-icon.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.custom-alert-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.custom-alert-body {
+    padding: 1rem 2rem 2rem 2rem;
+}
+
+.custom-alert-message {
+    font-size: 1.1rem;
+    color: #34495e;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.custom-alert-submessage {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    margin: 0 0 2rem 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.custom-alert-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.custom-alert-btn {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    position: relative;
+    overflow: hidden;
+}
+
+.custom-alert-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.custom-alert-btn:active {
+    transform: translateY(0);
+}
+
+.custom-alert-btn.cancel {
+    background: #ecf0f1;
+    color: #7f8c8d;
+    border: 1px solid #bdc3c7;
+}
+
+.custom-alert-btn.cancel:hover {
+    background: #d5dbdb;
+    color: #2c3e50;
+}
+
+.custom-alert-btn.confirm {
+    background: linear-gradient(135deg, var(--primary-red, #cb413b) 0%, #e74c3c 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+}
+
+.custom-alert-btn.confirm:hover {
+    background: linear-gradient(135deg, #b73e38 0%, #c0392b 100%);
+    box-shadow: 0 6px 20px rgba(203, 65, 59, 0.4);
+}
+
+/* Стили для загрузки */
+.custom-alert.loading {
+    pointer-events: none;
+}
+
+.custom-alert.loading .custom-alert-header {
+    border-bottom: none;
+}
+
+.custom-alert.loading .custom-alert-body {
+    padding-bottom: 2rem;
+}
+
+/* Стили для уведомлений */
+.reorder-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    animation: slideInRight 0.3s ease forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.reorder-notification.fade-out {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 1.25rem;
+    position: relative;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.notification-subtitle {
+    font-size: 0.875rem;
+    color: #7f8c8d;
+    line-height: 1.3;
+}
+
+.notification-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #bdc3c7;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.notification-close:hover {
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+/* Цветовые варианты уведомлений */
+.reorder-notification.success {
+    border-left: 4px solid #27ae60;
+}
+
+.reorder-notification.error {
+    border-left: 4px solid #e74c3c;
+}
+
+.reorder-notification.warning {
+    border-left: 4px solid #f39c12;
+}
+
+.reorder-notification.info {
+    border-left: 4px solid #3498db;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .custom-alert {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .custom-alert-actions {
+        flex-direction: column;
+    }
+    
+    .custom-alert-btn {
+        width: 100%;
+    }
+    
+    .reorder-notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        top: 10px;
+    }
+}
+
+/* Ваши существующие стили для печати и адаптивности... */
+@media print {
+    .btn, button, .custom-alert-overlay, .reorder-notification {
+        display: none !important;
+    }
+    
+    body {
+        font-size: 12px;
+    }
+    
+    .container {
+        max-width: none;
+        padding: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .container > div {
+        grid-template-columns: 1fr !important;
+    }
+    
+    table {
+        font-size: 0.9rem;
+    }
+    
+    .status-progress {
+        flex-direction: column !important;
+        gap: 1rem;
+    }
+}
+
 @media print {
     .btn, button {
         display: none !important;
@@ -382,5 +1112,54 @@ function contactSupport() {
         gap: 1rem;
     }
 }
+
+.custom-alert-btn.confirm.danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.custom-alert-btn.confirm.danger:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+/* Стили для уведомлений отмены */
+.cancel-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    animation: slideInRight 0.3s ease forwards;
+}
+
+.cancel-notification.fade-out {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.cancel-notification.success {
+    border-left: 4px solid #27ae60;
+}
+
+.cancel-notification.error {
+    border-left: 4px solid #e74c3c;
+}
+
+.cancel-notification.warning {
+    border-left: 4px solid #f39c12;
+}
+
+.cancel-notification.info {
+    border-left: 4px solid #3498db;
+}
+
 </style>
 {% endblock %}

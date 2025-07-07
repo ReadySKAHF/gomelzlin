@@ -5,11 +5,17 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
+from django.db.models import Q
+from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST, require_GET
 import json
+from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import User, UserProfile, CompanyProfile, DeliveryAddress
 from apps.orders.models import Wishlist, WishlistItem
+
+User = get_user_model()
 
 class LoginView(TemplateView):
     template_name = 'accounts/login.html'
@@ -136,44 +142,48 @@ class ProfileView(TemplateView):
         ).order_by('-is_default', '-created_at')
         
         try:
-            wishlist = Wishlist.objects.get(user=self.request.user)
-            context['wishlist_items'] = WishlistItem.objects.filter(
-                wishlist=wishlist
-            ).select_related('product').order_by('-added_at')[:6] 
-            context['wishlist_count'] = WishlistItem.objects.filter(wishlist=wishlist).count()
-        except Wishlist.DoesNotExist:
-            context['wishlist_items'] = []
-            context['wishlist_count'] = 0
-        
-        try:
+            from apps.orders.models import Order
+            from django.core.paginator import Paginator
+            from django.db.models import Q
 
-            try:
-                from apps.orders.models import Order
-                print("DEBUG: Order model imported successfully")
-            except ImportError as e:
-                print(f"DEBUG: Cannot import Order model: {e}")
-                context['recent_orders'] = []
-                context['orders_count'] = 0
-                return context
-            
-            total_orders = Order.objects.filter(user=self.request.user).count()
-            print(f"DEBUG: Total orders for user: {total_orders}")
-            
-            recent_orders = Order.objects.filter(
+            search_query = self.request.GET.get('search', '').strip()
+            status_filter = self.request.GET.get('status', '')
+
+            orders = Order.objects.filter(
                 user=self.request.user
-            ).prefetch_related('items__product').order_by('-created_at')[:10]
+            ).prefetch_related('items__product').order_by('-created_at')
+
+            if search_query:
+                orders = orders.filter(
+                    Q(number__icontains=search_query) |
+                    Q(customer_name__icontains=search_query) |
+                    Q(customer_email__icontains=search_query) |
+                    Q(customer_phone__icontains=search_query)
+                )
+
+            if status_filter:
+                orders = orders.filter(status=status_filter)
+
+            paginator = Paginator(orders, 4)
+            page_number = self.request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
             
-            context['recent_orders'] = recent_orders
-            context['orders_count'] = total_orders
+
+            context['recent_orders'] = page_obj  
+            context['orders_page_obj'] = page_obj
+            context['orders_count'] = Order.objects.filter(user=self.request.user).count()
+            context['search_query'] = search_query
+            context['status_filter'] = status_filter
+            context['status_choices'] = Order.STATUS_CHOICES
             
         except Exception as e:
             print(f"DEBUG: Error loading orders: {e}")
-            print(f"DEBUG: Error type: {type(e)}")
-            import traceback
-            print(f"DEBUG: Traceback: {traceback.format_exc()}")
-            
             context['recent_orders'] = []
+            context['orders_page_obj'] = None
             context['orders_count'] = 0
+            context['search_query'] = ''
+            context['status_filter'] = ''
+            context['status_choices'] = []
         
         return context
 

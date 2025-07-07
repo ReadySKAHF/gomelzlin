@@ -21,6 +21,7 @@ urlpatterns = [
     path('list/', views.OrderListView.as_view(), name='order_list'),
     path('<str:number>/', views.OrderDetailView.as_view(), name='order_detail'),
     path('<str:number>/cancel/', views.cancel_order, name='cancel_order'),
+    path('<str:number>/reorder/', views.reorder_items, name='reorder_items'),
     
     # Избранное
     path('wishlist/add/', views.add_to_wishlist, name='add_to_wishlist'),

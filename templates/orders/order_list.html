@@ -1,45 +1,109 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}Мои заказы - ОАО "ГЗЛиН"{% endblock %}
+{% block title %}{{ title }} - ОАО "ГЗЛиН"{% endblock %}
 
 {% block content %}
-<div class="container" style="padding: 2rem 0;">
-    <h1>Мои заказы</h1>
-    
+<div class="container" style="padding: 3rem 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>{{ title }}</h1>
+        <div style="display: flex; align-items: center; gap: 1rem; color: var(--secondary-gray);">
+            <span>Всего заказов: {{ total_orders_count }}</span>
+            {% if search_query or status_filter %}
+                <span>|</span>
+                <span>Найдено: {{ page_obj.paginator.count }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Форма поиска и фильтрации -->
+    <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 2rem;">
+        <form method="get" style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap;">
+            <div style="flex: 2; min-width: 250px;">
+                <label for="search" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                    🔍 Поиск по заказам
+                </label>
+                <input 
+                    type="text" 
+                    id="search" 
+                    name="search" 
+                    value="{{ search_query }}"
+                    placeholder="Номер заказа, имя, email или телефон"
+                    style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;"
+                >
+            </div>
+            
+            <div style="flex: 1; min-width: 200px;">
+                <label for="status" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                    📊 Статус заказа
+                </label>
+                <select 
+                    id="status" 
+                    name="status"
+                    style="width: 100%; padding: 0.75rem; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem;"
+                >
+                    <option value="">Все статусы</option>
+                    {% for status_code, status_name in status_choices %}
+                        <option value="{{ status_code }}" {% if status_filter == status_code %}selected{% endif %}>
+                            {{ status_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary">
+                    🔍 Найти
+                </button>
+                
+                {% if search_query or status_filter %}
+                    <a href="{% url 'orders:order_list' %}" class="btn btn-outline">
+                        ❌ Сбросить
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
     {% if orders %}
-        <div style="margin-top: 2rem;">
+        <!-- Список заказов -->
+        <div style="display: grid; gap: 1.5rem;">
             {% for order in orders %}
-            <div style="background: white; padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem; border-left: 4px solid {{ order.get_status_display_color }};">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: var(--shadow); transition: transform 0.2s; position: relative;">
+                <!-- Заголовок заказа -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
                     <div>
-                        <h3 style="margin: 0; color: var(--primary-red);">
-                            <a href="{{ order.get_absolute_url }}" style="text-decoration: none; color: inherit;">
-                                Заказ № {{ order.number }}
-                            </a>
+                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary-red);">
+                            📦 Заказ №{{ order.number }}
                         </h3>
-                        <div style="color: var(--secondary-gray); font-size: 0.9rem;">
-                            {{ order.created_at|date:"d.m.Y в H:i" }}
+                        <div style="display: flex; gap: 1.5rem; font-size: 0.9rem; color: var(--secondary-gray); flex-wrap: wrap;">
+                            <span>📅 {{ order.created_at|date:"d.m.Y H:i" }}</span>
+                            <span>💰 {{ order.total_amount }} BYN</span>
+                            <span>📦 {{ order.items_count }} товар{{ order.items_count|pluralize:"," }}.ов</span>
                         </div>
                     </div>
                     
+                    <!-- Статус заказа -->
                     <div style="text-align: right;">
-                        <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-red);">
-                            {{ order.total_amount }} BYN
-                        </div>
-                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; font-weight: 500; 
-                                    {% if order.status == 'pending' %}background: #fff3cd; color: #856404;{% endif %}
-                                    {% if order.status == 'confirmed' %}background: #d1ecf1; color: #0c5460;{% endif %}
-                                    {% if order.status == 'processing' %}background: #cce5ff; color: #004085;{% endif %}
-                                    {% if order.status == 'shipped' %}background: #d4edda; color: #155724;{% endif %}
-                                    {% if order.status == 'delivered' %}background: #d4edda; color: #155724;{% endif %}
-                                    {% if order.status == 'completed' %}background: #c3e6cb; color: #155724;{% endif %}
-                                    {% if order.status == 'cancelled' %}background: #f8d7da; color: #721c24;{% endif %}
-                                    {% if order.status == 'returned' %}background: #ffeaa7; color: #856404;{% endif %}
-                                ">
+                        <div style="
+                            padding: 0.5rem 1rem; 
+                            border-radius: 20px; 
+                            font-size: 0.9rem; 
+                            font-weight: bold;
+                            display: inline-block;
+                            {% if order.status == 'pending' %}background: #fff3cd; color: #856404;{% endif %}
+                            {% if order.status == 'confirmed' %}background: #d1ecf1; color: #0c5460;{% endif %}
+                            {% if order.status == 'processing' %}background: #e2e3e5; color: #383d41;{% endif %}
+                            {% if order.status == 'paid' %}background: #cce5ff; color: #004085;{% endif %}
+                            {% if order.status == 'shipped' %}background: #d4edda; color: #155724;{% endif %}
+                            {% if order.status == 'delivered' %}background: #d4edda; color: #155724;{% endif %}
+                            {% if order.status == 'completed' %}background: #c3e6cb; color: #155724;{% endif %}
+                            {% if order.status == 'cancelled' %}background: #f8d7da; color: #721c24;{% endif %}
+                            {% if order.status == 'returned' %}background: #ffeaa7; color: #856404;{% endif %}
+                        ">
                             {% if order.status == 'pending' %}⏳ Ожидает обработки{% endif %}
                             {% if order.status == 'confirmed' %}✅ Подтвержден{% endif %}
                             {% if order.status == 'processing' %}🔄 В обработке{% endif %}
+                            {% if order.status == 'paid' %}💳 Оплачен{% endif %}
                             {% if order.status == 'shipped' %}🚚 Отправлен{% endif %}
                             {% if order.status == 'delivered' %}📦 Доставлен{% endif %}
                             {% if order.status == 'completed' %}🎉 Завершён{% endif %}
@@ -50,17 +114,17 @@
                 </div>
                 
                 <!-- Товары в заказе -->
-                <div style="margin-bottom: 1rem;">
-                    <strong>Товары:</strong>
-                    <div style="margin-top: 0.5rem;">
+                <div style="margin-bottom: 1.5rem;">
+                    <strong style="color: var(--dark-gray);">Товары:</strong>
+                    <div style="margin-top: 0.75rem;">
                         {% for item in order.items.all|slice:":3" %}
-                            <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.9rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; font-size: 0.95rem; border-bottom: 1px solid var(--light-gray);">
                                 <span>{{ item.product.name }} × {{ item.quantity }}</span>
-                                <span>{{ item.get_total_price }} BYN</span>
+                                <span style="font-weight: bold;">{{ item.get_total_price }} BYN</span>
                             </div>
                         {% endfor %}
                         {% if order.items.count > 3 %}
-                            <div style="color: var(--secondary-gray); font-size: 0.85rem; margin-top: 0.5rem;">
+                            <div style="color: var(--secondary-gray); font-size: 0.9rem; margin-top: 0.5rem; font-style: italic;">
                                 ... и еще {{ order.items.count|add:"-3" }} позиц{{ order.items.count|add:"-3"|pluralize:"ия,ии,ий" }}
                             </div>
                         {% endif %}
@@ -69,16 +133,16 @@
 
                 <!-- Информация о доставке -->
                 {% if order.delivery_method != 'pickup' %}
-                <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--light-gray); border-radius: 6px; font-size: 0.9rem;">
-                    <strong>Доставка:</strong> {{ order.get_delivery_method_display }}
+                <div style="margin-bottom: 1.5rem; padding: 1rem; background: var(--light-gray); border-radius: 8px; font-size: 0.95rem;">
+                    <strong>🚚 Доставка:</strong> {{ order.get_delivery_method_display }}
                     {% if order.delivery_address %}
-                        <br><span style="color: var(--secondary-gray);">{{ order.delivery_address }}</span>
+                        <br><span style="color: var(--secondary-gray); margin-left: 1.5rem;">{{ order.delivery_address }}</span>
                     {% endif %}
                 </div>
                 {% endif %}
 
                 <!-- Кнопки действий -->
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
                     <a href="{{ order.get_absolute_url }}" class="btn btn-outline">
                         📄 Подробнее
                     </a>
@@ -101,88 +165,577 @@
 
         <!-- Пагинация -->
         {% if page_obj.has_other_pages %}
-        <div style="display: flex; justify-content: center; margin-top: 2rem;">
-            <div style="display: flex; gap: 0.5rem;">
+        <div style="display: flex; justify-content: center; margin-top: 3rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1" class="btn btn-outline">« Первая</a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">‹ Предыдущая</a>
+                    <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="btn btn-outline">« Первая</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="btn btn-outline">‹ Предыдущая</a>
                 {% endif %}
 
-                <span style="padding: 0.5rem 1rem; background: var(--primary-red); color: white; border-radius: 6px;">
-                    Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+                <span style="padding: 0.75rem 1.5rem; background: var(--primary-red); color: white; border-radius: 8px; font-weight: bold;">
+                    {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
                 </span>
 
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">Следующая ›</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">Последняя »</a>
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="btn btn-outline">Следующая ›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" 
+                       class="btn btn-outline">Последняя »</a>
                 {% endif %}
             </div>
+        </div>
+        
+        <!-- Информация о результатах -->
+        <div style="text-align: center; margin-top: 1rem; color: var(--secondary-gray); font-size: 0.9rem;">
+            Показано {{ page_obj.start_index }}–{{ page_obj.end_index }} из {{ page_obj.paginator.count }} заказов
         </div>
         {% endif %}
 
     {% else %}
-        <div style="text-align: center; padding: 4rem 0;">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
-            <h2 style="color: var(--secondary-gray); margin-bottom: 1rem;">У вас пока нет заказов</h2>
-            <p style="color: var(--secondary-gray); margin-bottom: 2rem;">
-                Перейдите в каталог товаров и сделайте первый заказ
-            </p>
-            <a href="{% url 'products:category_list' %}" class="btn btn-primary">
-                🛍️ Перейти к покупкам
-            </a>
+        <!-- Пустое состояние -->
+        <div style="text-align: center; padding: 4rem 0; background: white; border-radius: 10px; box-shadow: var(--shadow);">
+            {% if search_query or status_filter %}
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+                <h2 style="color: var(--secondary-gray); margin-bottom: 1rem;">Заказы не найдены</h2>
+                <p style="color: var(--secondary-gray); margin-bottom: 2rem;">
+                    По вашему запросу "{{ search_query }}" 
+                    {% if status_filter %}и фильтру "{{ status_filter }}"{% endif %} 
+                    ничего не найдено
+                </p>
+                <a href="{% url 'orders:order_list' %}" class="btn btn-outline">
+                    ❌ Сбросить фильтры
+                </a>
+            {% else %}
+                <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+                <h2 style="color: var(--secondary-gray); margin-bottom: 1rem;">У вас пока нет заказов</h2>
+                <p style="color: var(--secondary-gray); margin-bottom: 2rem;">
+                    Перейдите в каталог товаров и сделайте первый заказ
+                </p>
+                <a href="{% url 'products:category_list' %}" class="btn btn-primary">
+                    🛍️ Перейти к покупкам
+                </a>
+            {% endif %}
         </div>
     {% endif %}
 </div>
 
 <script>
-function cancelOrder(orderNumber) {
-    if (confirm('Вы уверены, что хотите отменить заказ?')) {
-        fetch(`/orders/${orderNumber}/cancel/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert(data.message || 'Не удалось отменить заказ');
+function getCSRFToken() {
+    const metaToken = document.querySelector('meta[name="csrf-token"]');
+    if (metaToken) {
+        return metaToken.getAttribute('content');
+    }
+    
+    const hiddenToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (hiddenToken) {
+        return hiddenToken.value;
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при отмене заказа');
-        });
+        }
+        return cookieValue;
+    }
+    
+    return getCookie('csrftoken');
+}
+
+function showCancelDialog(orderNumber) {
+    if (!document.getElementById('cancelAlert')) {
+        const alertHTML = `
+            <div id="cancelAlert" class="custom-alert-overlay">
+                <div class="custom-alert">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon">⚠️</span>
+                        <h3 class="custom-alert-title">Отменить заказ?</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Вы уверены, что хотите отменить заказ №${orderNumber}?</p>
+                        <p class="custom-alert-submessage">Это действие нельзя будет отменить. Заказ будет переведен в статус "Отменен"</p>
+                        <div class="custom-alert-actions">
+                            <button class="custom-alert-btn cancel" onclick="hideCancelDialog()">
+                                Не отменять
+                            </button>
+                            <button class="custom-alert-btn confirm danger" onclick="confirmCancel('${orderNumber}')">
+                                Да, отменить заказ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHTML);
+    } else {
+        const messageElement = document.querySelector('#cancelAlert .custom-alert-message');
+        if (messageElement) {
+            messageElement.textContent = `Вы уверены, что хотите отменить заказ №${orderNumber}?`;
+        }
+        const confirmBtn = document.querySelector('#cancelAlert .custom-alert-btn.confirm');
+        if (confirmBtn) {
+            confirmBtn.onclick = () => confirmCancel(orderNumber);
+        }
+    }
+
+    const alertOverlay = document.getElementById('cancelAlert');
+    alertOverlay.classList.add('show');
+    
+    document.body.style.overflow = 'hidden';
+    
+    window.handleCancelEscapeKey = (e) => {
+        if (e.key === 'Escape') {
+            hideCancelDialog();
+        }
+    };
+    document.addEventListener('keydown', window.handleCancelEscapeKey);
+    
+    alertOverlay.addEventListener('click', (e) => {
+        if (e.target === alertOverlay) {
+            hideCancelDialog();
+        }
+    });
+}
+
+function hideCancelDialog() {
+    const alertOverlay = document.getElementById('cancelAlert');
+    if (alertOverlay) {
+        alertOverlay.classList.remove('show');
+    }
+    
+    document.body.style.overflow = '';
+    
+    if (window.handleCancelEscapeKey) {
+        document.removeEventListener('keydown', window.handleCancelEscapeKey);
+        window.handleCancelEscapeKey = null;
     }
 }
+
+async function confirmCancel(orderNumber) {
+    hideCancelDialog();
+    showCancelLoading();
+    
+    try {
+        const csrfToken = getCSRFToken();
+        
+        if (!csrfToken) {
+            throw new Error('CSRF токен не найден');
+        }
+        
+        const response = await fetch(`/orders/${orderNumber}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        const data = await response.json();
+        
+        hideCancelLoading();
+
+        if (data.success) {
+            showCancelSuccessMessage(`Заказ №${orderNumber} успешно отменен`);
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            showCancelMessage(data.message || 'Не удалось отменить заказ', 'error');
+        }
+    } catch (error) {
+        console.error('Cancel error:', error);
+        hideCancelLoading();
+        showCancelMessage('Произошла ошибка при отмене заказа', 'error');
+    }
+}
+
+function showCancelLoading() {
+    if (!document.getElementById('cancelLoading')) {
+        const loadingHTML = `
+            <div id="cancelLoading" class="custom-alert-overlay">
+                <div class="custom-alert loading">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon loading-spinner">⏳</span>
+                        <h3 class="custom-alert-title">Отменяем заказ...</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Пожалуйста, подождите</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', loadingHTML);
+    }
+
+    const loadingOverlay = document.getElementById('cancelLoading');
+    loadingOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideCancelLoading() {
+    const loadingOverlay = document.getElementById('cancelLoading');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('show');
+        setTimeout(() => {
+            loadingOverlay.remove();
+        }, 300);
+    }
+    document.body.style.overflow = '';
+}
+
+function showCancelSuccessMessage(text) {
+    showCancelNotification(text, 'success');
+}
+
+function showCancelMessage(text, type = 'info') {
+    showCancelNotification(text, type);
+}
+
+function showCancelNotification(text, type = 'info', subtitle = null) {
+    const existingNotifications = document.querySelectorAll('.cancel-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `cancel-notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    const icon = icons[type] || icons.info;
+    
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${icon}</span>
+            <div class="notification-text">
+                <div class="notification-title">${text}</div>
+                ${subtitle ? `<div class="notification-subtitle">${subtitle}</div>` : ''}
+            </div>
+            <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+function cancelOrder(orderNumber) {
+    showCancelDialog(orderNumber);
+}
+
 
 function reorderItems(orderNumber) {
     if (confirm('Добавить товары из этого заказа в корзину?')) {
-        fetch(`/orders/${orderNumber}/reorder/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Товары добавлены в корзину');
-                // window.location.href = '/orders/';
-            } else {
-                alert(data.message || 'Не удалось добавить товары в корзину');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при добавлении товаров в корзину');
-        });
+        alert('Функция повторного заказа будет реализована позже');
     }
 }
 </script>
+<style>
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(3px);
+}
 
+.custom-alert-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-alert {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    max-width: 480px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    transform: scale(0.8) translateY(20px);
+    transition: all 0.3s ease;
+    animation: slideIn 0.3s ease forwards;
+}
+
+.custom-alert-overlay.show .custom-alert {
+    transform: scale(1) translateY(0);
+}
+
+@keyframes slideIn {
+    from {
+        transform: scale(0.8) translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.custom-alert-header {
+    padding: 2rem 2rem 1rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.custom-alert-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.custom-alert-icon.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.custom-alert-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.custom-alert-body {
+    padding: 1rem 2rem 2rem 2rem;
+}
+
+.custom-alert-message {
+    font-size: 1.1rem;
+    color: #34495e;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.custom-alert-submessage {
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    margin: 0 0 2rem 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.custom-alert-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.custom-alert-btn {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    position: relative;
+    overflow: hidden;
+}
+
+.custom-alert-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.custom-alert-btn:active {
+    transform: translateY(0);
+}
+
+.custom-alert-btn.cancel {
+    background: #ecf0f1;
+    color: #7f8c8d;
+    border: 1px solid #bdc3c7;
+}
+
+.custom-alert-btn.cancel:hover {
+    background: #d5dbdb;
+    color: #2c3e50;
+}
+
+.custom-alert-btn.confirm.danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+.custom-alert-btn.confirm.danger:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+.custom-alert.loading {
+    pointer-events: none;
+}
+
+.custom-alert.loading .custom-alert-header {
+    border-bottom: none;
+}
+
+.custom-alert.loading .custom-alert-body {
+    padding-bottom: 2rem;
+}
+
+/* Стили для уведомлений */
+.cancel-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10001;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    animation: slideInRight 0.3s ease forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.cancel-notification.fade-out {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 1.25rem;
+    position: relative;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.notification-subtitle {
+    font-size: 0.875rem;
+    color: #7f8c8d;
+    line-height: 1.3;
+}
+
+.notification-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #bdc3c7;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.notification-close:hover {
+    background: #ecf0f1;
+    color: #7f8c8d;
+}
+
+.cancel-notification.success {
+    border-left: 4px solid #27ae60;
+}
+
+.cancel-notification.error {
+    border-left: 4px solid #e74c3c;
+}
+
+.cancel-notification.warning {
+    border-left: 4px solid #f39c12;
+}
+
+.cancel-notification.info {
+    border-left: 4px solid #3498db;
+}
+
+@media (max-width: 768px) {
+    .custom-alert {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .custom-alert-actions {
+        flex-direction: column;
+    }
+    
+    .custom-alert-btn {
+        width: 100%;
+    }
+    
+    .cancel-notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        top: 10px;
+    }
+}
+</style>
 {% endblock %}
