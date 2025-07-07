@@ -1227,3 +1227,555 @@ img.lazy.loaded {
         justify-content: center;
     }
 }
+
+/* =========================
+   КРАСИВЫЙ АЛЕРТ ДЛЯ ОЧИСТКИ КОРЗИНЫ
+   ========================= */
+
+.custom-alert-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.custom-alert-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.custom-alert {
+    background: var(--white);
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(203, 65, 59, 0.25);
+    max-width: 480px;
+    width: 90%;
+    transform: scale(0.8) translateY(-50px);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.custom-alert-overlay.show .custom-alert {
+    transform: scale(1) translateY(0);
+}
+
+.custom-alert-header {
+    background: linear-gradient(135deg, var(--primary-red), #e74c3c);
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+}
+
+.custom-alert-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.custom-alert-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.custom-alert-body {
+    padding: 2rem;
+    text-align: center;
+}
+
+.custom-alert-message {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+.custom-alert-submessage {
+    font-size: 0.95rem;
+    color: var(--secondary-gray);
+    margin-bottom: 2rem;
+}
+
+.custom-alert-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.custom-alert-btn {
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.custom-alert-btn.cancel {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.custom-alert-btn.cancel:hover {
+    background: #dee2e6;
+    transform: translateY(-1px);
+}
+
+.custom-alert-btn.confirm {
+    background: var(--primary-red);
+    color: white;
+}
+
+.custom-alert-btn.confirm:hover {
+    background: #b8362f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+}
+
+/* =========================
+   СЕЛЕКТОР КОЛИЧЕСТВА ТОВАРА
+   ========================= */
+
+.order-section {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    margin-top: 1.5rem;
+}
+
+.order-section h4 {
+    color: var(--primary-red);
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.quantity-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+}
+
+.quantity-label {
+    font-weight: 600;
+    color: #333;
+    white-space: nowrap;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.quantity-btn {
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-btn:hover {
+    background: #b8362f;
+    transform: scale(1.05);
+}
+
+.quantity-btn:active {
+    transform: scale(0.95);
+}
+
+.quantity-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.quantity-input {
+    border: none;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    width: 80px;
+    height: 45px;
+    background: white;
+    color: #333;
+}
+
+.quantity-input:focus {
+    outline: none;
+    background: #f8f9fa;
+}
+
+.add-to-cart-container {
+    display: flex;
+    justify-content: center;
+}
+
+.add-to-cart-btn {
+    background: linear-gradient(135deg, var(--primary-red), #e74c3c);
+    color: white;
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(203, 65, 59, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.add-to-cart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(203, 65, 59, 0.4);
+}
+
+.add-to-cart-btn:active {
+    transform: translateY(0);
+}
+
+.add-to-cart-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.add-to-cart-btn:hover:before {
+    left: 100%;
+}
+
+/* Селектор количества для страницы товара */
+.product-quantity-section {
+    background: var(--light-gray);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.product-quantity-section h4 {
+    color: var(--primary-red);
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+}
+
+.product-quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.product-quantity-selector {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.product-quantity-btn {
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-quantity-btn:hover:not(:disabled) {
+    background: #b8362f;
+}
+
+.product-quantity-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.product-quantity-input {
+    border: none;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 70px;
+    height: 40px;
+    background: white;
+    color: #333;
+}
+
+.product-quantity-input:focus {
+    outline: none;
+    background: #f8f9fa;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .quantity-selector-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .custom-alert-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .custom-alert-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .product-quantity-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .product-quantity-selector {
+        justify-content: center;
+    }
+}
+
+/* =========================
+   ПРЕВЬЮ АДРЕСА ДОСТАВКИ В ОФОРМЛЕНИИ ЗАКАЗА
+   ========================= */
+
+#address_preview {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px solid var(--primary-red);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(203, 65, 59, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#address_preview:hover {
+    box-shadow: 0 6px 20px rgba(203, 65, 59, 0.15);
+    transform: translateY(-1px);
+}
+
+.address-preview-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.75rem;
+}
+
+.address-preview-icon {
+    background: var(--primary-red);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(203, 65, 59, 0.3);
+}
+
+.address-preview-title {
+    margin: 0;
+    color: var(--primary-red);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.address-preview-subtitle {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.address-preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.address-preview-field {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.address-preview-field-icon {
+    color: var(--primary-red);
+    margin-right: 0.5rem;
+    font-size: 1rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.address-preview-field-label {
+    color: #333;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.address-preview-field-value {
+    color: #555;
+    line-height: 1.5;
+    margin-left: 1.5rem;
+}
+
+.address-preview-field-value a {
+    color: var(--primary-red);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.address-preview-field-value a:hover {
+    color: #b8362f;
+    text-decoration: underline;
+}
+
+.address-preview-notes {
+    background: rgba(203, 65, 59, 0.05);
+    border-left: 4px solid var(--primary-red);
+    padding: 0.75rem;
+    border-radius: 0 8px 8px 0;
+    margin-top: 1rem;
+}
+
+.address-preview-notes .address-preview-field-value {
+    font-style: italic;
+    line-height: 1.4;
+    margin-left: 1.5rem;
+}
+
+.address-preview-footer {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #dee2e6;
+    text-align: center;
+}
+
+.address-preview-footer small {
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Декоративный элемент в углу */
+#address_preview::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    background: var(--primary-red);
+    border-radius: 50%;
+    opacity: 0.1;
+    transition: all 0.3s ease;
+}
+
+#address_preview:hover::before {
+    transform: scale(1.2);
+    opacity: 0.15;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .address-preview-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .address-preview-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .address-preview-icon {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    #address_preview {
+        padding: 1rem;
+        margin-top: 0.75rem;
+    }
+}
+
+/* Анимация появления */
+@keyframes addressPreviewFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#address_preview.show {
+    animation: addressPreviewFadeIn 0.3s ease;
+}
+
+/* Стили для полей адреса в зависимости от типа */
+.address-preview-field.address {
+    grid-column: 1 / -1;
+}
+
+.address-preview-field.contact {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.address-preview-field.contact .address-preview-field-value {
+    margin-left: 1.5rem;
+    margin-top: 0.25rem;
+}

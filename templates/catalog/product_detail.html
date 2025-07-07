@@ -380,21 +380,30 @@
             {% endif %}
 
             <!-- Действия с товаром -->
-            <div class="product-actions">
-                <!-- ИСПРАВЛЕННАЯ кнопка добавления в корзину -->
-                <button onclick="addToCart({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }})" 
-                        class="btn"
-                        data-product-id="{{ product.id }}">
-                    🛒 Добавить в корзину
-                </button>
-                
-                <!-- Кнопка избранного -->
-                <button class="wishlist-btn-detail" 
-                        data-product-id="{{ product.id }}"
-                        onclick="toggleWishlist({{ product.id }}, '{{ product.name|escapejs }}');">
-                    <span class="heart-icon">♡</span>
-                    <span class="wishlist-text">В избранное</span>
-                </button>
+            <div class="product-quantity-section">
+                <h4>🛒 Добавить в корзину</h4>
+                <div class="product-quantity-controls">
+                    <div class="product-quantity-selector">
+                        <button class="product-quantity-btn" data-action="decrease" id="decreaseBtn-{{ product.id }}" disabled>−</button>
+                        <input type="number" class="product-quantity-input" id="quantityInput-{{ product.id }}" value="1" min="1" max="999">
+                        <button class="product-quantity-btn" data-action="increase">+</button>
+                    </div>
+                    
+                    <button onclick="addToCartWithQuantity({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }})" 
+                            class="btn btn-primary"
+                            data-product-id="{{ product.id }}"
+                            id="addToCartBtn-{{ product.id }}">
+                        <span class="add-to-cart-text">🛒 Добавить в корзину</span>
+                    </button>
+                    
+                    <!-- Кнопка избранного -->
+                    <button class="wishlist-btn-detail" 
+                            data-product-id="{{ product.id }}"
+                            onclick="toggleWishlist({{ product.id }}, '{{ product.name|escapejs }}');">
+                        <span class="heart-icon">♡</span>
+                        <span class="wishlist-text">В избранное</span>
+                    </button>
+                </div>
             </div>
 
             <input type="hidden" name="product_id" value="{{ product.id }}">
@@ -494,10 +503,150 @@
 
 {% block extra_js %}
 <script>
+function addToCartWithQuantity(productId, productName, productPrice) {
+    const quantityInput = document.getElementById(`quantityInput-${productId}`);
+    const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+    
+    const button = document.getElementById(`addToCartBtn-${productId}`);
+    if (button) {
+        button.style.transform = 'scale(0.95)';
+        button.style.opacity = '0.8';
+        setTimeout(() => {
+            button.style.transform = '';
+            button.style.opacity = '';
+        }, 150);
+    }
+
+    if (window.cartManager) {
+        // Передаем количество как 4-й параметр
+        window.cartManager.addToCart(productId, productName, productPrice, quantity);
+    } else {
+        // Fallback для старой системы - отправляем AJAX запрос напрямую
+        fetch('/cart/add/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `product_id=${productId}&quantity=${quantity}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const message = quantity === 1 ? 
+                    `Товар "${productName}" добавлен в корзину` : 
+                    `Товар "${productName}" добавлен в корзину (${quantity} шт.)`;
+                alert(message);
+                
+                // Обновляем счетчик корзины
+                const cartCount = document.getElementById('cartCount');
+                if (cartCount) {
+                    cartCount.textContent = data.cart_count || '0';
+                }
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Ошибка при добавлении товара');
+            console.error('Error:', error);
+        });
+    }
+    
+    const message = quantity === 1 ? 
+        `Товар "${productName}" добавлен в корзину` : 
+        `Товар "${productName}" добавлен в корзину (${quantity} шт.)`;
+    
+    if (window.cartManager && window.cartManager.showSuccessMessage) {
+    } else if (typeof showMessage === 'function') {
+        showMessage(message, 'success');
+    } else {
+        console.log(message);
+    }
+}
+
+
+// Инициализация селектора
+document.addEventListener('DOMContentLoaded', function() {
+    const productId = {{ product.id }};
+    const quantityInput = document.getElementById(`quantityInput-${productId}`);
+    
+    if (quantityInput) {
+        const decreaseBtn = document.getElementById(`decreaseBtn-${productId}`);
+        const increaseBtn = quantityInput.parentNode.querySelector('[data-action="increase"]');
+        
+        if (decreaseBtn) {
+            decreaseBtn.addEventListener('click', function() {
+                let currentValue = parseInt(quantityInput.value) || 1;
+                if (currentValue > 1) {
+                    quantityInput.value = currentValue - 1;
+                    updateProductQuantityState(productId);
+                }
+            });
+        }
+        
+        if (increaseBtn) {
+            increaseBtn.addEventListener('click', function() {
+                let currentValue = parseInt(quantityInput.value) || 1;
+                if (currentValue < 999) {
+                    quantityInput.value = currentValue + 1;
+                    updateProductQuantityState(productId);
+                }
+            });
+        }
+        
+        quantityInput.addEventListener('change', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value) || value < 1) {
+                this.value = 1;
+            } else if (value > 999) {
+                this.value = 999;
+            }
+            updateProductQuantityState(productId);
+        });
+        
+        quantityInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.blur();
+            }
+        });
+        
+        // Инициализируем состояние
+        updateProductQuantityState(productId);
+    }
+});
+
+// Функция обновления состояния селектора количества
+function updateProductQuantityState(productId) {
+    const quantityInput = document.getElementById(`quantityInput-${productId}`);
+    const decreaseBtn = document.getElementById(`decreaseBtn-${productId}`);
+    const addToCartBtn = document.getElementById(`addToCartBtn-${productId}`);
+    
+    if (!quantityInput) return;
+    
+    const quantity = parseInt(quantityInput.value) || 1;
+    
+    if (decreaseBtn) {
+        decreaseBtn.disabled = quantity <= 1;
+    }
+    
+    if (addToCartBtn) {
+        const textElement = addToCartBtn.querySelector('.add-to-cart-text');
+        if (textElement) {
+            if (quantity === 1) {
+                textElement.textContent = '🛒 Добавить в корзину';
+            } else {
+                textElement.textContent = `🛒 Добавить в корзину (${quantity} шт.)`;
+            }
+        }
+    }
+}
+
 function toggleWishlist(productId, productName) {
     // Проверяем авторизацию
     if (!document.querySelector('[data-user-authenticated]')) {
-        alert('Для работы с избранным необходимо войти в систему');
+        showWishlistNotification('Для работы с избранным необходимо войти в систему', 'warning');
         return;
     }
     
@@ -512,27 +661,24 @@ function toggleWishlist(productId, productName) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Обновляем UI кнопки
             const heartIcon = document.querySelector(`[data-product-id="${productId}"] .heart-icon`);
             const wishlistText = document.querySelector(`[data-product-id="${productId}"] .wishlist-text`);
             
             if (data.in_wishlist) {
-                // Товар добавлен в избранное
                 if (heartIcon) heartIcon.textContent = '♥';
                 if (wishlistText) wishlistText.textContent = 'В избранном';
+                showWishlistNotification(data.message, 'success');
             } else {
-                // Товар удален из избранного
                 if (heartIcon) heartIcon.textContent = '♡';
                 if (wishlistText) wishlistText.textContent = 'В избранное';
+                showWishlistNotification(data.message, 'info');
             }
-            
-            alert(data.message);
         } else {
-            alert('Ошибка: ' + data.message);
+            showWishlistNotification('Ошибка: ' + data.message, 'error');
         }
     })
     .catch(error => {
-        alert('Ошибка: ' + error.message);
+        showWishlistNotification('Ошибка: ' + error.message, 'error');
     });
 }
 
@@ -543,5 +689,68 @@ function switchTab(tabName) {
     if (targetTab) targetTab.classList.add('active');
     if (event && event.target) event.target.classList.add('active');
 }
+
+function showWishlistNotification(text, type = 'info') {
+    // Удаляем предыдущие уведомления
+    const existingNotifications = document.querySelectorAll('.wishlist-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = 'wishlist-notification';
+    
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        info: '#2196F3',
+        warning: '#ff9800'
+    };
+    
+    const icons = {
+        success: '♥️',
+        error: '❌',
+        info: '💙',
+        warning: '⚠️'
+    };
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        z-index: 10001;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        font-weight: 500;
+        max-width: 350px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 4px solid rgba(255, 255, 255, 0.3);
+    `;
+    
+    notification.innerHTML = `${icons[type]} ${text}`;
+    
+    document.body.appendChild(notification);
+    
+    // Анимация появления
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Удаление через 4 секунды
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
 </script>
 {% endblock %}

@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 import json
 
 from .models import User, UserProfile, CompanyProfile, DeliveryAddress
@@ -317,4 +317,41 @@ def set_default_address(request, address_id):
         return JsonResponse({
             'success': False,
             'message': f'Ошибка при установке адреса по умолчанию: {str(e)}'
+        })
+
+@login_required
+@require_GET
+def get_delivery_address_info(request, address_id):
+    """API для получения полной информации об адресе доставки"""
+    try:
+        address = get_object_or_404(
+            DeliveryAddress,
+            id=address_id,
+            user=request.user,
+            is_active=True
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'address': {
+                'id': address.id,
+                'title': address.title,
+                'country': address.country,
+                'city': address.city,
+                'address': address.address,
+                'postal_code': address.postal_code,
+                'contact_person': address.contact_person,
+                'contact_phone': address.contact_phone,
+                'notes': address.notes,
+                'is_default': address.is_default,
+                'full_address': address.get_full_address(),
+                'short_address': address.get_short_address(),
+                'created_at': address.created_at.strftime('%d.%m.%Y')
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Ошибка при получении информации об адресе: {str(e)}'
         })

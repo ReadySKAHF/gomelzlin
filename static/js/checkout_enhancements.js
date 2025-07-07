@@ -1,38 +1,55 @@
 class CheckoutManager {
     constructor() {
-        this.deliveryAddresses = {}; // Кэш адресов доставки
-        // Получаем сумму корзины из глобальной переменной или Django переменной
-        this.baseCartTotal = window.cartSubtotal || 0;
+        this.deliveryAddresses = {};
+        this.baseCartTotal = parseFloat(document.getElementById('cart_subtotal')?.textContent || '0');
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            this.init();
+        });
+    }
+
+    init() {
+        console.log('Инициализация CheckoutManager...');
+        
+        this.loadSavedAddresses();
         
         this.initEventListeners();
-        this.loadSavedAddresses();
-        this.updateTotalCost();
+        
+        this.initFormState();
+        
+        console.log('CheckoutManager инициализирован');
     }
 
     initEventListeners() {
-        // Изменение способа доставки
         const deliveryMethodSelect = document.getElementById('delivery_method');
         if (deliveryMethodSelect) {
             deliveryMethodSelect.addEventListener('change', () => this.handleDeliveryMethodChange());
         }
 
-        // Изменение выбора адреса
         const savedAddressSelect = document.getElementById('saved_address_id');
         if (savedAddressSelect) {
-            savedAddressSelect.addEventListener('change', () => this.handleAddressSelectionChange());
+            savedAddressSelect.addEventListener('change', () => this.handleAddressChange());
         }
 
-        // Валидация формы при отправке
         const checkoutForm = document.getElementById('checkoutForm');
         if (checkoutForm) {
             checkoutForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
         }
 
-        // Автосохранение данных
         this.initAutoSave();
 
-        // Показ дополнительных полей для организаций
         this.initCompanyFieldsToggle();
+    }
+
+    initFormState() {
+        this.handleDeliveryMethodChange();
+        
+        const savedAddressSelect = document.getElementById('saved_address_id');
+        if (savedAddressSelect && savedAddressSelect.value && savedAddressSelect.value !== 'new') {
+            setTimeout(() => {
+                this.handleAddressChange();
+            }, 100);
+        }
     }
 
     handleDeliveryMethodChange() {
@@ -42,10 +59,10 @@ class CheckoutManager {
         console.log('Delivery method changed to:', deliveryMethod);
         
         if (deliveryMethod === 'pickup') {
-            addressSection.style.display = 'none';
+            if (addressSection) addressSection.style.display = 'none';
             this.setRequiredFields(['delivery_address'], false);
         } else {
-            addressSection.style.display = 'block';
+            if (addressSection) addressSection.style.display = 'block';
             this.setRequiredFields(['delivery_address'], true);
         }
         
@@ -54,75 +71,253 @@ class CheckoutManager {
         this.showDeliveryEstimate();
     }
 
-    handleAddressSelectionChange() {
-        const savedAddressId = document.getElementById('saved_address_id')?.value;
+    async handleAddressChange() {
+        const savedAddressSelect = document.getElementById('saved_address_id');
         const newAddressInput = document.getElementById('new_address_input');
         const deliveryAddressTextarea = document.getElementById('delivery_address');
         
-        if (!savedAddressId) return;
+        if (!savedAddressSelect) {
+            console.log('Селект адресов не найден');
+            return;
+        }
+        
+        const savedAddressId = savedAddressSelect.value;
+        console.log('Выбран адрес:', savedAddressId);
         
         if (savedAddressId === 'new') {
-            newAddressInput.style.display = 'block';
-            deliveryAddressTextarea.required = true;
-            deliveryAddressTextarea.value = '';
-            deliveryAddressTextarea.focus();
-            
-            // Скрываем превью адреса
-            this.hideAddressPreview();
-        } else {
-            newAddressInput.style.display = 'none';
-            deliveryAddressTextarea.required = false;
-            
-            // Заполняем скрытое поле данными выбранного адреса
-            const selectedAddress = this.deliveryAddresses[savedAddressId];
-            if (selectedAddress) {
-                deliveryAddressTextarea.value = selectedAddress.full_address;
-                this.showAddressPreview(selectedAddress);
+            if (newAddressInput) {
+                newAddressInput.style.display = 'block';
             }
+            if (deliveryAddressTextarea) {
+                deliveryAddressTextarea.required = true;
+                deliveryAddressTextarea.value = '';
+                deliveryAddressTextarea.focus();
+            }
+            this.hideAddressPreview();
+            
+        } else if (savedAddressId) {
+            if (newAddressInput) {
+                newAddressInput.style.display = 'none';
+            }
+            if (deliveryAddressTextarea) {
+                deliveryAddressTextarea.required = false;
+            }
+            
+            console.log('Загружаем информацию об адресе:', savedAddressId);
+            const fullAddressInfo = await this.loadFullAddressInfo(savedAddressId);
+            
+            if (fullAddressInfo) {
+                console.log('Полная информация загружена:', fullAddressInfo);
+                if (deliveryAddressTextarea) {
+                    deliveryAddressTextarea.value = fullAddressInfo.full_address;
+                }
+                this.showAddressPreview(fullAddressInfo);
+            } else {
+                console.log('Используем базовую информацию из селекта');
+                const selectedAddress = this.deliveryAddresses[savedAddressId];
+                if (selectedAddress) {
+                    console.log('Базовая информация:', selectedAddress);
+                    if (deliveryAddressTextarea) {
+                        deliveryAddressTextarea.value = selectedAddress.full_address;
+                    }
+                    this.showAddressPreview(selectedAddress);
+                }
+            }
+        } else {
+            this.hideAddressPreview();
+        }
+    }
+
+    loadSavedAddresses() {
+        const addressOptions = document.querySelectorAll('#saved_address_id option[value]:not([value="new"])');
+        
+        console.log('Найдено опций адресов:', addressOptions.length);
+        
+        addressOptions.forEach(option => {
+            const addressId = option.value;
+            if (addressId && addressId !== 'new') {
+                const text = option.textContent.trim();
+                const parts = text.split(' - ');
+                
+                if (parts.length >= 2) {
+                    const title = parts[0];
+                    const address = parts.slice(1).join(' - ');
+                    
+                    this.deliveryAddresses[addressId] = {
+                        id: addressId,
+                        title: title,
+                        full_address: address,
+                        address: address,
+                        city: address.split(',')[0] || '',
+                    };
+                    
+                    console.log(`Загружен адрес ${addressId}:`, this.deliveryAddresses[addressId]);
+                }
+            }
+        });
+        
+        console.log('Все загруженные адреса:', this.deliveryAddresses);
+    }
+
+    async loadFullAddressInfo(addressId) {
+        try {
+            console.log('Отправляем запрос для адреса:', addressId);
+            const response = await fetch(`/accounts/delivery-address/${addressId}/info/`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': this.getCSRFToken()
+                }
+            });
+            
+            console.log('Ответ от сервера:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Данные от сервера:', data);
+                if (data.success) {
+                    return data.address;
+                }
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Ошибка загрузки информации об адресе:', error);
+            return null;
         }
     }
 
     showAddressPreview(address) {
-        // Показываем превью выбранного адреса
-        let previewElement = document.getElementById('address_preview');
-        if (!previewElement) {
-            previewElement = document.createElement('div');
-            previewElement.id = 'address_preview';
-            previewElement.style.cssText = `
-                background: #f8f9fa;
-                border: 1px solid #e9ecef;
-                border-radius: 8px;
-                padding: 1rem;
-                margin-top: 0.5rem;
-                font-size: 0.9rem;
-                color: #333;
-            `;
-            
-            const savedAddressSelect = document.getElementById('saved_address_id');
-            savedAddressSelect.parentNode.appendChild(previewElement);
+        console.log('Показываем превью для адреса:', address);
+        
+        const existingPreview = document.getElementById('address_preview');
+        if (existingPreview) {
+            existingPreview.remove();
         }
         
-        previewElement.innerHTML = `
-            <strong>📍 ${address.title}</strong><br>
-            ${address.full_address}
-            ${address.contact_person ? `<br><strong>Контакт:</strong> ${address.contact_person}` : ''}
-            ${address.contact_phone ? ` (${address.contact_phone})` : ''}
-            ${address.notes ? `<br><em>${address.notes}</em>` : ''}
+        const previewElement = document.createElement('div');
+        previewElement.id = 'address_preview';
+        previewElement.style.cssText = `
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border: 2px solid #cb413b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(203, 65, 59, 0.1);
+            position: relative;
+            overflow: hidden;
         `;
-        previewElement.style.display = 'block';
+        
+        previewElement.innerHTML = `
+            <div style="position: absolute; top: -10px; right: -10px; width: 40px; height: 40px; background: #cb413b; border-radius: 50%; opacity: 0.1;"></div>
+            
+            <div style="display: flex; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #dee2e6; padding-bottom: 0.75rem;">
+                <div style="background: #cb413b; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-size: 1.2rem;">
+                    📍
+                </div>
+                <div>
+                    <h4 style="margin: 0; color: #cb413b; font-size: 1.2rem; font-weight: 600;">${address.title}</h4>
+                    <p style="margin: 0; color: #666; font-size: 0.9rem;">Выбранный адрес доставки</p>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: #cb413b; margin-right: 0.5rem; font-size: 1rem;">🏢</span>
+                        <strong style="color: #333;">Адрес:</strong>
+                    </div>
+                    <p style="margin: 0 0 0 1.5rem; line-height: 1.5; color: #555;">
+                        ${address.full_address || address.address || `${address.city}, ${address.address}`}
+                    </p>
+                    ${address.postal_code ? `
+                        <p style="margin: 0.25rem 0 0 1.5rem; color: #666; font-size: 0.9rem;">
+                            📮 Индекс: ${address.postal_code}
+                        </p>
+                    ` : ''}
+                </div>
+                
+                <div>
+                    ${address.contact_person ? `
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="color: #cb413b; margin-right: 0.5rem; font-size: 1rem;">👤</span>
+                            <strong style="color: #333;">Контактное лицо:</strong>
+                        </div>
+                        <p style="margin: 0 0 0.5rem 1.5rem; color: #555;">${address.contact_person}</p>
+                    ` : ''}
+                    
+                    ${address.contact_phone ? `
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="color: #cb413b; margin-right: 0.5rem; font-size: 1rem;">📞</span>
+                            <strong style="color: #333;">Телефон:</strong>
+                        </div>
+                        <p style="margin: 0 0 0 1.5rem; color: #555;">
+                            <a href="tel:${address.contact_phone}" style="color: #cb413b; text-decoration: none;">
+                                ${address.contact_phone}
+                            </a>
+                        </p>
+                    ` : ''}
+                </div>
+            </div>
+            
+            ${address.notes ? `
+                <div style="background: rgba(203, 65, 59, 0.05); border-left: 4px solid #cb413b; padding: 0.75rem; border-radius: 0 8px 8px 0; margin-top: 1rem;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: #cb413b; margin-right: 0.5rem; font-size: 1rem;">📝</span>
+                        <strong style="color: #333;">Примечания:</strong>
+                    </div>
+                    <p style="margin: 0; color: #555; font-style: italic; line-height: 1.4;">
+                        ${address.notes}
+                    </p>
+                </div>
+            ` : ''}
+            
+            <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #dee2e6; text-align: center;">
+                <small style="color: #666;">
+                    ✅ Этот адрес будет использован для доставки вашего заказа
+                </small>
+            </div>
+        `;
+        
+        const savedAddressSelect = document.getElementById('saved_address_id');
+        if (savedAddressSelect && savedAddressSelect.parentNode) {
+            savedAddressSelect.parentNode.appendChild(previewElement);
+            
+            previewElement.style.opacity = '0';
+            previewElement.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                previewElement.style.transition = 'all 0.3s ease';
+                previewElement.style.opacity = '1';
+                previewElement.style.transform = 'translateY(0)';
+            }, 50);
+            
+            console.log('Превью добавлено на страницу');
+        } else {
+            console.error('Не удалось найти место для добавления превью');
+        }
     }
 
     hideAddressPreview() {
         const previewElement = document.getElementById('address_preview');
         if (previewElement) {
-            previewElement.style.display = 'none';
+            previewElement.remove();
+            console.log('Превью скрыто');
         }
     }
 
+    getCSRFToken() {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]');
+        return token ? token.value : '';
+    }
+
     updateDeliveryCost() {
-        const deliveryMethod = document.getElementById('delivery_method').value;
+        const deliveryMethod = document.getElementById('delivery_method')?.value;
         const deliveryCostElement = document.getElementById('delivery_cost');
         let deliveryCost = 0;
+        
+        if (!deliveryMethod || !deliveryCostElement) return 0;
         
         switch (deliveryMethod) {
             case 'pickup':
@@ -130,7 +325,6 @@ class CheckoutManager {
                 deliveryCostElement.textContent = '0.00 BYN';
                 break;
             case 'delivery':
-                // Бесплатная доставка для заказов свыше 500 BYN
                 deliveryCost = this.baseCartTotal >= 500 ? 0 : 10;
                 if (deliveryCost === 0) {
                     deliveryCostElement.textContent = 'Бесплатно (сумма ≥ 500 BYN)';
@@ -144,16 +338,16 @@ class CheckoutManager {
                 break;
         }
         
-        // Обновляем глобальную переменную для совместимости
         window.deliveryCost = deliveryCost;
-        
         return deliveryCost;
     }
 
     updateTotalCost() {
         const deliveryCost = this.updateDeliveryCost();
         const totalCostElement = document.getElementById('total_cost');
-        const deliveryMethod = document.getElementById('delivery_method').value;
+        const deliveryMethod = document.getElementById('delivery_method')?.value;
+        
+        if (!totalCostElement || !deliveryMethod) return;
         
         if (deliveryMethod === 'transport_company') {
             totalCostElement.textContent = `${this.baseCartTotal.toFixed(2)} BYN + доставка`;
@@ -161,19 +355,18 @@ class CheckoutManager {
             const totalCost = this.baseCartTotal + deliveryCost;
             totalCostElement.textContent = `${totalCost.toFixed(2)} BYN`;
         }
-        
-        console.log('Total cost updated to:', totalCostElement.textContent);
     }
 
     showDeliveryEstimate() {
-        const deliveryMethod = document.getElementById('delivery_method').value;
+        const deliveryMethod = document.getElementById('delivery_method')?.value;
+        if (!deliveryMethod) return;
+        
         const estimates = {
             'pickup': 'Готов к самовывозу в течение 1-2 рабочих дней',
             'delivery': 'Доставка в течение 1-3 рабочих дней',
             'transport_company': 'Доставка транспортной компанией в течение 3-7 рабочих дней'
         };
         
-        // Показываем оценку времени доставки
         let estimateElement = document.getElementById('delivery_estimate');
         if (!estimateElement) {
             estimateElement = document.createElement('div');
@@ -189,38 +382,12 @@ class CheckoutManager {
             `;
             
             const deliveryMethodSelect = document.getElementById('delivery_method');
-            deliveryMethodSelect.parentNode.appendChild(estimateElement);
+            if (deliveryMethodSelect && deliveryMethodSelect.parentNode) {
+                deliveryMethodSelect.parentNode.appendChild(estimateElement);
+            }
         }
         
         estimateElement.innerHTML = `⏰ ${estimates[deliveryMethod] || 'Срок доставки уточняется'}`;
-    }
-
-    loadSavedAddresses() {
-        // Загружаем данные сохраненных адресов для JavaScript
-        const addressOptions = document.querySelectorAll('#saved_address_id option[value]:not([value="new"])');
-        
-        addressOptions.forEach(option => {
-            const addressId = option.value;
-            if (addressId && addressId !== 'new') {
-                // Парсим данные из текста опции
-                const text = option.textContent.trim();
-                const parts = text.split(' - ');
-                
-                if (parts.length >= 2) {
-                    const title = parts[0];
-                    const address = parts.slice(1).join(' - '); // На случай если в адресе есть дефисы
-                    
-                    this.deliveryAddresses[addressId] = {
-                        id: addressId,
-                        title: title,
-                        full_address: address,
-                        // Дополнительные данные можно получить через AJAX при необходимости
-                    };
-                }
-            }
-        });
-        
-        console.log('Loaded delivery addresses:', this.deliveryAddresses);
     }
 
     setRequiredFields(fieldNames, required) {
@@ -229,8 +396,7 @@ class CheckoutManager {
             if (field) {
                 field.required = required;
                 
-                // Добавляем визуальную индикацию
-                const label = field.parentNode.querySelector('label');
+                const label = field.parentNode?.querySelector('label');
                 if (label) {
                     if (required && !label.textContent.includes('*')) {
                         label.textContent += ' *';
@@ -243,7 +409,6 @@ class CheckoutManager {
     }
 
     handleFormSubmit(e) {
-        // Дополнительная валидация перед отправкой
         const errors = this.validateForm();
         
         if (errors.length > 0) {
@@ -252,10 +417,8 @@ class CheckoutManager {
             return false;
         }
         
-        // Показываем индикатор загрузки
         this.showLoadingState();
         
-        // Сохраняем данные для analytics
         this.trackOrderSubmission();
         
         return true;
@@ -265,7 +428,6 @@ class CheckoutManager {
         const errors = [];
         const deliveryMethod = document.getElementById('delivery_method').value;
         
-        // Проверяем обязательные поля
         const requiredFields = [
             { id: 'customer_name', name: 'ФИО' },
             { id: 'customer_email', name: 'Email' },
@@ -280,28 +442,24 @@ class CheckoutManager {
             }
         });
         
-        // Проверяем email
         const email = document.getElementById('customer_email').value.trim();
         if (email && !this.isValidEmail(email)) {
             errors.push('Некорректный email адрес');
             this.highlightError(document.getElementById('customer_email'));
         }
         
-        // Проверяем телефон
         const phone = document.getElementById('customer_phone').value.trim();
         if (phone && !this.isValidPhone(phone)) {
             errors.push('Некорректный номер телефона');
             this.highlightError(document.getElementById('customer_phone'));
         }
         
-        // Проверяем УНП
         const unp = document.getElementById('company_unp')?.value.trim();
         if (unp && !this.isValidUNP(unp)) {
             errors.push('УНП должен содержать 9 цифр');
             this.highlightError(document.getElementById('company_unp'));
         }
         
-        // Проверяем адрес доставки
         if (deliveryMethod !== 'pickup') {
             const savedAddressId = document.getElementById('saved_address_id')?.value;
             const deliveryAddress = document.getElementById('delivery_address').value.trim();
@@ -316,11 +474,9 @@ class CheckoutManager {
     }
 
     showValidationErrors(errors) {
-        // Удаляем предыдущие ошибки
         const existingErrors = document.querySelectorAll('.validation-error');
         existingErrors.forEach(error => error.remove());
         
-        // Создаем блок с ошибками
         const errorBlock = document.createElement('div');
         errorBlock.className = 'validation-error';
         errorBlock.style.cssText = `
@@ -339,11 +495,9 @@ class CheckoutManager {
             </ul>
         `;
         
-        // Вставляем блок в начало формы
         const form = document.getElementById('checkoutForm');
         form.insertBefore(errorBlock, form.firstChild);
-        
-        // Прокручиваем к ошибкам
+
         errorBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
@@ -351,7 +505,6 @@ class CheckoutManager {
         element.style.borderColor = '#dc3545';
         element.style.boxShadow = '0 0 0 3px rgba(220, 53, 69, 0.1)';
         
-        // Убираем подсветку при фокусе
         element.addEventListener('focus', function() {
             this.style.borderColor = '';
             this.style.boxShadow = '';
@@ -365,7 +518,6 @@ class CheckoutManager {
             submitBtn.disabled = true;
         }
         
-        // Блокируем форму
         const form = document.getElementById('checkoutForm');
         const overlay = document.createElement('div');
         overlay.style.cssText = `
@@ -388,26 +540,22 @@ class CheckoutManager {
     }
 
     initAutoSave() {
-        // Автосохранение данных формы (кроме чувствительных данных)
         const fieldsToSave = ['customer_name', 'customer_phone', 'notes'];
         
         fieldsToSave.forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field) {
-                // Восстанавливаем сохраненные данные только если поле пустое
                 const savedValue = localStorage.getItem(`checkout_${fieldId}`);
                 if (savedValue && !field.value.trim()) {
                     field.value = savedValue;
                 }
                 
-                // Сохраняем при изменении
                 field.addEventListener('input', () => {
                     localStorage.setItem(`checkout_${fieldId}`, field.value);
                 });
             }
         });
         
-        // Очищаем автосохранение при успешной отправке
         window.addEventListener('beforeunload', () => {
             if (document.querySelector('.validation-error') === null) {
                 fieldsToSave.forEach(fieldId => {
@@ -418,7 +566,6 @@ class CheckoutManager {
     }
 
     initCompanyFieldsToggle() {
-        // Показ/скрытие полей организации в зависимости от заполнения
         const companyNameField = document.getElementById('company_name');
         if (companyNameField) {
             const toggleCompanyFields = () => {
@@ -432,12 +579,11 @@ class CheckoutManager {
             };
             
             companyNameField.addEventListener('input', toggleCompanyFields);
-            toggleCompanyFields(); // Инициализация
+            toggleCompanyFields(); 
         }
     }
 
     trackOrderSubmission() {
-        // Отправляем данные в аналитику (если настроена)
         const analyticsData = {
             event: 'order_submission_started',
             delivery_method: document.getElementById('delivery_method').value,
@@ -446,11 +592,9 @@ class CheckoutManager {
             timestamp: new Date().toISOString()
         };
         
-        // Здесь можно добавить отправку в Google Analytics, Yandex.Metrica и т.д.
         console.log('Order analytics:', analyticsData);
     }
 
-    // Вспомогательные методы валидации
     isValidEmail(email) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
@@ -464,7 +608,6 @@ class CheckoutManager {
     }
 }
 
-// Глобальные функции для совместимости со встроенным JavaScript в шаблоне
 window.toggleDeliveryAddress = function() {
     if (window.checkoutManager) {
         window.checkoutManager.handleDeliveryMethodChange();
@@ -473,7 +616,7 @@ window.toggleDeliveryAddress = function() {
 
 window.toggleAddressInput = function() {
     if (window.checkoutManager) {
-        window.checkoutManager.handleAddressSelectionChange();
+        window.checkoutManager.handleAddressChange();
     }
 };
 
@@ -486,7 +629,6 @@ window.updateTotalCost = function() {
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('checkoutForm')) {
-        // Ждем, пока загрузится основной скрипт шаблона
         setTimeout(() => {
             window.checkoutManager = new CheckoutManager();
             console.log('CheckoutManager initialized successfully');

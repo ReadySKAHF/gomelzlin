@@ -583,10 +583,9 @@
             }
         });
 
-        // Глобальная функция для добавления товара в корзину (для совместимости)
-        function addToCart(productId, productName = '', productPrice = 0) {
+        function addToCart(productId, productName = '', productPrice = 0, quantity = 1) {
             if (window.cartManager) {
-                window.cartManager.addToCart(productId, productName, productPrice);
+                window.cartManager.addToCart(productId, productName, productPrice, quantity);
             } else {
                 console.error('Cart manager не инициализирован');
             }

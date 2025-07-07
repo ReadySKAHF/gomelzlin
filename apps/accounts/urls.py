@@ -13,6 +13,9 @@ urlpatterns = [
     # Профиль
     path('profile/', views.ProfileView.as_view(), name='profile'),
     
+    # API для адресов доставки
+    path('delivery-address/<int:address_id>/info/', views.get_delivery_address_info, name='delivery_address_info'),
+
     # Управление адресами доставки
     path('address/add/', views.add_delivery_address, name='add_address'),
     path('address/<int:address_id>/update/', views.update_delivery_address, name='update_address'),

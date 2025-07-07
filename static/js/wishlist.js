@@ -283,42 +283,63 @@ class WishlistManager {
         return '';
     }
 
-    // Показ уведомления
-    showNotification(message, type = 'info') {
-        // Удаляем предыдущие уведомления
-        const existingNotifications = document.querySelectorAll('.wishlist-notification');
-        existingNotifications.forEach(notification => notification.remove());
+    showNotification(text, type = 'info') {
+    const existingNotifications = document.querySelectorAll('.wishlist-notification');
+    existingNotifications.forEach(notification => notification.remove());
 
-        const notification = document.createElement('div');
-        notification.className = 'wishlist-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${this.getNotificationColor(type)};
-            color: ${type === 'warning' ? '#333' : 'white'};
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            font-weight: 600;
-            max-width: 300px;
-            animation: slideInRight 0.3s ease;
-            cursor: pointer;
-        `;
-        notification.textContent = message;
-        
-        // Закрытие по клику
-        notification.addEventListener('click', () => {
-            this.hideNotification(notification);
-        });
-        
-        document.body.appendChild(notification);
-        
-        // Автоматическое скрытие через 3 секунды
+    const notification = document.createElement('div');
+    notification.className = 'wishlist-notification';
+    
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        info: '#2196F3',
+        warning: '#ff9800'
+    };
+    
+    const icons = {
+        success: '♥️',
+        error: '❌', 
+        info: '💙',
+        warning: '⚠️'
+    };
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        z-index: 10001;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        font-weight: 500;
+        max-width: 350px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 4px solid rgba(255, 255, 255, 0.3);
+    `;
+    
+    notification.innerHTML = `${icons[type]} ${text}`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
-            this.hideNotification(notification);
-        }, 3000);
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
     }
 
     // Скрытие уведомления

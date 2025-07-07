@@ -49,7 +49,7 @@ class CartManager {
         });
     }
 
-    async addToCart(productId, productName = '', productPrice = 0) {
+    async addToCart(productId, productName = '', productPrice = 0, quantity = 1) {
         if (!productId) {
             this.showMessage('Ошибка: не указан товар', 'error');
             return;
@@ -58,7 +58,7 @@ class CartManager {
         try {
             const formData = new FormData();
             formData.append('product_id', productId);
-            formData.append('quantity', 1);
+            formData.append('quantity', quantity);  // ← ИСПРАВЛЕНО!
 
             const response = await fetch('/cart/add/', {
                 method: 'POST',
@@ -72,7 +72,10 @@ class CartManager {
 
             if (data.success) {
                 this.updateCartCount(data.cart_count);
-                this.showMessage(data.message || `${productName} добавлен в корзину`, 'success');
+                const message = quantity === 1 ? 
+                    `${productName} добавлен в корзину` : 
+                    `${productName} добавлен в корзину (${quantity} шт.)`;
+                this.showMessage(data.message || message, 'success');
                 
                 // Обновляем интерфейс корзины если находимся на странице корзины
                 if (window.location.pathname.includes('/cart/')) {
@@ -239,42 +242,6 @@ class CartManager {
             console.error('Remove item error:', error);
         } finally {
             this.setLoading(button, false);
-        }
-    }
-
-    async clearCart() {
-        if (!confirm('Очистить корзину? Все товары будут удалены.')) {
-            return;
-        }
-
-        try {
-            const response = await fetch('/cart/clear/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': this.getCSRFToken()
-                }
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // Удаляем все товары из DOM
-                const cartItems = document.querySelectorAll('.cart-item');
-                cartItems.forEach(item => this.animateRemoval(item));
-
-                this.updateCartCount(0);
-                this.updateCartTotal(0);
-                this.showMessage(data.message, 'success');
-                
-                setTimeout(() => {
-                    this.checkEmptyCart();
-                }, 300);
-            } else {
-                this.showMessage(data.message || 'Ошибка при очистке корзины', 'error');
-            }
-        } catch (error) {
-            this.showMessage('Произошла ошибка при очистке корзины', 'error');
-            console.error('Clear cart error:', error);
         }
     }
 
@@ -515,6 +482,163 @@ class CartManager {
             console.log('Не удалось загрузить состояние корзины:', error);
         }
     }
+
+    async clearCart() {
+        this.showClearCartAlert();
+    }
+
+    showClearCartAlert() {
+    if (!document.getElementById('clearCartAlert')) {
+        const alertHTML = `
+            <div id="clearCartAlert" class="custom-alert-overlay">
+                <div class="custom-alert">
+                    <div class="custom-alert-header">
+                        <span class="custom-alert-icon">🗑️</span>
+                        <h3 class="custom-alert-title">Очистить корзину?</h3>
+                    </div>
+                    <div class="custom-alert-body">
+                        <p class="custom-alert-message">Вы уверены, что хотите удалить все товары из корзины?</p>
+                        <p class="custom-alert-submessage">Это действие нельзя будет отменить</p>
+                        <div class="custom-alert-actions">
+                            <button class="custom-alert-btn cancel" onclick="window.cartManager.hideClearCartAlert()">
+                                Отмена
+                            </button>
+                            <button class="custom-alert-btn confirm" onclick="window.cartManager.confirmClearCart()">
+                                Очистить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', alertHTML);
+    }
+
+    const alertOverlay = document.getElementById('clearCartAlert');
+    alertOverlay.classList.add('show');
+    
+    document.body.style.overflow = 'hidden';
+    
+    this.handleEscapeKey = (e) => {
+        if (e.key === 'Escape') {
+            this.hideClearCartAlert();
+        }
+    };
+    document.addEventListener('keydown', this.handleEscapeKey);
+    
+    alertOverlay.addEventListener('click', (e) => {
+        if (e.target === alertOverlay) {
+            this.hideClearCartAlert();
+        }
+    });
+}
+
+hideClearCartAlert() {
+    const alertOverlay = document.getElementById('clearCartAlert');
+    if (alertOverlay) {
+        alertOverlay.classList.remove('show');
+    }
+    
+    document.body.style.overflow = '';
+    
+    if (this.handleEscapeKey) {
+        document.removeEventListener('keydown', this.handleEscapeKey);
+        this.handleEscapeKey = null;
+    }
+}
+async confirmClearCart() {
+    this.hideClearCartAlert();
+    
+    try {
+        const response = await fetch('/cart/clear/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': this.getCSRFToken()
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            const cartItems = document.querySelectorAll('.cart-item');
+            cartItems.forEach(item => this.animateRemoval(item));
+
+            this.updateCartCount(0);
+            this.updateCartTotal(0);
+            this.showSuccessMessage('Корзина успешно очищена');
+            
+            setTimeout(() => {
+                this.checkEmptyCart();
+            }, 300);
+        } else {
+            this.showMessage(data.message || 'Ошибка при очистке корзины', 'error');
+        }
+    } catch (error) {
+        this.showMessage('Произошла ошибка при очистке корзины', 'error');
+        console.error('Clear cart error:', error);
+    }
+}
+
+showSuccessMessage(text) {
+    this.showNotification(text, 'success');
+}
+showNotification(text, type = 'info') {
+    const existingNotifications = document.querySelectorAll('.cart-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = 'cart-notification';
+    
+    const colors = {
+        success: '#4CAF50',
+        error: '#f44336',
+        info: '#2196F3',
+        warning: '#ff9800'
+    };
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️',
+        warning: '⚠️'
+    };
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 10001;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        font-weight: 500;
+        max-width: 300px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    `;
+    
+    notification.innerHTML = `${icons[type]} ${text}`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
 }
 
 // Глобальные функции для совместимости с существующим кодом
@@ -541,3 +665,4 @@ document.addEventListener('DOMContentLoaded', function() {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = CartManager;
 }
+
