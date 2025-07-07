@@ -28,123 +28,153 @@
                             {{ order.total_amount }} BYN
                         </div>
                         <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 15px; font-size: 0.8rem; font-weight: 500; 
-                                    {% if order.status == 'pending' %}background: #fff3cd; color: #856404;
-                                    {% elif order.status == 'confirmed' %}background: #d1ecf1; color: #0c5460;
-                                    {% elif order.status == 'processing' %}background: #ffeaa7; color: #6c5ce7;
-                                    {% elif order.status == 'shipped' %}background: #fdcb6e; color: #e84393;
-                                    {% elif order.status == 'delivered' or order.status == 'completed' %}background: #d4edda; color: #155724;
-                                    {% elif order.status == 'cancelled' %}background: #f8d7da; color: #721c24;
-                                    {% else %}background: #e2e3e5; color: #6c757d;
-                                    {% endif %}">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ order.get_status_display_color }};"></span>
-                            {{ order.get_status_display }}
+                                    {% if order.status == 'pending' %}background: #fff3cd; color: #856404;{% endif %}
+                                    {% if order.status == 'confirmed' %}background: #d1ecf1; color: #0c5460;{% endif %}
+                                    {% if order.status == 'processing' %}background: #cce5ff; color: #004085;{% endif %}
+                                    {% if order.status == 'shipped' %}background: #d4edda; color: #155724;{% endif %}
+                                    {% if order.status == 'delivered' %}background: #d4edda; color: #155724;{% endif %}
+                                    {% if order.status == 'completed' %}background: #c3e6cb; color: #155724;{% endif %}
+                                    {% if order.status == 'cancelled' %}background: #f8d7da; color: #721c24;{% endif %}
+                                    {% if order.status == 'returned' %}background: #ffeaa7; color: #856404;{% endif %}
+                                ">
+                            {% if order.status == 'pending' %}⏳ Ожидает обработки{% endif %}
+                            {% if order.status == 'confirmed' %}✅ Подтвержден{% endif %}
+                            {% if order.status == 'processing' %}🔄 В обработке{% endif %}
+                            {% if order.status == 'shipped' %}🚚 Отправлен{% endif %}
+                            {% if order.status == 'delivered' %}📦 Доставлен{% endif %}
+                            {% if order.status == 'completed' %}🎉 Завершён{% endif %}
+                            {% if order.status == 'cancelled' %}❌ Отменен{% endif %}
+                            {% if order.status == 'returned' %}↩️ Возвращен{% endif %}
                         </div>
                     </div>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <div style="font-weight: bold; margin-bottom: 0.25rem;">Товары:</div>
-                        <div>{{ order.get_items_count }} позиций</div>
-                    </div>
-                    
-                    <div>
-                        <div style="font-weight: bold; margin-bottom: 0.25rem;">Доставка:</div>
-                        <div>{{ order.get_delivery_method_display }}</div>
-                    </div>
-                    
-                    <div>
-                        <div style="font-weight: bold; margin-bottom: 0.25rem;">Оплата:</div>
-                        <div>{{ order.get_payment_method_display }}</div>
-                    </div>
-                </div>
-                
-                <!-- Краткий список товаров -->
+                <!-- Товары в заказе -->
                 <div style="margin-bottom: 1rem;">
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">Состав заказа:</div>
-                    <div style="color: var(--secondary-gray); font-size: 0.9rem;">
+                    <strong>Товары:</strong>
+                    <div style="margin-top: 0.5rem;">
                         {% for item in order.items.all|slice:":3" %}
-                            {{ item.product_name }}{% if item.quantity > 1 %} ({{ item.quantity }} шт){% endif %}{% if not forloop.last %}, {% endif %}
+                            <div style="display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.9rem;">
+                                <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                                <span>{{ item.get_total_price }} BYN</span>
+                            </div>
                         {% endfor %}
                         {% if order.items.count > 3 %}
-                            и еще {{ order.items.count|add:"-3" }} товар{{ order.items.count|add:"-3"|pluralize:"ов" }}
+                            <div style="color: var(--secondary-gray); font-size: 0.85rem; margin-top: 0.5rem;">
+                                ... и еще {{ order.items.count|add:"-3" }} позиц{{ order.items.count|add:"-3"|pluralize:"ия,ии,ий" }}
+                            </div>
                         {% endif %}
                     </div>
                 </div>
-                
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <a href="{{ order.get_absolute_url }}" class="btn btn-primary btn-sm">
-                        Подробнее
+
+                <!-- Информация о доставке -->
+                {% if order.delivery_method != 'pickup' %}
+                <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--light-gray); border-radius: 6px; font-size: 0.9rem;">
+                    <strong>Доставка:</strong> {{ order.get_delivery_method_display }}
+                    {% if order.delivery_address %}
+                        <br><span style="color: var(--secondary-gray);">{{ order.delivery_address }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Кнопки действий -->
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <a href="{{ order.get_absolute_url }}" class="btn btn-outline">
+                        📄 Подробнее
                     </a>
                     
-                    {% if order.can_be_cancelled %}
-                    <form method="post" action="{% url 'orders:cancel_order' order.number %}" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline btn-sm" 
-                                onclick="return confirm('Вы уверены, что хотите отменить заказ?')"
-                                style="color: #dc3545; border-color: #dc3545;">
-                            Отменить
+                    {% if order.status == 'pending' or order.status == 'confirmed' %}
+                        <button class="btn btn-danger" onclick="cancelOrder('{{ order.number }}')">
+                            ❌ Отменить заказ
                         </button>
-                    </form>
                     {% endif %}
                     
-                    <button class="btn btn-outline btn-sm" onclick="repeatOrder('{{ order.number }}')">
-                        Повторить заказ
-                    </button>
+                    {% if order.status == 'delivered' or order.status == 'completed' %}
+                        <button class="btn btn-primary" onclick="reorderItems('{{ order.number }}')">
+                            🔄 Повторить заказ
+                        </button>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
-        
+
         <!-- Пагинация -->
         {% if page_obj.has_other_pages %}
-        <div style="display: flex; justify-content: center; margin-top: 3rem;">
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <div style="display: flex; justify-content: center; margin-top: 2rem;">
+            <div style="display: flex; gap: 0.5rem;">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1" class="btn btn-outline btn-sm">Первая</a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline btn-sm">Предыдущая</a>
+                    <a href="?page=1" class="btn btn-outline">« Первая</a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-outline">‹ Предыдущая</a>
                 {% endif %}
-                
-                <span style="padding: 0.5rem 1rem; background: var(--light-gray); border-radius: var(--radius);">
+
+                <span style="padding: 0.5rem 1rem; background: var(--primary-red); color: white; border-radius: 6px;">
                     Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
                 </span>
-                
+
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline btn-sm">Следующая</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline btn-sm">Последняя</a>
+                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-outline">Следующая ›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-outline">Последняя »</a>
                 {% endif %}
             </div>
         </div>
         {% endif %}
-        
+
     {% else %}
-        <div style="text-align: center; padding: 4rem; color: var(--secondary-gray);">
+        <div style="text-align: center; padding: 4rem 0;">
             <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
-            <h2>У вас пока нет заказов</h2>
-            <p style="margin: 1rem 0;">Сделайте первый заказ в нашем каталоге</p>
-            <a href="{% url 'catalog:product_list' %}" class="btn btn-primary">Перейти к каталогу</a>
+            <h2 style="color: var(--secondary-gray); margin-bottom: 1rem;">У вас пока нет заказов</h2>
+            <p style="color: var(--secondary-gray); margin-bottom: 2rem;">
+                Перейдите в каталог товаров и сделайте первый заказ
+            </p>
+            <a href="{% url 'products:category_list' %}" class="btn btn-primary">
+                🛍️ Перейти к покупкам
+            </a>
         </div>
     {% endif %}
 </div>
 
 <script>
-function repeatOrder(orderNumber) {
-    if (confirm('Добавить все товары из заказа № ' + orderNumber + ' в корзину?')) {
-        // Здесь можно добавить AJAX-запрос для повторения заказа
-        fetch('/order/' + orderNumber + '/repeat/', {
+function cancelOrder(orderNumber) {
+    if (confirm('Вы уверены, что хотите отменить заказ?')) {
+        fetch(`/orders/${orderNumber}/cancel/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
                 'Content-Type': 'application/json',
-            }
+            },
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Товары добавлены в корзину!');
-                window.location.href = '/cart/';
+                location.reload();
             } else {
-                alert('Ошибка: ' + data.message);
+                alert(data.message || 'Не удалось отменить заказ');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при отмене заказа');
+        });
+    }
+}
+
+function reorderItems(orderNumber) {
+    if (confirm('Добавить товары из этого заказа в корзину?')) {
+        fetch(`/orders/${orderNumber}/reorder/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Товары добавлены в корзину');
+                // window.location.href = '/orders/';
+            } else {
+                alert(data.message || 'Не удалось добавить товары в корзину');
             }
         })
         .catch(error => {
@@ -155,26 +185,4 @@ function repeatOrder(orderNumber) {
 }
 </script>
 
-<style>
-.btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-}
-
-@media (max-width: 768px) {
-    .container > div > div {
-        grid-template-columns: 1fr !important;
-    }
-    
-    .order-actions {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .order-actions .btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
 {% endblock %}

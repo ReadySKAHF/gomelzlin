@@ -158,6 +158,7 @@ def get_order_status_display(status):
         'processing': '🔄 В обработке',
         'shipped': '🚚 Отправлен',
         'delivered': '📦 Доставлен',
+        'completed': '🎉 Завершён',
         'cancelled': '❌ Отменен',
         'returned': '↩️ Возвращен',
     }

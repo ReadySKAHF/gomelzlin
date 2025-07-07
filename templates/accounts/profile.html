@@ -314,14 +314,18 @@
                                             {% if order.status == 'processing' %}background: #cce5ff; color: #004085;{% endif %}
                                             {% if order.status == 'shipped' %}background: #d4edda; color: #155724;{% endif %}
                                             {% if order.status == 'delivered' %}background: #d4edda; color: #155724;{% endif %}
+                                            {% if order.status == 'completed' %}background: #c3e6cb; color: #155724;{% endif %}
                                             {% if order.status == 'cancelled' %}background: #f8d7da; color: #721c24;{% endif %}
+                                            {% if order.status == 'returned' %}background: #ffeaa7; color: #856404;{% endif %}
                                         ">
                                             {% if order.status == 'pending' %}⏳ Ожидает обработки{% endif %}
                                             {% if order.status == 'confirmed' %}✅ Подтвержден{% endif %}
                                             {% if order.status == 'processing' %}🔄 В обработке{% endif %}
                                             {% if order.status == 'shipped' %}🚚 Отправлен{% endif %}
                                             {% if order.status == 'delivered' %}📦 Доставлен{% endif %}
+                                            {% if order.status == 'completed' %}🎉 Завершён{% endif %}
                                             {% if order.status == 'cancelled' %}❌ Отменен{% endif %}
+                                            {% if order.status == 'returned' %}↩️ Возвращен{% endif %}
                                         </span>
                                     </div>
                                 </div>
