@@ -1,7 +1,8 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.views.generic import TemplateView
 from apps.company.views import AboutView
+from apps.dealers.views import DealerListView
 
 app_name = 'core'
 
@@ -17,7 +18,7 @@ urlpatterns = [
     path('about/', AboutView.as_view(), name='about'),
     
     # Дилерские центры
-    path('dealers/', TemplateView.as_view(template_name='pages/dealers.html'), name='dealers'),
+    path('dealers/', DealerListView.as_view(), name='dealers'),
     
     # Контакты
     path('contacts/', views.ContactsView.as_view(), name='contacts'),
@@ -29,4 +30,6 @@ urlpatterns = [
     path('warranty/', TemplateView.as_view(template_name='pages/warranty.html'), name='warranty'),
 
     path('test-404/', views.test_404),
+
+    path('test-api/', views.test_api_key, name='test_api'),
 ]

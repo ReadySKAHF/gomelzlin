@@ -7,11 +7,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Environment variables
 env = environ.Env(
-    DEBUG=(bool, False)
+    DEBUG=(bool, False),
+    YANDEX_MAPS_API_KEY=(str, ''),
 )
 
 # Take environment variables from .env file
 environ.Env.read_env(BASE_DIR / '.env')
+
+# API ключи
+YANDEX_MAPS_API_KEY = env('YANDEX_MAPS_API_KEY', default='')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-temporary-key-for-development')
@@ -73,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.api_keys',
             ],
         },
     },

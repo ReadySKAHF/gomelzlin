@@ -30,9 +30,9 @@ urlpatterns = [
     # Company information
     path('company/', include('apps.company.urls')),
     
-    # Dealers
-    path('dealers/', include('apps.dealers.urls')),
-    
+    # Dealers API
+    path('dealer/', include('apps.dealers.urls')),
+
     # Admin panel
     path('admin-panel/', include('apps.admin_panel.urls')),
 ]

@@ -458,7 +458,6 @@
                     <a href="{% url 'core:contacts' %}" {% if 'contacts' in request.path %}class="active"{% endif %}>
                         Контакты
                     </a>
-                    
                     {% if user.is_authenticated %}
                         <a href="{% url 'accounts:profile' %}" {% if 'profile' in request.path %}class="active"{% endif %}>
                             Личный кабинет

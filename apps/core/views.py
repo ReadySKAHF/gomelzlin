@@ -4,6 +4,8 @@ from django.http import Http404
 from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import News
+from django.conf import settings
+from django.http import JsonResponse
 
 def test_404(request):
     raise Http404("Тест кастомной 404")
@@ -131,3 +133,11 @@ class NewsDetailView(DetailView):
         ).order_by('-published_at')[:3]
         
         return context
+
+def test_api_key(request):
+    """Тестирование API ключа"""
+    return JsonResponse({
+        'yandex_api_key': getattr(settings, 'YANDEX_MAPS_API_KEY', 'NOT_SET'),
+        'key_length': len(getattr(settings, 'YANDEX_MAPS_API_KEY', '')),
+        'is_set': bool(getattr(settings, 'YANDEX_MAPS_API_KEY', ''))
+    })

@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from apps.core.models import AbstractBaseModel
+from django.urls import reverse
+import urllib.parse
 
 
 class DealerCenterManager(models.Manager):
@@ -14,6 +16,10 @@ class DealerCenterManager(models.Manager):
     def by_region(self, region):
         """Дилеры по региону"""
         return self.active().filter(region=region)
+    
+    def featured(self):
+        """Рекомендуемые дилеры"""
+        return self.active().filter(is_featured=True)
 
 
 class DealerCenter(AbstractBaseModel):
@@ -199,3 +205,27 @@ class DealerCenter(AbstractBaseModel):
     def has_coordinates(self):
         """Проверяет наличие координат"""
         return self.latitude is not None and self.longitude is not None
+    
+    @property 
+    def yandex_maps_url(self):
+        """Генерирует ссылку на Яндекс карты"""
+        if self.has_coordinates:
+            return f"https://yandex.by/maps/?pt={self.longitude},{self.latitude}&z=16&l=map"
+        else:
+            search_query = f"{self.city}, {self.address}"
+            encoded_query = urllib.parse.quote(search_query)
+            return f"https://yandex.by/maps/?text={encoded_query}"
+    
+    @property
+    def region_display(self):
+        """Отображение региона"""
+        return dict(self.REGIONS).get(self.region, self.region)
+    
+    @property
+    def dealer_type_display(self):
+        """Отображение типа дилера"""
+        return dict(self.DEALER_TYPES).get(self.dealer_type, self.dealer_type)
+    
+    def get_absolute_url(self):
+        """Абсолютный URL дилера"""
+        return reverse('dealers:dealer_detail', kwargs={'pk': self.pk})

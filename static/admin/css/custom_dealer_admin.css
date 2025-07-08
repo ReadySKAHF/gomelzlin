@@ -1,0 +1,148 @@
+/* Улучшенные цвета для бэджей */
+.dealer-type-badge {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 12px;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dealer-type-official { background-color: #28a745; }
+.dealer-type-authorized { background-color: #007bff; }
+.dealer-type-partner { background-color: #ffc107; color: #212529; }
+.dealer-type-distributor { background-color: #6f42c1; }
+
+/* Стили для координат */
+.coordinates-yes {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.coordinates-no {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Улучшение формы добавления/редактирования */
+.field-yandex_maps_link a {
+    display: inline-block;
+    background-color: #cb413b;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.field-yandex_maps_link a:hover {
+    background-color: #a0342e;
+    color: white;
+}
+
+/* Стили для поля координат */
+.field-coordinates_info {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.field-coordinates_info strong {
+    color: #495057;
+}
+
+/* Улучшенные действия в списке */
+.admin-list-actions {
+    margin-top: 20px;
+}
+
+/* Стили для статусов */
+.status-active {
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.status-inactive {
+    background-color: #dc3545;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.featured-badge {
+    background-color: #ffc107;
+    color: #212529;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Улучшение fieldsets */
+.module h2 {
+    background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+    color: white;
+    padding: 12px 16px;
+    margin: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.module {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+/* Стили для таблицы списка */
+.result_list tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.result_list th {
+    background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%);
+    color: white;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .field-yandex_maps_link a {
+        display: block;
+        text-align: center;
+        margin: 10px 0;
+    }
+    
+    .result_list .action-checkbox-column {
+        width: 1.5em;
+    }
+    
+    .result_list th,
+    .result_list td {
+        padding: 8px 4px;
+        font-size: 12px;
+    }
+}
+
+/* Анимации */
+.dealer-type-badge,
+.status-active,
+.status-inactive,
+.featured-badge {
+    transition: all 0.3s ease;
+}
+
+.dealer-type-badge:hover,
+.status-active:hover,
+.status-inactive:hover,
+.featured-badge:hover {
+    transform: scale(1.05);
+}

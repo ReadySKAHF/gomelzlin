@@ -1,4 +1,11 @@
 from .base import *
+import environ
+
+env = environ.Env()
+environ.Env.read_env()
+
+# API 
+YANDEX_MAPS_API_KEY = env('YANDEX_MAPS_API_KEY', default='')
 
 # Debug settings
 DEBUG = True

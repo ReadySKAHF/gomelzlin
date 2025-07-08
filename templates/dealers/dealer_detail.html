@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ dealer.name }} - {{ dealer.city }} - ОАО "ГЗЛиН"{% endblock %}
+
+{% block content %}
+<div class="dealer-detail-page">
+    <!-- Хлебные крошки -->
+    <div class="container" style="padding: 1rem 0;">
+        <nav style="font-size: 0.9rem; color: #666;">
+            <a href="{% url 'core:home' %}" style="color: #cb413b; text-decoration: none;">Главная</a>
+            <span style="margin: 0 0.5rem;">•</span>
+            <a href="{% url 'core:dealers' %}" style="color: #cb413b; text-decoration: none;">Дилерские центры</a>
+            <span style="margin: 0 0.5rem;">•</span>
+            <span>{{ dealer.name }}</span>
+        </nav>
+    </div>
+
+    <!-- Заголовок -->
+    <div style="background: linear-gradient(135deg, #cb413b 0%, #a0342e 100%); color: white; padding: 3rem 0; margin-bottom: 3rem;">
+        <div class="container">
+            <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1rem;">
+                <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">
+                    {{ dealer.region|slice:":2"|upper }}
+                </div>
+                <div>
+                    <h1 style="font-size: 2.2rem; font-weight: 700; margin: 0;">{{ dealer.name }}</h1>
+                    {% if dealer.full_name and dealer.full_name != dealer.name %}
+                    <p style="font-size: 1.1rem; opacity: 0.9; margin: 0.5rem 0 0 0;">{{ dealer.full_name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem;">
+                {% if dealer.dealer_type != 'partner' %}
+                <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">
+                    {{ dealer.dealer_type_display }}
+                </span>
+                {% endif %}
+                {% if dealer.is_featured %}
+                <span style="background: rgba(255,193,7,0.9); color: #212529; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem; font-weight: 500;">
+                    ⭐ Рекомендуемый
+                </span>
+                {% endif %}
+                {% if dealer.is_verified %}
+                <span style="background: rgba(40,167,69,0.9); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;">
+                    ✓ Проверенный
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 3rem; margin-bottom: 3rem;">
+            <!-- Основная информация -->
+            <div>
+                <!-- Контактная информация -->
+                <div style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 2.5rem; margin-bottom: 2rem;">
+                    <h2 style="color: #cb413b; font-size: 1.6rem; margin-bottom: 1.5rem; border-bottom: 2px solid #cb413b; padding-bottom: 0.5rem;">
+                        📞 Контактная информация
+                    </h2>
+                    
+                    <div style="display: grid; gap: 1.5rem;">
+                        <!-- Адрес -->
+                        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                📍
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 0.3rem;">Адрес</div>
+                                <div style="color: #666;">
+                                    {{ dealer.region_display }}<br>
+                                    г. {{ dealer.city }}<br>
+                                    {{ dealer.address }}
+                                    {% if dealer.postal_code %}<br>{{ dealer.postal_code }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Телефон -->
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                📞
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 0.3rem;">Телефон</div>
+                                <a href="tel:{{ dealer.phone }}" style="color: #cb413b; text-decoration: none; font-size: 1.1rem; font-weight: 500;">
+                                    {{ dealer.phone }}
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                📧
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 0.3rem;">Email</div>
+                                <a href="mailto:{{ dealer.email }}" style="color: #cb413b; text-decoration: none; font-size: 1.1rem; font-weight: 500;">
+                                    {{ dealer.email }}
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Контактное лицо -->
+                        {% if dealer.contact_person %}
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                👤
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 0.3rem;">Контактное лицо</div>
+                                <div style="color: #666;">
+                                    {{ dealer.contact_person }}
+                                    {% if dealer.position %}<br><small>{{ dealer.position }}</small>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Веб-сайт -->
+                        {% if dealer.website %}
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                🌐
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 0.3rem;">Веб-сайт</div>
+                                <a href="{{ dealer.website }}" target="_blank" style="color: #cb413b; text-decoration: none;">
+                                    {{ dealer.website }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Режим работы -->
+                <div style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 2.5rem; margin-bottom: 2rem;">
+                    <h2 style="color: #cb413b; font-size: 1.6rem; margin-bottom: 1.5rem; border-bottom: 2px solid #cb413b; padding-bottom: 0.5rem;">
+                        🕒 Режим работы
+                    </h2>
+                    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; font-family: monospace; line-height: 1.6; white-space: pre-line;">{{ dealer.working_hours }}</div>
+                </div>
+                
+                <!-- Дополнительная информация -->
+                {% if dealer.description %}
+                <div style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 2.5rem;">
+                    <h2 style="color: #cb413b; font-size: 1.6rem; margin-bottom: 1.5rem; border-bottom: 2px solid #cb413b; padding-bottom: 0.5rem;">
+                        ℹ️ Дополнительная информация
+                    </h2>
+                    <div style="line-height: 1.6; color: #666;">{{ dealer.description|linebreaksbr }}</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Боковая панель -->
+            <div>
+                <!-- Быстрые действия -->
+                <div style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 2rem; margin-bottom: 2rem; position: sticky; top: 2rem;">
+                    <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 1.5rem;">Быстрые действия</h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Кнопка "На карте" -->
+                        <a href="{{ dealer.yandex_maps_url }}" 
+                           target="_blank"
+                           style="background: #cb413b; color: white; padding: 1rem; border-radius: 10px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            🗺️ Открыть на карте
+                        </a>
+                        
+                        <!-- Кнопка "Позвонить" -->
+                        <a href="tel:{{ dealer.phone }}" 
+                           style="background: #28a745; color: white; padding: 1rem; border-radius: 10px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            📞 Позвонить
+                        </a>
+                        
+                        <!-- Кнопка "Написать" -->
+                        <a href="mailto:{{ dealer.email }}" 
+                           style="background: #007bff; color: white; padding: 1rem; border-radius: 10px; text-decoration: none; font-weight: 600; text-align: center; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            📧 Написать письмо
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Информация о дилере -->
+                <div style="background: #f8f9fa; border-radius: 15px; padding: 2rem;">
+                    <h3 style="color: #333; font-size: 1.3rem; margin-bottom: 1.5rem;">О дилере</h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #dee2e6;">
+                            <span style="color: #666;">Тип:</span>
+                            <span style="font-weight: 500;">{{ dealer.dealer_type_display }}</span>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #dee2e6;">
+                            <span style="color: #666;">Область:</span>
+                            <span style="font-weight: 500;">{{ dealer.region_display }}</span>
+                        </div>
+                        
+                        {% if dealer.dealer_code %}
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #dee2e6;">
+                            <span style="color: #666;">Код дилера:</span>
+                            <span style="font-weight: 500; font-family: monospace;">{{ dealer.dealer_code }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0;">
+                            <span style="color: #666;">Статус:</span>
+                            <span style="color: #28a745; font-weight: 500;">✓ Активен</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Навигация -->
+        <div style="margin-top: 3rem; text-align: center;">
+            <a href="{% url 'core:dealers' %}" 
+               style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 1rem 2rem; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">
+                ← Вернуться к списку дилеров
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+@media (max-width: 968px) {
+    .dealer-detail-page .container > div:first-of-type {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+    }
+    
+    .dealer-detail-page .container > div:first-of-type > div:last-child {
+        order: -1;
+    }
+}
+
+.dealer-detail-page a:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}
