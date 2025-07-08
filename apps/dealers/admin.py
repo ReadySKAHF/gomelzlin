@@ -14,6 +14,7 @@ class DealerCenterAdmin(admin.ModelAdmin):
         'phone_link', 
         'email_link',
         'coordinates_status',
+        'map_preview',
         'is_featured',
         'sort_order',
         'status_badge'
@@ -40,18 +41,26 @@ class DealerCenterAdmin(admin.ModelAdmin):
         'created_at', 
         'updated_at',
         'yandex_maps_link',
-        'coordinates_info'
+        'coordinates_info',
+        'map_preview'
     )
     
     list_editable = ('is_featured', 'sort_order')
     list_per_page = 25
 
-    actions = ['make_featured', 'remove_featured', 'activate_dealers', 'deactivate_dealers']
+    actions = [
+        'make_featured', 
+        'remove_featured', 
+        'activate_dealers', 
+        'deactivate_dealers',
+        'copy_coordinates_template'
+    ]
     
     fieldsets = (
         ('Основная информация', {
             'fields': ('name', 'full_name', 'dealer_type', 'dealer_code'),
-            'classes': ('wide',)
+            'classes': ('wide',),
+            'description': 'Выберите "Главный завод" для производственных объектов'
         }),
         ('Контактная информация', {
             'fields': ('contact_person', 'position', 'phone', 'email', 'website'),
@@ -62,9 +71,9 @@ class DealerCenterAdmin(admin.ModelAdmin):
             'classes': ('wide',)
         }),
         ('Координаты и карты', {
-            'fields': ('latitude', 'longitude', 'coordinates_info', 'yandex_maps_link'),
+            'fields': ('latitude', 'longitude', 'coordinates_info', 'yandex_maps_link', 'map_preview'),
             'classes': ('collapse',),
-            'description': 'Координаты используются для точного отображения на карте'
+            'description': 'Координаты используются для точного отображения на карте. Если координаты не заданы, будет использован поиск по адресу.'
         }),
         ('Дополнительная информация', {
             'fields': ('working_hours', 'description'),
@@ -72,7 +81,8 @@ class DealerCenterAdmin(admin.ModelAdmin):
         }),
         ('Настройки отображения', {
             'fields': ('is_featured', 'is_verified', 'is_active', 'sort_order'),
-            'classes': ('wide',)
+            'classes': ('wide',),
+            'description': 'is_featured - показывать в рекомендуемых, sort_order - порядок сортировки (меньше = выше). Заводы автоматически попадают в рекомендуемые.'
         }),
         ('Метаданные', {
             'fields': ('created_at', 'updated_at'),
@@ -83,16 +93,21 @@ class DealerCenterAdmin(admin.ModelAdmin):
     def dealer_type_badge(self, obj):
         """Отображение типа дилера с цветным бэджем"""
         colors = {
-            'official': '#28a745',   
-            'authorized': '#007bff',  
-            'partner': '#ffc107',     
-            'distributor': '#6f42c1' 
+            'factory': '#28a745',  
+            'official': '#007bff',    
+            'authorized': '#17a2b8',  
+            'partner': '#ffc107',      
+            'distributor': '#6f42c1'   
         }
         color = colors.get(obj.dealer_type, '#6c757d')
+
+        icon = '🏭' if obj.dealer_type == 'factory' else '🏪'
+        
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; '
-            'border-radius: 12px; font-size: 11px; font-weight: bold;">{}</span>',
-            color, obj.dealer_type_display
+            'border-radius: 12px; font-size: 11px; font-weight: bold;">'
+            '{} {}</span>',
+            color, icon, obj.dealer_type_display
         )
     dealer_type_badge.short_description = 'Тип дилера'
     dealer_type_badge.admin_order_field = 'dealer_type'
@@ -100,7 +115,10 @@ class DealerCenterAdmin(admin.ModelAdmin):
     def phone_link(self, obj):
         """Ссылка на телефон"""
         if obj.phone:
-            return format_html('<a href="tel:{}">{}</a>', obj.phone, obj.phone)
+            return format_html(
+                '<a href="tel:{}" style="color: #28a745; text-decoration: none;">{}</a>',
+                obj.phone, obj.phone
+            )
         return '-'
     phone_link.short_description = 'Телефон'
     phone_link.admin_order_field = 'phone'
@@ -108,7 +126,10 @@ class DealerCenterAdmin(admin.ModelAdmin):
     def email_link(self, obj):
         """Ссылка на email"""
         if obj.email:
-            return format_html('<a href="mailto:{}">{}</a>', obj.email, obj.email)
+            return format_html(
+                '<a href="mailto:{}" style="color: #007bff; text-decoration: none;">{}</a>',
+                obj.email, obj.email
+            )
         return '-'
     email_link.short_description = 'Email'
     email_link.admin_order_field = 'email'
@@ -117,39 +138,61 @@ class DealerCenterAdmin(admin.ModelAdmin):
         """Статус координат"""
         if obj.has_coordinates:
             return format_html(
-                '<span style="color: #28a745; font-weight: bold;">✓ Есть</span>'
+                '<span style="color: #28a745; font-weight: bold;">✓ Есть</span><br>'
+                '<small style="color: #6c757d;">Lat: {}, Lng: {}</small>',
+                obj.latitude, obj.longitude
             )
-        else:
-            return format_html(
-                '<span style="color: #dc3545; font-weight: bold;">✗ Нет</span>'
-            )
+        return format_html('<span style="color: #dc3545;">✗ Нет</span>')
     coordinates_status.short_description = 'Координаты'
     
-
+    def map_preview(self, obj):
+        """Превью карты"""
+        if obj.has_coordinates:
+            return format_html(
+                '<iframe src="https://yandex.ru/map-widget/v1/?pt={},{}&z=15&l=map" '
+                'width="200" height="150" frameborder="0" style="border-radius: 8px;"></iframe>',
+                obj.longitude, obj.latitude
+            )
+        return format_html(
+            '<div style="width: 200px; height: 150px; background: #f8f9fa; '
+            'border-radius: 8px; display: flex; align-items: center; justify-content: center; '
+            'color: #6c757d; font-size: 12px; text-align: center;">'
+            'Нет координат<br>для превью</div>'
+        )
+    map_preview.short_description = 'Превью на карте'
     
     def status_badge(self, obj):
         """Статус активности"""
         if obj.is_active:
-            return format_html(
-                '<span style="background-color: #28a745; color: white; padding: 2px 6px; '
-                'border-radius: 10px; font-size: 10px; font-weight: bold;">Активен</span>'
-            )
-        else:
-            return format_html(
-                '<span style="background-color: #dc3545; color: white; padding: 2px 6px; '
-                'border-radius: 10px; font-size: 10px; font-weight: bold;">Неактивен</span>'
-            )
+            if obj.is_verified:
+                badge_color = '#28a745' if obj.dealer_type != 'factory' else '#20c997'
+                return format_html(
+                    '<span style="background-color: {}; color: white; padding: 2px 6px; '
+                    'border-radius: 8px; font-size: 10px;">АКТИВЕН ✓</span>',
+                    badge_color
+                )
+            else:
+                return format_html(
+                    '<span style="background-color: #ffc107; color: #333; padding: 2px 6px; '
+                    'border-radius: 8px; font-size: 10px;">НЕ ВЕРИФИЦИРОВАН</span>'
+                )
+        return format_html(
+            '<span style="background-color: #dc3545; color: white; padding: 2px 6px; '
+            'border-radius: 8px; font-size: 10px;">НЕАКТИВЕН</span>'
+        )
     status_badge.short_description = 'Статус'
-    status_badge.admin_order_field = 'is_active'
     
     def yandex_maps_link(self, obj):
         """Ссылка на Яндекс карты"""
         if obj.has_coordinates or obj.address:
+            map_icon = '🏭' if obj.dealer_type == 'factory' else '🗺️'
             return format_html(
                 '<a href="{}" target="_blank" style="background-color: #cb413b; color: white; '
-                'padding: 5px 10px; border-radius: 5px; text-decoration: none; font-weight: bold;">'
-                '🗺️ Открыть на Яндекс картах</a>',
-                obj.yandex_maps_url
+                'padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: bold; '
+                'display: inline-block; margin-bottom: 10px;">'
+                '{} Открыть на Яндекс картах</a><br>'
+                '<small style="color: #6c757d;">Откроется в новой вкладке</small>',
+                obj.yandex_maps_url, map_icon
             )
         return 'Нет данных для отображения на карте'
     yandex_maps_link.short_description = 'Яндекс карты'
@@ -158,45 +201,123 @@ class DealerCenterAdmin(admin.ModelAdmin):
         """Информация о координатах"""
         if obj.has_coordinates:
             return format_html(
-                'Широта: <strong>{}</strong><br>'
-                'Долгота: <strong>{}</strong><br>'
-                '<small style="color: #6c757d;">Координаты заданы, будет показана точная позиция на карте</small>',
+                '<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin: 10px 0;">'
+                '<strong style="color: #155724;">✓ Координаты заданы</strong><br>'
+                '<div style="margin: 10px 0;">'
+                '📍 <strong>Широта:</strong> {}<br>'
+                '📍 <strong>Долгота:</strong> {}'
+                '</div>'
+                '<small style="color: #6c757d;">'
+                'Объект будет показан на карте в точной позиции. '
+                'Убедитесь, что координаты указаны правильно.'
+                '</small></div>',
                 obj.latitude, obj.longitude
             )
         else:
+            type_hint = 'завод' if obj.dealer_type == 'factory' else 'дилер'
             return format_html(
-                '<span style="color: #dc3545;">Координаты не заданы</span><br>'
-                '<small style="color: #6c757d;">Будет использован поиск по адресу: {}, {}</small>',
-                obj.city, obj.address
+                '<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 15px; margin: 10px 0;">'
+                '<strong style="color: #721c24;">⚠️ Координаты не заданы</strong><br>'
+                '<div style="margin: 10px 0;">'
+                '<strong>Будет использован поиск по адресу:</strong><br>'
+                '📍 {}, {}'
+                '</div>'
+                '<small style="color: #6c757d;">'
+                'Рекомендуется указать точные координаты для корректного отображения {} на карте. '
+                'Можете получить координаты на '
+                '<a href="https://yandex.by/maps" target="_blank">Яндекс картах</a>.'
+                '</small></div>',
+                obj.city, obj.address, type_hint
             )
     coordinates_info.short_description = 'Информация о координатах'
 
     def make_featured(self, request, queryset):
         """Сделать рекомендуемыми"""
         count = queryset.update(is_featured=True)
-        self.message_user(request, f'{count} дилеров отмечены как рекомендуемые.')
-    make_featured.short_description = 'Отметить как рекомендуемые'
+        self.message_user(request, f'{count} объектов отмечены как рекомендуемые.')
+    make_featured.short_description = '⭐ Отметить как рекомендуемые'
     
     def remove_featured(self, request, queryset):
         """Убрать из рекомендуемых"""
-        count = queryset.update(is_featured=False)
-        self.message_user(request, f'{count} дилеров убраны из рекомендуемых.')
-    remove_featured.short_description = 'Убрать из рекомендуемых'
+        non_factory_count = queryset.exclude(dealer_type='factory').update(is_featured=False)
+        factory_count = queryset.filter(dealer_type='factory').count()
+        
+        message = f'{non_factory_count} объектов убраны из рекомендуемых.'
+        if factory_count > 0:
+            message += f' Заводы ({factory_count} шт.) остались рекомендуемыми автоматически.'
+        
+        self.message_user(request, message)
+    remove_featured.short_description = '⭐ Убрать из рекомендуемых'
     
     def activate_dealers(self, request, queryset):
         """Активировать дилеров"""
         count = queryset.update(is_active=True)
-        self.message_user(request, f'{count} дилеров активированы.')
-    activate_dealers.short_description = 'Активировать'
+        self.message_user(request, f'{count} объектов активированы.')
+    activate_dealers.short_description = '✅ Активировать'
     
     def deactivate_dealers(self, request, queryset):
         """Деактивировать дилеров"""
         count = queryset.update(is_active=False)
-        self.message_user(request, f'{count} дилеров деактивированы.')
-    deactivate_dealers.short_description = 'Деактивировать'
+        self.message_user(request, f'{count} объектов деактивированы.')
+    deactivate_dealers.short_description = '❌ Деактивировать'
+    
+    def copy_coordinates_template(self, request, queryset):
+        """Шаблон для координат"""
+        coordinates_list = []
+        for obj in queryset:
+            type_icon = '🏭' if obj.dealer_type == 'factory' else '🏪'
+            if obj.has_coordinates:
+                coordinates_list.append(f"{type_icon} {obj.name}: {obj.latitude}, {obj.longitude}")
+            else:
+                coordinates_list.append(f"{type_icon} {obj.name}: НЕТ КООРДИНАТ")
+        
+        self.message_user(
+            request, 
+            f"Координаты выбранных объектов:\n" + "\n".join(coordinates_list)
+        )
+    copy_coordinates_template.short_description = '📋 Показать координаты'
+
+    def save_model(self, request, obj, form, change):
+        """Автоматические настройки при сохранении"""
+        if not obj.dealer_code:
+            obj.dealer_code = obj.generate_dealer_code()
+
+        if obj.dealer_type == 'factory':
+            obj.is_featured = True
+            if obj.sort_order == 0:
+                obj.sort_order = 1
+        
+        super().save_model(request, obj, form, change)
+    
+    def get_queryset(self, request):
+        """Оптимизируем запросы и сортировку"""
+        return super().get_queryset(request).select_related().extra(
+            select={
+                'type_order': """
+                    CASE 
+                        WHEN dealer_type = 'factory' THEN 0 
+                        ELSE 1 
+                    END
+                """
+            }
+        ).order_by('type_order', 'sort_order', 'name')
+    
+    def get_list_filter(self, request):
+        """Обновляем фильтры"""
+        return (
+            ('dealer_type', admin.ChoicesFieldListFilter),
+            'region', 
+            'is_featured', 
+            'is_verified', 
+            'is_active', 
+            'created_at'
+        )
     
     class Media:
         css = {
-            'all': ('admin/css/custom_dealer_admin.css',)
+            'all': (
+                'admin/css/custom_dealer_admin.css',
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+            )
         }
         js = ('admin/js/dealer_admin.js',)

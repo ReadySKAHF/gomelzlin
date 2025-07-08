@@ -12,266 +12,188 @@
             <p style="font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto;">
                 Сеть официальных дилеров ОАО "ГЗЛиН" по всей Республике Беларусь
             </p>
-            {% if total_dealers %}
             <div style="margin-top: 2rem; font-size: 1.1rem;">
                 <span style="background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px;">
-                    📍 Всего дилерских центров: <strong>{{ total_dealers }}</strong>
+                    📍 Всего центров: <strong>{{ total_dealers }}</strong>
+                    {% if factories %}(включая {{ factories|length }} завод{{ factories|length|pluralize:"ов,ов,ов" }}){% endif %}
                 </span>
             </div>
-            {% endif %}
         </div>
     </div>
 
     <div class="container">
         <!-- Карта дилеров -->
         <div style="background: white; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); padding: 2rem; margin-bottom: 3rem;">
-            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem; text-align: center;">🗺️ Карта дилерских центров</h2>
+            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem; text-align: center;">🗺️ Интерактивная карта дилерских центров</h2>
             
-            <!-- Поисковая строка -->
-            <div style="margin-bottom: 2rem;">
-                <div style="position: relative;">
-                    <input type="text" 
-                           id="address-search" 
-                           placeholder="Введите адрес или выберите из списка ниже..."
-                           style="width: 100%; padding: 1rem 3rem 1rem 1rem; border: 2px solid #e9ecef; border-radius: 10px; font-size: 1rem; transition: border-color 0.3s ease;">
-                    <div style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #666; font-size: 1.2rem;">🔍</div>
-                </div>
-                
-                <!-- Выпадающий список с предложениями -->
-                <div id="search-suggestions" style="position: relative; background: white; border: 1px solid #e9ecef; border-top: none; border-radius: 0 0 10px 10px; max-height: 300px; overflow-y: auto; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000;"></div>
-            </div>
-
+            {% if has_dealers_with_coords %}
             <!-- Быстрые ссылки -->
-            <div style="margin-bottom: 2rem;">
+            <div style="margin-bottom: 2rem;" id="quick-links">
                 <h3 style="color: #666; font-size: 1rem; margin-bottom: 1rem; font-weight: 500;">Быстрый переход:</h3>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button class="quick-location" data-address="Гомель, ул. Могилёвская, 16" data-type="factory"
-                            style="background: #cb413b; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">
-                        🏭 Главный завод
-                    </button>
-                    
-                    {% if dealers_by_region %}
-                        {% for region_code, region_dealers in dealers_by_region.items %}
-                            {% for dealer in region_dealers %}
-                                <button class="quick-location" 
-                                        data-address="{{ dealer.city }}, {{ dealer.address }}" 
-                                        data-type="dealer"
-                                        data-name="{{ dealer.name }}"
-                                        data-phone="{{ dealer.phone }}"
-                                        data-email="{{ dealer.email }}"
-                                        style="background: #007bff; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;">
-                                    🏢 {{ dealer.name }}
-                                </button>
-                            {% endfor %}
-                        {% endfor %}
-                    {% endif %}
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;" id="quick-buttons">
                 </div>
             </div>
+            {% endif %}
             
             <!-- Карта -->
-            <div style="position: relative;">
-                <div id="map" style="width: 100%; height: 500px; border-radius: 10px; overflow: hidden;"></div>
+            <div style="position: relative; border: 2px solid #e0e0e0; border-radius: 10px; overflow: hidden;">
+                <div id="map" style="width: 100%; height: 500px; background: #1a1a1a;"></div>
                 
                 <!-- Информационная панель -->
-                <div id="location-info" style="position: absolute; top: 1rem; left: 1rem; background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 300px; display: none;">
+                <div id="location-info" style="position: absolute; top: 1rem; left: 1rem; background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 320px; display: none; z-index: 1000;">
                     <div id="info-content"></div>
-                    <button onclick="hideLocationInfo()" style="position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #666;">×</button>
+                    <button onclick="hideLocationInfo()" style="position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #666; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">×</button>
                 </div>
             </div>
         </div>
 
-        <!-- Список дилерских центров по областям -->
+        <!-- Список дилерских центров -->
         <div style="margin-bottom: 3rem;">
-            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem; text-align: center;">📍 Дилерские центры по областям</h2>
+            <h2 style="color: #333; font-size: 1.8rem; margin-bottom: 2rem; text-align: center;">📋 Наши дилерские центры</h2>
             
-            {% if dealers_by_region %}
-                {% for region_code, region_dealers in dealers_by_region.items %}
-                    <div style="margin-bottom: 3rem;">
-                        <h3 style="color: #cb413b; font-size: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid #cb413b;">
-                            {{ region_dealers.0.region_display }}
-                            <span style="font-size: 0.9rem; color: #666; font-weight: normal;">({{ region_dealers|length }} центр{{ region_dealers|length|pluralize:",,ов" }})</span>
-                        </h3>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
-                            {% for dealer in region_dealers %}
-                            <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 2rem; border-left: 4px solid #cb413b; transition: transform 0.3s ease, box-shadow 0.3s ease;">
-                                <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
-                                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #cb413b, #a0342e); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; font-weight: bold; flex-shrink: 0;">
-                                        {{ dealer.region|slice:":2"|upper }}
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <h4 style="color: #cb413b; font-size: 1.3rem; font-weight: 600; margin: 0 0 0.5rem 0;">
-                                            {{ dealer.name }}
-                                        </h4>
-                                        {% if dealer.dealer_type_display != 'Партнер' %}
-                                        <div style="display: inline-block; background: #e3f2fd; color: #1976d2; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.5rem;">
-                                            {{ dealer.dealer_type_display }}
-                                        </div>
-                                        {% endif %}
-                                        {% if dealer.is_featured %}
-                                        <div style="display: inline-block; background: #fff3cd; color: #856404; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.5rem; margin-left: 0.5rem;">
-                                            ⭐ Рекомендуемый
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                <!-- Контактная информация -->
-                                <div style="space-y: 0.8rem;">
-                                    <div style="display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 0.8rem;">
-                                        <span style="color: #666; font-size: 1.1rem;">📍</span>
-                                        <div>
-                                            <div style="font-weight: 500; color: #333;">{{ dealer.city }}</div>
-                                            <div style="color: #666; font-size: 0.9rem;">{{ dealer.address }}</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem;">
-                                        <span style="color: #666; font-size: 1.1rem;">📞</span>
-                                        <a href="tel:{{ dealer.phone }}" style="color: #cb413b; text-decoration: none; font-weight: 500;">
-                                            {{ dealer.phone }}
-                                        </a>
-                                    </div>
-                                    
-                                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem;">
-                                        <span style="color: #666; font-size: 1.1rem;">📧</span>
-                                        <a href="mailto:{{ dealer.email }}" style="color: #cb413b; text-decoration: none; font-weight: 500;">
-                                            {{ dealer.email }}
-                                        </a>
-                                    </div>
-                                    
-                                    {% if dealer.contact_person %}
-                                    <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem;">
-                                        <span style="color: #666; font-size: 1.1rem;">👤</span>
-                                        <div>
-                                            <span style="font-weight: 500;">{{ dealer.contact_person }}</span>
-                                            {% if dealer.position %}
-                                            <span style="color: #666; font-size: 0.9rem;"> - {{ dealer.position }}</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <!-- Режим работы -->
-                                    <div style="display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 1.5rem;">
-                                        <span style="color: #666; font-size: 1.1rem;">🕒</span>
-                                        <div style="color: #666; font-size: 0.9rem; line-height: 1.4;">
-                                            {{ dealer.working_hours|linebreaksbr }}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Кнопки действий -->
-                                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                                    <!-- Кнопка "На карте" - ведет на Яндекс карты -->
-                                    <a href="{{ dealer.yandex_maps_url }}" 
-                                       target="_blank"
-                                       style="background: #cb413b; color: white; padding: 0.7rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.3s ease; flex: 1; justify-content: center;">
-                                        🗺️ На карте
-                                    </a>
-                                    
-                                    <!-- Кнопка "Позвонить" -->
-                                    <a href="tel:{{ dealer.phone }}" 
-                                       style="background: transparent; color: #cb413b; border: 2px solid #cb413b; padding: 0.7rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; flex: 1; justify-content: center;">
-                                        📞 Позвонить
-                                    </a>
-                                </div>
-                            </div>
-                            {% endfor %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem;">
+                <!-- Заводы из БД -->
+                {% for factory in factories %}
+                <div class="dealer-card factory" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; border-radius: 15px; padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 0.5rem; border-radius: 8px; font-size: 1.5rem;">🏭</div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.2rem;">{{ factory.name }}</h3>
+                            <div style="font-size: 0.8rem; opacity: 0.9; font-weight: 600; text-transform: uppercase;">{{ factory.dealer_type_display }}</div>
                         </div>
                     </div>
+                    
+                    <div style="margin-bottom: 1.5rem; line-height: 1.6; opacity: 0.95;">
+                        <div style="margin-bottom: 0.5rem;"><strong>📍 Адрес:</strong> {{ factory.full_address }}</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>📞 Телефон:</strong> {{ factory.phone }}</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>📧 Email:</strong> {{ factory.email }}</div>
+                        {% if factory.working_hours %}
+                        <div><strong>🕒 Время работы:</strong> {{ factory.working_hours|linebreaksbr }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        {% if factory.has_coordinates %}
+                        <a href="https://yandex.by/maps/?pt={{ factory.longitude }},{{ factory.latitude }}&z=16&l=map" target="_blank" 
+                           style="background: rgba(255,255,255,0.2); color: white; padding: 0.75rem; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            🗺️ На карте
+                        </a>
+                        {% else %}
+                        <a href="{{ factory.yandex_maps_url }}" target="_blank" 
+                           style="background: rgba(255,255,255,0.2); color: white; padding: 0.75rem; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            🗺️ На карте
+                        </a>
+                        {% endif %}
+                        <a href="tel:{{ factory.phone }}" 
+                           style="background: rgba(255,255,255,0.2); color: white; padding: 0.75rem; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            📞 Позвонить
+                        </a>
+                    </div>
+                </div>
                 {% endfor %}
-            {% else %}
-                <div style="text-align: center; padding: 3rem; color: #666;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🏢</div>
-                    <h3>Дилерские центры не найдены</h3>
-                    <p>В настоящее время дилерские центры не добавлены в систему.</p>
-                    <a href="/django-admin/dealers/dealercenter/" style="background: #cb413b; color: white; padding: 0.8rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 1rem; display: inline-block;">
-                        ➕ Добавить дилеров в админке
+
+                <!-- Дилерские центры из БД -->
+                {% for dealer in regular_dealers %}
+                <div class="dealer-card" style="background: white; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 2rem; transition: all 0.3s ease;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        {% if dealer.dealer_type == 'official' %}
+                            <div style="background: #28a745; color: white; padding: 0.5rem; border-radius: 8px; font-size: 1.5rem;">🏪</div>
+                        {% elif dealer.dealer_type == 'authorized' %}
+                            <div style="background: #007bff; color: white; padding: 0.5rem; border-radius: 8px; font-size: 1.5rem;">🏪</div>
+                        {% elif dealer.dealer_type == 'partner' %}
+                            <div style="background: #ffc107; color: #333; padding: 0.5rem; border-radius: 8px; font-size: 1.5rem;">🏪</div>
+                        {% elif dealer.dealer_type == 'distributor' %}
+                            <div style="background: #6f42c1; color: white; padding: 0.5rem; border-radius: 8px; font-size: 1.5rem;">🏪</div>
+                        {% else %}
+                            <div style="background: #6c757d; color: white; padding: 0.5rem; border-radius: 8px; font-size: 1.5rem;">🏪</div>
+                        {% endif %}
+                        <div>
+                            <h3 style="color: #333; margin: 0; font-size: 1.2rem;">{{ dealer.name }}</h3>
+                            <div style="color: {% if dealer.dealer_type == 'official' %}#28a745{% elif dealer.dealer_type == 'authorized' %}#007bff{% elif dealer.dealer_type == 'partner' %}#ffc107{% elif dealer.dealer_type == 'distributor' %}#6f42c1{% else %}#6c757d{% endif %}; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">
+                                {{ dealer.dealer_type_display }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem; color: #666; line-height: 1.6;">
+                        <div style="margin-bottom: 0.5rem;"><strong>📍 Адрес:</strong> {{ dealer.full_address }}</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>📞 Телефон:</strong> {{ dealer.phone }}</div>
+                        <div style="margin-bottom: 0.5rem;"><strong>📧 Email:</strong> {{ dealer.email }}</div>
+                        {% if dealer.working_hours %}
+                        <div><strong>🕒 Время работы:</strong> {{ dealer.working_hours|linebreaksbr }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        {% if dealer.has_coordinates %}
+                        <a href="https://yandex.by/maps/?pt={{ dealer.longitude }},{{ dealer.latitude }}&z=16&l=map" target="_blank" 
+                           style="background: #cb413b; color: white; padding: 0.75rem; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            🗺️ На карте
+                        </a>
+                        {% else %}
+                        <a href="{{ dealer.yandex_maps_url }}" target="_blank" 
+                           style="background: #cb413b; color: white; padding: 0.75rem; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            🗺️ На карте
+                        </a>
+                        {% endif %}
+                        <a href="tel:{{ dealer.phone }}" 
+                           style="background: #28a745; color: white; padding: 0.75rem; border-radius: 8px; text-decoration: none; font-weight: 600; text-align: center; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            📞 Позвонить
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Если нет дилеров -->
+                {% if not factories and not regular_dealers %}
+                <div style="grid-column: 1 / -1; background: #f8f9fa; border-radius: 10px; padding: 3rem; text-align: center; color: #666;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🏪</div>
+                    <h3>Дилерские центры скоро появятся</h3>
+                    <p>Мы работаем над расширением сети дилеров. Пока можете связаться с нами напрямую.</p>
+                    <a href="{% url 'core:contacts' %}" style="background: #cb413b; color: white; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 1rem;">
+                        📞 Связаться с нами
                     </a>
                 </div>
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
 
-        <!-- Рекомендуемые дилеры -->
-        {% if featured_dealers %}
-        <div style="background: linear-gradient(135deg, #fff7e6, #ffeaa7); border-radius: 15px; padding: 2rem; margin-bottom: 3rem;">
-            <h3 style="color: #d63031; font-size: 1.6rem; margin-bottom: 1.5rem; text-align: center;">
-                ⭐ Рекомендуемые дилерские центры
-            </h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
-                {% for dealer in featured_dealers %}
-                <div style="background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                    <h4 style="color: #cb413b; margin-bottom: 0.5rem;">{{ dealer.name }}</h4>
-                    <p style="color: #666; margin-bottom: 1rem;">{{ dealer.city }}, {{ dealer.address }}</p>
-                    <a href="{{ dealer.yandex_maps_url }}" target="_blank" 
-                       style="background: #cb413b; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                        🗺️ На карте
-                    </a>
-                </div>
-                {% endfor %}
-            </div>
+        <!-- Если нет дилеров с координатами -->
+        {% if not has_dealers_with_coords %}
+        <div style="background: #f8f9fa; border-radius: 10px; padding: 2rem; text-align: center; color: #666; margin-bottom: 2rem;">
+            <div style="font-size: 2rem; margin-bottom: 1rem;">🗺️</div>
+            <h3>Карта будет доступна после добавления координат</h3>
+            <p>Добавьте координаты дилерских центров в админке для отображения интерактивной карты.</p>
         </div>
         {% endif %}
     </div>
 </div>
 
 <style>
-/* Hover эффекты */
 .dealer-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
 }
 
+.dealer-card.factory:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3) !important;
+}
+
 .dealer-card a:hover {
     opacity: 0.8;
+    transform: translateY(-1px);
 }
 
-/* Стили для поиска */
-#address-search:focus {
-    outline: none;
-    border-color: #cb413b;
-    box-shadow: 0 0 0 3px rgba(203, 65, 59, 0.1);
-}
-
-/* Стили для предложений поиска */
-.suggestion-item {
-    padding: 1rem;
-    border-bottom: 1px solid #f1f1f1;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.suggestion-item:hover {
-    background-color: #f8f9fa;
-}
-
-.suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.suggestion-main {
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 0.3rem;
-}
-
-.suggestion-details {
-    font-size: 0.85rem;
-    color: #666;
-}
-
-/* Стили для быстрых кнопок */
 .quick-location:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .quick-location:active {
     transform: translateY(0);
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .dealers-page .container {
         padding: 0 1rem;
@@ -279,14 +201,6 @@
     
     .dealer-card {
         padding: 1.5rem !important;
-    }
-    
-    .dealer-card > div:last-child {
-        flex-direction: column;
-    }
-    
-    .dealer-card > div:last-child a {
-        text-align: center;
     }
     
     .quick-location {
@@ -305,102 +219,210 @@
 </style>
 
 <script>
+const dealersData = {{ dealers_json|safe }};
+
+let yandexMap = null;
+let markersCollection = null;
+
+function generateQuickButtons() {
+    const quickButtonsContainer = document.getElementById('quick-buttons');
+    if (!quickButtonsContainer) return;
+    
+    dealersData.forEach((dealer, index) => {
+        const button = document.createElement('button');
+        button.className = 'quick-location';
+        button.dataset.index = index;
+        
+        const icon = dealer.is_factory ? '🏭' : '🏪';
+        const bgColor = dealer.is_factory ? '#28a745' : '#4285f4';
+        const text = dealer.is_factory ? dealer.name : dealer.city;
+        
+        button.innerHTML = `${icon} ${text}`;
+        button.style.cssText = `
+            background: ${bgColor}; 
+            color: white; 
+            border: none; 
+            padding: 0.6rem 1.2rem; 
+            border-radius: 8px; 
+            font-size: 0.9rem; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+        `;
+        
+        button.addEventListener('click', function() {
+            const dealerIndex = parseInt(this.dataset.index);
+            showLocationInfo(dealerIndex);
+            
+            if (yandexMap && dealersData[dealerIndex]) {
+                const coords = dealersData[dealerIndex].coords;
+                yandexMap.setCenter(coords, 14, { duration: 1000 });
+            }
+        });
+        
+        quickButtonsContainer.appendChild(button);
+    });
+}
+
 function loadYandexMaps() {
-    {% if YANDEX_MAPS_API_KEY %}
+    if (dealersData.length === 0) {
+        showMapError('Нет дилеров с координатами для отображения');
+        return;
+    }
+    
     const script = document.createElement('script');
-    script.src = 'https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY }}&lang=ru_RU';
+    script.src = 'https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY|default:"YOUR_API_KEY" }}&lang=ru_RU';
     script.onload = function() {
-        initMap();
+        ymaps.ready(initMap);
     };
     script.onerror = function() {
-        showMapError('Ошибка загрузки карт. Проверьте подключение к интернету.');
+        showMapError('Ошибка загрузки API карт. Проверьте подключение к интернету.');
     };
     document.head.appendChild(script);
-    {% else %}
-    showMapError('API ключ не настроен');
-    {% endif %}
 }
 
 function showMapError(message) {
     const mapDiv = document.getElementById('map');
     mapDiv.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: center; height: 100%; text-align: center; color: #666; background: #f8f9fa; border-radius: 10px;">
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; text-align: center; color: #fff; background: #1a1a1a;">
             <div>
-                <div style="font-size: 2rem; margin-bottom: 1rem;">🗺️</div>
-                <div style="font-weight: 600; margin-bottom: 0.5rem;">Карта временно недоступна</div>
-                <div style="font-size: 0.9rem; margin-bottom: 1rem;">${message}</div>
-                <a href="https://yandex.by/maps/?text=Гомель%2C%20ул.%20Могилевская%2C%2016" target="_blank" 
-                   style="color: #cb413b; text-decoration: none; font-weight: 500;">📍 Открыть завод на Яндекс картах</a>
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+                <div style="font-weight: 600; margin-bottom: 0.5rem; font-size: 1.2rem;">Карта временно недоступна</div>
+                <div style="font-size: 0.9rem; margin-bottom: 1.5rem; opacity: 0.8;">${message}</div>
+                <a href="{% url 'core:contacts' %}" style="color: #28a745; text-decoration: none; font-weight: 500; background: rgba(40, 167, 69, 0.1); padding: 0.75rem 1.5rem; border-radius: 8px; border: 1px solid #28a745;">
+                    📞 Связаться с нами
+                </a>
             </div>
         </div>
     `;
 }
 
 function initMap() {
-    if (typeof ymaps === 'undefined') {
-        showMapError('Яндекс карты не загрузились');
-        return;
-    }
-
-    ymaps.ready(function () {
-        const myMap = new ymaps.Map('map', {
-            center: [52.4345, 30.9754],
-            zoom: 12,
-            controls: ['zoomControl', 'fullscreenControl', 'typeSelector']
+    try {
+        yandexMap = new ymaps.Map('map', {
+            center: [53.5, 28.8], 
+            zoom: 7,
+            controls: ['zoomControl', 'typeSelector', 'fullscreenControl']
+        }, {
+            searchControlProvider: 'yandex#search'
         });
 
-        ymaps.geocode('Гомель, ул. Могилёвская, 16')
-            .then(function (res) {
-                const firstGeoObject = res.geoObjects.get(0);
-                const coords = firstGeoObject.geometry.getCoordinates();
+        yandexMap.options.set('theme', 'dark');
 
-                const factoryPlacemark = new ymaps.Placemark(coords, {
-                    balloonContentHeader: '<strong style="color: #cb413b;">ОАО "ГЗЛиН"</strong>',
-                    balloonContentBody: 
-                        '<div style="padding: 10px;">' +
-                        '<p><strong>Адрес:</strong> г. Гомель, ул. Могилёвская, 16</p>' +
-                        '<p><strong>Тип:</strong> Главный завод</p>' +
-                        '<p><strong>Телефон:</strong> <a href="tel:+375232123456">+375 232 12-34-56</a></p>' +
-                        '<p><strong>Email:</strong> <a href="mailto:info@gomelzlin.by">info@gomelzlin.by</a></p>' +
-                        '<hr style="margin: 10px 0;">' +
-                        '<p style="margin: 0;"><a href="https://yandex.by/maps/?text=Гомель%2C%20ул.%20Могилёвская%2C%2016" target="_blank" style="color: #cb413b; text-decoration: none;">🗺️ Открыть в Яндекс картах</a></p>' +
-                        '</div>',
-                    balloonContentFooter: '<small>Гомельский завод литейных изделий и нормалей</small>',
-                    hintContent: 'ОАО "ГЗЛиН" - Главный завод'
-                }, {
-                    preset: 'islands#redDotIcon',
-                    iconColor: '#cb413b'
-                });
+        markersCollection = new ymaps.GeoObjectCollection();
 
-                myMap.geoObjects.add(factoryPlacemark);
-                myMap.setCenter(coords, 15);
-            })
-            .catch(function (error) {
-                const fallbackCoords = [52.4298, 30.9754];
-                
-                const factoryPlacemark = new ymaps.Placemark(fallbackCoords, {
-                    balloonContentHeader: '<strong style="color: #cb413b;">ОАО "ГЗЛиН"</strong>',
-                    balloonContentBody: 
-                        '<div style="padding: 10px;">' +
-                        '<p><strong>Адрес:</strong> г. Гомель, ул. Могилёвская, 16</p>' +
-                        '<p><strong>Тип:</strong> Главный завод</p>' +
-                        '<p><strong>Телефон:</strong> <a href="tel:+375232123456">+375 232 12-34-56</a></p>' +
-                        '<p><strong>Email:</strong> <a href="mailto:info@gomelzlin.by">info@gomelzlin.by</a></p>' +
-                        '</div>',
-                    hintContent: 'ОАО "ГЗЛиН" - Главный завод'
-                }, {
-                    preset: 'islands#redDotIcon',
-                    iconColor: '#cb413b'
-                });
-
-                myMap.geoObjects.add(factoryPlacemark);
-                myMap.setCenter(fallbackCoords, 15);
+        dealersData.forEach((dealer, index) => {
+            if (!dealer.coords || dealer.coords.length !== 2) return;
+            
+            const placemark = new ymaps.Placemark(dealer.coords, {
+                balloonContentHeader: `<strong style="color: ${dealer.is_factory ? '#28a745' : '#4285f4'};">${dealer.name}</strong>`,
+                balloonContentBody: `
+                    <div style="padding: 10px; line-height: 1.5;">
+                        <div style="margin-bottom: 8px;"><strong>📍 Адрес:</strong><br>${dealer.address}</div>
+                        <div style="margin-bottom: 8px;"><strong>📞 Телефон:</strong><br>
+                            <a href="tel:${dealer.phone}" style="color: #28a745; text-decoration: none;">${dealer.phone}</a>
+                        </div>
+                        <div style="margin-bottom: 8px;"><strong>📧 Email:</strong><br>
+                            <a href="mailto:${dealer.email}" style="color: #4285f4; text-decoration: none;">${dealer.email}</a>
+                        </div>
+                        ${dealer.working_hours ? `<div style="margin-bottom: 8px;"><strong>🕒 Время работы:</strong><br>${dealer.working_hours}</div>` : ''}
+                        <div style="margin-top: 10px;">
+                            <a href="https://yandex.by/maps/?pt=${dealer.coords[1]},${dealer.coords[0]}&z=16&l=map" target="_blank" 
+                               style="background: #cb413b; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px;">
+                                🗺️ Открыть в Яндекс картах
+                            </a>
+                        </div>
+                    </div>
+                `,
+                hintContent: dealer.name
+            }, {
+                preset: dealer.is_factory ? 'islands#greenIcon' : 'islands#blueIcon',
+                iconContent: dealer.is_factory ? '🏭' : '🏪'
             });
-    });
+
+            placemark.events.add('click', function() {
+                showLocationInfo(index);
+            });
+
+            markersCollection.add(placemark);
+        });
+
+        yandexMap.geoObjects.add(markersCollection);
+
+        if (markersCollection.getLength() > 0) {
+            yandexMap.setBounds(markersCollection.getBounds(), {
+                checkZoomRange: true,
+                zoomMargin: 30
+            });
+        }
+
+        console.log('Карта успешно загружена с', dealersData.length, 'маркерами!');
+
+    } catch (error) {
+        console.error('Ошибка инициализации карты:', error);
+        showMapError('Ошибка инициализации. Попробуйте обновить страницу.');
+    }
+}
+
+function showLocationInfo(dealerIndex) {
+    const dealer = dealersData[dealerIndex];
+    if (!dealer) return;
+    
+    const infoPanel = document.getElementById('location-info');
+    const infoContent = document.getElementById('info-content');
+    
+    const icon = dealer.is_factory ? '🏭' : '🏪';
+    const iconColor = dealer.is_factory ? '#28a745' : '#4285f4';
+    
+    infoContent.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: #333; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="color: ${iconColor};">${icon}</span> ${dealer.name}
+            </h3>
+            <div style="color: #666; font-size: 0.85rem; margin-top: 0.25rem;">${dealer.description}</div>
+        </div>
+        
+        <div style="margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.5;">
+            <div style="margin-bottom: 0.5rem;">
+                <strong>📍 Адрес:</strong><br>
+                ${dealer.address}
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+                <strong>📞 Телефон:</strong><br>
+                <a href="tel:${dealer.phone}" style="color: #28a745; text-decoration: none;">${dealer.phone}</a>
+            </div>
+            <div style="margin-bottom: 0.5rem;">
+                <strong>📧 Email:</strong><br>
+                <a href="mailto:${dealer.email}" style="color: #4285f4; text-decoration: none;">${dealer.email}</a>
+            </div>
+            ${dealer.working_hours ? `<div style="margin-bottom: 0.5rem;"><strong>🕒 Время работы:</strong><br>${dealer.working_hours}</div>` : ''}
+        </div>
+        
+        <div style="display: flex; gap: 0.5rem;">
+            <a href="https://yandex.by/maps/?pt=${dealer.coords[1]},${dealer.coords[0]}&z=16&l=map" target="_blank" 
+               style="background: #cb413b; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.8rem; flex: 1; text-align: center;">
+                🗺️ На карте
+            </a>
+            <a href="tel:${dealer.phone}" 
+               style="background: #28a745; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.8rem; flex: 1; text-align: center;">
+                📞 Звонок
+            </a>
+        </div>
+    `;
+    
+    infoPanel.style.display = 'block';
+}
+
+function hideLocationInfo() {
+    document.getElementById('location-info').style.display = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Загружено дилеров из БД:', dealersData.length);
+
+    generateQuickButtons();
+
     loadYandexMaps();
 });
 </script>
+
 {% endblock %}

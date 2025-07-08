@@ -5,7 +5,6 @@ from apps.core.models import AbstractBaseModel
 from django.urls import reverse
 import urllib.parse
 
-
 class DealerCenterManager(models.Manager):
     """Менеджер для модели DealerCenter"""
     
@@ -20,6 +19,14 @@ class DealerCenterManager(models.Manager):
     def featured(self):
         """Рекомендуемые дилеры"""
         return self.active().filter(is_featured=True)
+    
+    def factories(self):
+        """Заводы"""
+        return self.active().filter(dealer_type='factory')
+    
+    def dealers_only(self):
+        """Только дилеры (без заводов)"""
+        return self.active().exclude(dealer_type='factory')
 
 
 class DealerCenter(AbstractBaseModel):
@@ -27,6 +34,7 @@ class DealerCenter(AbstractBaseModel):
     Модель дилерского центра
     """
     DEALER_TYPES = [
+        ('factory', _('Главный завод')),
         ('official', _('Официальный дилер')),
         ('authorized', _('Авторизованный дилер')),
         ('partner', _('Партнер')),
@@ -56,7 +64,7 @@ class DealerCenter(AbstractBaseModel):
         _('Тип дилера'),
         max_length=20,
         choices=DEALER_TYPES,
-        default='partner'
+        default='official'
     )
     dealer_code = models.CharField(
         _('Код дилера'),
@@ -156,7 +164,8 @@ class DealerCenter(AbstractBaseModel):
     )
     sort_order = models.PositiveIntegerField(
         _('Порядок сортировки'),
-        default=0
+        default=0,
+        help_text=_('Чем меньше число, тем выше в списке. Заводы всегда показываются первыми.')
     )
     
     objects = DealerCenterManager()
@@ -177,6 +186,12 @@ class DealerCenter(AbstractBaseModel):
     def save(self, *args, **kwargs):
         if not self.dealer_code:
             self.dealer_code = self.generate_dealer_code()
+        
+        if self.dealer_type == 'factory':
+            self.is_featured = True
+            if self.sort_order == 0:
+                self.sort_order = 1  
+        
         super().save(*args, **kwargs)
     
     def generate_dealer_code(self):
@@ -184,16 +199,20 @@ class DealerCenter(AbstractBaseModel):
         import random
         import string
         
-        region_code = self.region[:2].upper()
-        city_code = self.city[:2].upper()
+        if self.dealer_type == 'factory':
+            prefix = 'FAC'
+        else:
+            region_code = self.region[:2].upper()
+            city_code = self.city[:2].upper()
+            prefix = f'{region_code}{city_code}'
         
         for i in range(1, 1000):
-            code = f'{region_code}{city_code}{i:03d}'
+            code = f'{prefix}{i:03d}'
             if not DealerCenter.objects.filter(dealer_code=code).exists():
                 return code
         
         random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=3))
-        return f'{region_code}{city_code}{random_part}'
+        return f'{prefix}{random_part}'
     
     @property
     def full_address(self):
@@ -225,6 +244,11 @@ class DealerCenter(AbstractBaseModel):
     def dealer_type_display(self):
         """Отображение типа дилера"""
         return dict(self.DEALER_TYPES).get(self.dealer_type, self.dealer_type)
+    
+    @property
+    def is_factory(self):
+        """Проверяет, является ли объект заводом"""
+        return self.dealer_type == 'factory'
     
     def get_absolute_url(self):
         """Абсолютный URL дилера"""
